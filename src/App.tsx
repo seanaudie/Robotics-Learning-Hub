@@ -415,7 +415,7 @@ export default function App() {
                   className="flex items-center gap-3 text-left hover:opacity-85 active:scale-[0.99] transition-all cursor-pointer select-none group focus:outline-none"
                   title="Return to Homepage"
                 >
-                  <PremiumLogo className="w-8 h-8 group-hover:scale-105 transition-transform duration-200" glow={true} />
+                  <PremiumLogo className="w-8 h-8 md:hidden group-hover:scale-105 transition-transform duration-200" glow={true} />
                   <div>
                     <div className="flex items-center gap-1.5">
                       <span className="font-sans font-extrabold text-[15px] sm:text-lg tracking-tight text-white group-hover:text-sky-300 transition-colors">Robotics Learning Hub</span>
