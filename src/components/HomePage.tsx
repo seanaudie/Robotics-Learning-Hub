@@ -191,7 +191,7 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "explore
           </div>
 
           <div className="flex flex-col items-center justify-center gap-4 mb-2">
-            <PremiumLogo className="w-16 h-16 md:w-20 md:h-20" glow={true} />
+            <PremiumLogo className="w-16 h-16 md:hidden" glow={true} />
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white via-slate-100 to-slate-400 leading-none uppercase select-none text-center">
               ROBOTICS LEARNING HUB
             </h1>

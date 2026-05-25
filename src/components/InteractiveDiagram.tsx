@@ -4,7 +4,7 @@ import { RoboticPart } from "../types";
 import { Settings, Eye, HelpCircle, Activity, ZoomIn, Camera, Layers, Terminal, Info } from "lucide-react";
 
 // Generated and high-quality premium image reference resolver
-const getRealImagePath = (partId: string) => {
+export const getRealImagePath = (partId: string) => {
   if (partId === "controller_arduino") {
     return "/src/assets/images/photo_arduino_uno_1779705012697.png";
   }
@@ -169,6 +169,12 @@ export default function InteractiveDiagram({
   
   // Safe resolved active view mode
   const activeMode = hasHotspots ? viewMode : (viewMode === "crosssection" ? "realphoto" : viewMode);
+
+  const [isPhotoLoading, setIsPhotoLoading] = useState(true);
+
+  React.useEffect(() => {
+    setIsPhotoLoading(true);
+  }, [selectedPart.id]);
 
   // Renders beautiful, fully custom vector visual schematics based on selected component
   const renderSVGDiagram = () => {
@@ -1588,11 +1594,31 @@ export default function InteractiveDiagram({
             {/* Real Hardware Photo Display */}
             <div className="md:col-span-7 flex flex-col justify-center items-center bg-slate-950/80 rounded-lg p-4 border border-slate-900 relative min-h-[360px] md:min-h-[480px] overflow-hidden">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(14,165,233,0.04)_0%,_transparent_75%)] pointer-events-none" />
+              
+              {isPhotoLoading && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 rounded-lg z-15">
+                  <div className="relative w-16 h-16 mb-3 flex items-center justify-center">
+                    <div className="absolute inset-0 border-2 border-sky-500/10 rounded-full animate-ping" />
+                    <div className="absolute inset-0 border-2 border-t-sky-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin" />
+                    <Camera className="w-5 h-5 text-sky-400" />
+                  </div>
+                  <span className="font-mono text-[10px] text-sky-400 font-extrabold tracking-widest uppercase animate-pulse">
+                    RECEIVING SIGNAL...
+                  </span>
+                  <span className="font-mono text-[8px] text-slate-500 mt-1 uppercase tracking-wider">
+                    Resolving physical package profile
+                  </span>
+                </div>
+              )}
+
               <img
                 src={getRealImagePath(selectedPart.id)}
                 alt={selectedPart.name}
                 referrerPolicy="no-referrer"
-                className="w-full h-full max-h-[340px] md:max-h-[420px] object-contain rounded-lg shadow-2xl border border-slate-900 hover:scale-[1.015] transition-all duration-500 mx-auto"
+                onLoad={() => setIsPhotoLoading(false)}
+                className={`w-full h-full max-h-[340px] md:max-h-[420px] object-contain rounded-lg shadow-2xl border border-slate-900 hover:scale-[1.015] transition-all duration-500 mx-auto ${
+                  isPhotoLoading ? "opacity-0 scale-95" : "opacity-100 scale-100"
+                }`}
               />
             </div>
             

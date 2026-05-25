@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from "react";
 import { ROBOTIC_PARTS } from "./data";
 import { RoboticPart, ChatMessage } from "./types";
-import InteractiveDiagram from "./components/InteractiveDiagram";
+import InteractiveDiagram, { getRealImagePath } from "./components/InteractiveDiagram";
 import RoboticsGuide from "./components/RoboticsGuide";
 import AIChatTutor from "./components/AIChatTutor";
 import AIOutputRenderer from "./components/AIOutputRenderer";
@@ -194,6 +194,36 @@ export default function App() {
 
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  // Eagerly preload all high-definition hardware images in the background on initial mount
+  useEffect(() => {
+    const preloadAllImages = () => {
+      if (!ROBOTIC_PARTS) return;
+      
+      // Loop over every parts configuration and preload its respective photographic asset
+      ROBOTIC_PARTS.forEach((part) => {
+        try {
+          const path = getRealImagePath(part.id);
+          if (path) {
+            const img = new Image();
+            img.src = path;
+          }
+        } catch (e) {
+          // Fail gracefully if path resolution has any issues
+          console.warn("Preloading failed for part:", part.id, e);
+        }
+      });
+    };
+
+    if (typeof window !== "undefined") {
+      // Use requestIdleCallback if supported to avoid blocking main thread start animations, otherwise defer
+      if ("requestIdleCallback" in window) {
+        (window as any).requestIdleCallback(() => preloadAllImages());
+      } else {
+        setTimeout(preloadAllImages, 1500);
+      }
+    }
   }, []);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [selectedPartId, setSelectedPartId] = useState<string>("controller_arduino");
