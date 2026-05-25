@@ -6,135 +6,135 @@ import { Settings, Eye, HelpCircle, Activity, ZoomIn, Camera, Layers, Terminal, 
 // Generated and high-quality premium image reference resolver
 export const getRealImagePath = (partId: string) => {
   if (partId === "controller_arduino") {
-    return "/src/assets/images/photo_arduino_uno_1779705012697.png";
+    return "/images/photo_arduino_uno_1779705012697.png";
   }
   if (partId === "actuator_servo_sg90") {
-    return "/src/assets/images/photo_servo_sg90_1779705035399.png";
+    return "/images/photo_servo_sg90_1779705035399.png";
   }
   if (partId === "sensor_ultrasonic") {
-    return "/src/assets/images/photo_ultrasonic_hcsr04_1779705055934.png";
+    return "/images/photo_ultrasonic_hcsr04_1779705055934.png";
   }
   if (partId === "controller_esp32") {
-    return "/src/assets/images/photo_esp32_dev_module_1779710601750.png";
+    return "/images/photo_esp32_dev_module_1779710601750.png";
   }
   if (partId === "controller_driver_l298n") {
-    return "/src/assets/images/photo_l298n_driver_1779710618145.png";
+    return "/images/photo_l298n_driver_1779710618145.png";
   }
   if (partId === "actuator_dc_geared") {
-    return "/src/assets/images/photo_dc_geared_motor_1779710634180.png";
+    return "/images/photo_dc_geared_motor_1779710634180.png";
   }
   if (partId === "actuator_stepper") {
-    return "/src/assets/images/photo_stepper_nema17_1779710651874.png";
+    return "/images/photo_stepper_nema17_1779710651874.png";
   }
   if (partId === "sensor_imu_mpu6050") {
-    return "/src/assets/images/photo_mpu6050_imu_1779710668096.png";
+    return "/images/photo_mpu6050_imu_1779710668096.png";
   }
   if (partId === "sensor_camera") {
-    return "/src/assets/images/photo_ai_camera_1779710685980.png";
+    return "/images/photo_ai_camera_1779710685980.png";
   }
   if (partId === "controller_raspberry_pi") {
-    return "/src/assets/images/photo_raspberry_pi_4_1779710701747.png";
+    return "/images/photo_raspberry_pi_4_1779710701747.png";
   }
   if (partId === "controller_jetson_nano") {
-    return "/src/assets/images/jetson_nano_board_1779719349085.png";
+    return "/images/jetson_nano_board_1779719349085.png";
   }
   if (partId === "controller_driver_pca9685") {
-    return "/src/assets/images/photo_pca9685_driver_1779710726288.png";
+    return "/images/photo_pca9685_driver_1779710726288.png";
   }
   if (partId === "actuator_buzzer") {
-    return "/src/assets/images/photo_piezo_buzzer_1779710740204.png";
+    return "/images/photo_piezo_buzzer_1779710740204.png";
   }
   if (partId === "sensor_ir_tracker") {
-    return "/src/assets/images/photo_ir_line_tracker_1779710756301.png";
+    return "/images/photo_ir_line_tracker_1779710756301.png";
   }
   if (partId === "comm_bluetooth_hc05") {
-    return "/src/assets/images/hc05_bluetooth_1779715651558.png";
+    return "/images/hc05_bluetooth_1779715651558.png";
   }
   if (partId === "comm_wifi_esp8266") {
-    return "/src/assets/images/esp8266_wifi_1779715669827.png";
+    return "/images/esp8266_wifi_1779715669827.png";
   }
   if (partId === "comm_rf_nrf24l01") {
-    return "/src/assets/images/nrf24l01_rf_1779715690979.png";
+    return "/images/nrf24l01_rf_1779715690979.png";
   }
   if (partId === "display_lcd1602") {
-    return "/src/assets/images/lcd1602_display_1779715710415.png";
+    return "/images/lcd1602_display_1779715710415.png";
   }
   if (partId === "display_oled_ssd1306") {
-    return "/src/assets/images/oled_ssd1306_1779715732815.png";
+    return "/images/oled_ssd1306_1779715732815.png";
   }
   if (partId === "display_seven_segment") {
-    return "/src/assets/images/seven_segment_1779715750541.png";
+    return "/images/seven_segment_1779715750541.png";
   }
   if (partId === "display_led_matrix") {
-    return "/src/assets/images/led_matrix_8x8_1779715769200.png";
+    return "/images/led_matrix_8x8_1779715769200.png";
   }
   if (partId === "controller_driver_l293d") {
-    return "/src/assets/images/l293d_driver_1779715791461.png";
+    return "/images/l293d_driver_1779715791461.png";
   }
   if (partId === "controller_driver_a4988") {
-    return "/src/assets/images/a4988_driver_1779715809626.png";
+    return "/images/a4988_driver_1779715809626.png";
   }
 
   // Precise category fallback mappings to present accurate real-world imagery
   if (partId.includes("ir_obstacle")) {
-    return "/src/assets/images/ir_obstacle_sensor_1779715091776.png"; 
+    return "/images/ir_obstacle_sensor_1779715091776.png"; 
   }
   if (partId.includes("pir_motion")) {
-    return "/src/assets/images/pir_motion_sensor_1779715107698.png"; 
+    return "/images/pir_motion_sensor_1779715107698.png"; 
   }
   if (partId.includes("dht11") || partId.includes("dht22")) {
-    return "/src/assets/images/dht11_sensor_1779715125828.png"; 
+    return "/images/dht11_sensor_1779715125828.png"; 
   }
   if (partId.includes("soil_moisture")) {
-    return "/src/assets/images/soil_sensor_1779715000497.png"; 
+    return "/images/soil_sensor_1779715000497.png"; 
   }
   if (partId.includes("rain")) {
-    return "/src/assets/images/rain_sensor_1779715018808.png"; 
+    return "/images/rain_sensor_1779715018808.png"; 
   }
   if (partId.includes("gas_mq")) {
-    return "/src/assets/images/gas_sensor_1779715036404.png"; 
+    return "/images/gas_sensor_1779715036404.png"; 
   }
   if (partId.includes("ldr")) {
-    return "/src/assets/images/ldr_sensor_1779715142029.png"; 
+    return "/images/ldr_sensor_1779715142029.png"; 
   }
   if (partId.includes("sound")) {
-    return "/src/assets/images/sound_sensor_1779716229525.png";
+    return "/images/sound_sensor_1779716229525.png";
   }
   if (partId.includes("microphone")) {
-    return "/src/assets/images/microphone_sensor_1779716245071.png";
+    return "/images/microphone_sensor_1779716245071.png";
   }
   if (partId.includes("tilt")) {
-    return "/src/assets/images/tilt_sensor_1779716261672.png";
+    return "/images/tilt_sensor_1779716261672.png";
   }
   if (partId.includes("vibration")) {
-    return "/src/assets/images/vibration_sensor_1779716277149.png";
+    return "/images/vibration_sensor_1779716277149.png";
   }
   if (partId.includes("rfid")) {
-    return "/src/assets/images/rfid_module_1779715158711.png"; 
+    return "/images/rfid_module_1779715158711.png"; 
   }
   if (partId.includes("fingerprint")) {
-    return "/src/assets/images/fingerprint_sensor_1779715241503.png"; 
+    return "/images/fingerprint_sensor_1779715241503.png"; 
   }
   if (partId.includes("button")) {
-    return "/src/assets/images/push_button_sensor_1779716293602.png";
+    return "/images/push_button_sensor_1779716293602.png";
   }
   if (partId.includes("keypad")) {
-    return "/src/assets/images/keypad_module_1779715209142.png"; 
+    return "/images/keypad_module_1779715209142.png"; 
   }
   if (partId.includes("joystick")) {
-    return "/src/assets/images/joystick_module_1779715051753.png"; 
+    return "/images/joystick_module_1779715051753.png"; 
   }
   if (partId.includes("touch")) {
-    return "/src/assets/images/touch_sensor_1779715225951.png"; 
+    return "/images/touch_sensor_1779715225951.png"; 
   }
   if (partId.includes("relay")) {
-    return "/src/assets/images/relay_module_1779715177638.png"; 
+    return "/images/relay_module_1779715177638.png"; 
   }
   if (partId.includes("solenoid")) {
-    return "/src/assets/images/solenoid_lock_1779715069824.png"; 
+    return "/images/solenoid_lock_1779715069824.png"; 
   }
   if (partId === "actuator_led_rgb" || partId.includes("led_rgb")) {
-    return "/src/assets/images/rgb_led_module_1779715193755.png";
+    return "/images/rgb_led_module_1779715193755.png";
   }
   if (partId.includes("led")) {
     return "https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=600&auto=format&fit=crop&q=80"; // colored glowing diode lamps
@@ -1616,6 +1616,7 @@ export default function InteractiveDiagram({
                 alt={selectedPart.name}
                 referrerPolicy="no-referrer"
                 onLoad={() => setIsPhotoLoading(false)}
+                onError={() => setIsPhotoLoading(false)}
                 className={`w-full h-full max-h-[340px] md:max-h-[420px] object-contain rounded-lg shadow-2xl border border-slate-900 hover:scale-[1.015] transition-all duration-500 mx-auto ${
                   isPhotoLoading ? "opacity-0 scale-95" : "opacity-100 scale-100"
                 }`}
