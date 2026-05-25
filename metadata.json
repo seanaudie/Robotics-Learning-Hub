@@ -1,0 +1,6 @@
+{
+  "name": "Robotics Learning Hub",
+  "description": "An interactive, visual robotics learning platform built for high schoolers, university students in robotics courses, and enthusiasts to explore actuators, sensors, and controllers through 2D blueprint schematics, hardware cross-sections, and an AI robotics advisor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
