@@ -190,15 +190,15 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "explore
             <span className="font-mono text-[9px] text-sky-400 font-extrabold tracking-widest uppercase">PHYSICAL SIGNAL SIMULATION DECK</span>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-center gap-5 mb-2">
+          <div className="flex flex-col items-center justify-center gap-4 mb-2">
             <PremiumLogo className="w-16 h-16 md:w-20 md:h-20" glow={true} />
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white via-slate-100 to-slate-400 leading-none uppercase select-none text-center md:text-left">
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white via-slate-100 to-slate-400 leading-none uppercase select-none text-center">
               ROBOTICS LEARNING HUB
             </h1>
           </div>
           
           <p className="text-sm md:text-base text-slate-400 leading-relaxed font-sans max-w-2xl mx-auto font-medium">
-            The ultimate interactive launchpad built for high schoolers, university freshmen in engineering, and robotics enthusiasts. Master microcontrollers, motor drivers, dual H-bridges, logic signals, and sensor arrays with real-time hardware cross-sections.
+            Your comprehensive interactive guide and playground for mastering modern robotics systems. Learn to map microcontroller pins, trace hardware signal pathways, test actuator drivers, and jumpstart your engineering journey.
           </p>
         </div>
 
