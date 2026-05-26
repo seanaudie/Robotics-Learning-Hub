@@ -21,11 +21,21 @@ import {
   BookOpen
 } from 'lucide-react';
 
-export default function HomePage({ onEnter }: { onEnter: (startingTab?: "explorer" | "guides" | "chat") => void }) {
+export default function HomePage({ onEnter }: { onEnter: (startingTab?: "foundations" | "explorer" | "guides" | "chat") => void }) {
   const [hoveredModule, setHoveredModule] = React.useState<string | null>(null);
 
   // Navigation Module Cards details
   const modules = [
+    {
+      id: "00",
+      title: "CORE FOUNDATIONS",
+      tag: "3-STEP SYSTEMS FLOW",
+      icon: <Layers className="w-5 h-5 text-indigo-400" />,
+      desc: "An interactive, multi-age simulator tracing live signal data loops traveling from physical environment sensors, to the cybernetic brain, to mechanical motor actuators.",
+      actionKey: "TRIP THE DATA LOOP",
+      badge: "KID-TO-CADET",
+      waveColor: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
+    },
     {
       id: "01",
       title: "COMPONENT DIAGNOSTICS",
@@ -98,6 +108,20 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "explore
 
   // Dynamic board specifications determined by hover state
   const getBoardSpec = () => {
+    if (hoveredModule === "00") {
+      return {
+        telemetry: "SYSTEM DATA LOOP INTENDED: FULL SPECTRUM CALIBRATION FLUXACTIVE",
+        detail: "Tracing environment sensory signals to computing core to action actuators.",
+        efficiency: "100% CADET",
+        highlightLeft: true,
+        highlightCenter: true,
+        highlightRight: true,
+        pulseSpeed: 0.7,
+        subColor: "text-indigo-400",
+        activePath: "M 0,30 Q 25,12 50,30 T 100,30 T 150,30 T 200,30",
+        activeWave: "sine"
+      };
+    }
     if (hoveredModule === "01") {
       return {
         telemetry: "SENSOR INTEGRITY: I2C_MPU6050 [0x68] // UNO_A4_A5",
@@ -459,7 +483,7 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "explore
         <div className="mt-4">
           {/* Main Action trigger button */}
           <button
-            onClick={() => onEnter("explorer")}
+            onClick={() => onEnter("foundations")}
             className="group relative px-12 py-5 bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold text-xs font-mono tracking-widest rounded-xl transition-all shadow-[0_0_30px_-5px_rgba(14,165,233,0.35)] hover:shadow-[0_0_40px_rgba(14,165,233,0.55)] active:scale-98 duration-200 uppercase cursor-pointer"
           >
             <span className="flex items-center gap-2">
@@ -547,14 +571,15 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "explore
         </div>
 
         {/* Catalog features grid wrapper with reactive mouse listeners triggers */}
-        <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-5 pt-3">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-3">
           {modules.map((mod) => (
             <div
               key={mod.id}
               onMouseEnter={() => setHoveredModule(mod.id)}
               onMouseLeave={() => setHoveredModule(null)}
               onClick={() => {
-                const map: { [key: string]: "explorer" | "guides" | "chat" } = {
+                const map: { [key: string]: "foundations" | "explorer" | "guides" | "chat" } = {
+                  "00": "foundations",
                   "01": "explorer",
                   "02": "guides",
                   "03": "chat"

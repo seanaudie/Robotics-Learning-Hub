@@ -9,6 +9,7 @@ import { RoboticPart, ChatMessage } from "./types";
 import InteractiveDiagram, { getRealImagePath } from "./components/InteractiveDiagram";
 import RoboticsGuide from "./components/RoboticsGuide";
 import AIChatTutor from "./components/AIChatTutor";
+import RoboticsFlowSystem from "./components/RoboticsFlowSystem";
 import AIOutputRenderer from "./components/AIOutputRenderer";
 import HomePage from "./components/HomePage";
 import PremiumLogo from "./components/PremiumLogo";
@@ -166,13 +167,14 @@ const getSignalInfo = (partId: string, partCategory: string, hotspotId?: string 
 export default function App() {
   const [isStarted, setIsStarted] = useState(() => {
     const hash = window.location.hash;
-    return hash !== "" && hash !== "#home" && ["#explorer", "#guides", "#chat"].includes(hash);
+    return hash !== "" && hash !== "#home" && ["#foundations", "#explorer", "#guides", "#chat"].includes(hash);
   });
-  const [activeTab, setActiveTab] = useState<"explorer" | "guides" | "chat">(() => {
+  const [activeTab, setActiveTab] = useState<"foundations" | "explorer" | "guides" | "chat">(() => {
     const hash = window.location.hash;
     if (hash === "#guides") return "guides";
     if (hash === "#chat") return "chat";
-    return "explorer";
+    if (hash === "#explorer") return "explorer";
+    return "foundations";
   });
 
   useEffect(() => {
@@ -180,6 +182,9 @@ export default function App() {
       const hash = window.location.hash;
       if (!hash || hash === "#home") {
         setIsStarted(false);
+      } else if (hash === "#foundations") {
+        setIsStarted(true);
+        setActiveTab("foundations");
       } else if (hash === "#explorer") {
         setIsStarted(true);
         setActiveTab("explorer");
@@ -363,6 +368,7 @@ export default function App() {
  
             <nav className="flex flex-col gap-2 w-full px-2">
               {[
+                { id: "foundations", label: "Core Foundations", icon: Layers },
                 { id: "explorer", label: "Component Diagnostics", icon: Compass },
                 { id: "guides", label: "Robotics Guides", icon: BookOpen },
                 { id: "chat", label: "Advisor", icon: MessageSquare },
@@ -443,11 +449,18 @@ export default function App() {
             {/* Central Screen Platform Segment Controls */}
             <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 pb-24 md:pb-6 flex flex-col gap-6 relative z-10">
               <div className="grid lg:grid-cols-12 gap-6 items-stretch">
+                {/* Active Tab Core Foundations Overview */}
+                {activeTab === "foundations" && (
+                  <div className="lg:col-span-12 w-full animate-fadeIn shrink-0">
+                    <RoboticsFlowSystem />
+                  </div>
+                )}
+
                 {/* Active Tab Explorer Content layout */}
                 {activeTab === "explorer" && (
                   <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full animate-fadeIn">
-                    
-                    {/* Column 1: Directory Deck (Left Sidebar Navigation) */}
+                      
+                      {/* Column 1: Directory Deck (Left Sidebar Navigation) */}
                     <div className="lg:col-span-4 flex flex-col gap-4">
                       <div className="bg-[#050C1C]/90 border border-slate-800/80 rounded-xl p-4 flex flex-col gap-4 backdrop-blur-md relative overflow-hidden group">
                         {/* Interactive scanline beam glow */}
@@ -987,9 +1000,10 @@ export default function App() {
               </div>
             </main>
 
-            {/* Mobile Bottom Navigation Bar (Statically positioned below main section for easier control without overlapping page elements) */}
-            <nav className="md:hidden static my-4 mx-4 bg-[#030a1c]/95 border border-slate-800 backdrop-blur-md flex justify-around py-3 px-3 rounded-2xl select-none shadow-[0_8px_32px_rgba(0,0,0,0.5)] border-slate-700/40 z-10 shrink-0">
+            {/* Mobile Bottom Navigation Bar - Sticky Pinned to the Bottom of viewport */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#020715]/95 border-t border-slate-800/90 backdrop-blur-md flex justify-around py-3 px-2 select-none shadow-[0_-8px_32px_rgba(0,0,0,0.6)] z-50">
               {[
+                { id: "foundations", label: "Foundations", icon: Layers },
                 { id: "explorer", label: "Diagnostics", icon: Compass },
                 { id: "guides", label: "Guides", icon: BookOpen },
                 { id: "chat", label: "Advisor", icon: MessageSquare },
@@ -1004,14 +1018,14 @@ export default function App() {
                       window.location.hash = tab.id;
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    className={`flex flex-col items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer ${
+                    className={`flex flex-col items-center justify-center gap-1.5 px-2 py-1 rounded-xl transition-all duration-200 cursor-pointer ${
                       isSelected
                         ? "text-sky-400 font-bold bg-sky-500/10"
                         : "text-slate-500 hover:text-slate-200"
                     }`}
                   >
-                    <IconComp className="w-5 h-5 shrink-0" />
-                    <span className="font-mono text-[9px] uppercase tracking-wider font-extrabold">{tab.label}</span>
+                    <IconComp className="w-4.5 h-4.5 shrink-0" />
+                    <span className="font-mono text-[8.5px] uppercase tracking-wider font-extrabold">{tab.label}</span>
                   </button>
                 );
               })}

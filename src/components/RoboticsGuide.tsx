@@ -433,8 +433,8 @@ export default function RoboticsGuide() {
         <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-indigo-500/10 to-sky-500/0 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-gradient-to-tr from-indigo-500/5 to-transparent rounded-full blur-2xl pointer-events-none" />
         
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2 max-w-2xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10 items-center">
+          <div className="lg:col-span-7 space-y-3">
             <span className="font-mono text-xs font-bold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">
               Stem Learning Lab
             </span>
@@ -442,15 +442,18 @@ export default function RoboticsGuide() {
               ROBOTICS SYSTEM & LOGIC ENGINEERING
             </h2>
             <p className="font-sans text-xs md:text-sm text-slate-400 leading-relaxed">
-              Every autonomous machine is built upon a continuous cycle: it senses its environment, computes logic paths, and translates commands into physical motion. Master flowcharting to build flawless firmware logic!
+              Every school-grade or industrial-grade machine follows an elegant cycle: it senses physical waveforms, compiles logical branches, and commands mechanical joints. Master these guides to engineer your own custom autonomous rigs!
             </p>
           </div>
-          <div className="flex flex-wrap gap-2 md:self-center">
+          <div className="lg:col-span-5 flex flex-col gap-2 bg-slate-900/40 p-3 rounded-xl border border-slate-800/80 backdrop-blur-sm w-full">
+            <span className="font-mono text-[9px] text-indigo-400 font-extrabold tracking-widest uppercase pl-1.5 mb-1 block">
+              SELECT LAB STATION
+            </span>
             {([
-              { id: "pillars", label: "Three Pillars", icon: Settings },
-              { id: "flowchart", label: "Logic Flowcharts", icon: Activity },
-              { id: "architect", label: "Blueprint Architect", icon: Sliders },
-              { id: "types", label: "Robot Examples", icon: Bot }
+              { id: "pillars", label: "Three Pillars", sub: "Stage 1 Input, Stage 2 CPU, Stage 3 Output", icon: Settings, num: "01" },
+              { id: "flowchart", label: "Logic Flow", sub: "Interactive decision diagrams & C++ logic codes", icon: Activity, num: "02" },
+              { id: "types", label: "Sample Robot Types", sub: "Preconfigured rover & arm case architectures", icon: Bot, num: "03" },
+              { id: "architect", label: "Blueprint", sub: "Build & simulate custom tailormade circuits", icon: Sliders, num: "04" }
             ] as const).map((tab) => {
               const IconComp = tab.icon;
               const isActive = activeGuideTab === tab.id;
@@ -458,14 +461,29 @@ export default function RoboticsGuide() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveGuideTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[10.5px] font-bold uppercase border transition-all cursor-pointer ${
+                  className={`group relative flex items-center justify-between p-2.5 rounded-lg border text-left transition-all duration-200 cursor-pointer overflow-hidden ${
                     isActive
-                      ? "bg-indigo-500 text-white border-indigo-400 font-bold shadow-md shadow-indigo-500/20"
-                      : "border-slate-800 bg-slate-900/40 text-slate-400 hover:text-slate-200 hover:border-slate-700 hover:bg-slate-950/20"
+                      ? "border-indigo-500 bg-indigo-500/[0.08] text-white font-bold shadow-md shadow-indigo-505/10"
+                      : "border-slate-800 bg-slate-950/30 text-slate-400 hover:text-slate-100 hover:border-slate-700 hover:bg-slate-950/70"
                   }`}
                 >
-                  <IconComp className="w-4 h-4" />
-                  {tab.label}
+                  <div className={`absolute left-0 top-0 bottom-0 w-[3px] bg-indigo-400 transition-transform duration-200 ${isActive ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"}`} />
+                  <div className="flex items-center gap-3 pl-1 z-10 select-none">
+                    <div className={`w-8 h-8 rounded-md flex items-center justify-center border transition-all duration-200 ${
+                      isActive 
+                        ? "bg-indigo-500 text-white border-indigo-400" 
+                        : "bg-slate-905 bg-slate-900 border-slate-800 text-slate-500 group-hover:text-slate-305"
+                    }`}>
+                      <IconComp className="w-4 h-4 shrink-0" />
+                    </div>
+                    <div>
+                      <h4 className="font-sans font-bold text-xs tracking-tight uppercase">{tab.label}</h4>
+                      <p className="font-sans text-[10px] text-slate-500 leading-tight block mt-0.5 group-hover:text-slate-400">{tab.sub}</p>
+                    </div>
+                  </div>
+                  <span className="font-mono text-[9.5px] pr-2 text-slate-650 group-hover:text-indigo-400/65 font-bold select-none transition-colors">
+                    {tab.num}
+                  </span>
                 </button>
               );
             })}
