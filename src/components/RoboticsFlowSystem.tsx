@@ -275,16 +275,58 @@ export default function RoboticsFlowSystem() {
   // Futuristic diagnostic boot scan state
   const [isDiagnosticActive, setIsDiagnosticActive] = useState<boolean>(true);
 
-  // Initial diagnostic/boot auto-timeout:
-  // Highlight all 3 core elements together initially for 3.0 seconds,
-  // then unhighlight (disable isDiagnosticActive), and start the interactive loop beginning with "sensors".
+  // Individual boot highlight trackers for cascade intro:
+  // 1. First, the sensor gets highlighted and stays.
+  // 2. Next, the controller gets highlighted as well and stays.
+  // 3. Last, the actuator gets highlighted and stays (all 3 stick!).
+  // 4. Then lights fade out and loop starts.
+  const [bootHighlightSensors, setBootHighlightSensors] = useState<boolean>(false);
+  const [bootHighlightControllers, setBootHighlightControllers] = useState<boolean>(false);
+  const [bootHighlightActuators, setBootHighlightActuators] = useState<boolean>(false);
+
+  // Cascade initial animation timeline orchestrator
   useEffect(() => {
     if (isDiagnosticActive) {
-      const timeout = setTimeout(() => {
+      // Step 1: Highlight Sensor immediately
+      setBootHighlightSensors(true);
+      setBootHighlightControllers(false);
+      setBootHighlightActuators(false);
+      setActiveStep(null);
+
+      // Step 2: Highlight Controller after 1000ms
+      const t1 = setTimeout(() => {
+        setBootHighlightControllers(true);
+      }, 1000);
+
+      // Step 3: Highlight Actuators after 2000ms
+      const t2 = setTimeout(() => {
+        setBootHighlightActuators(true);
+      }, 2000);
+
+      // Step 4: Fade out boot highlight (all three fade out at 5000ms)
+      const t3 = setTimeout(() => {
+        setBootHighlightSensors(false);
+        setBootHighlightControllers(false);
+        setBootHighlightActuators(false);
+      }, 5000);
+
+      // Step 5: Introduce the requested pause while in the faded out state (2000ms), then start the flow cycle at 7000ms
+      const t4 = setTimeout(() => {
         setIsDiagnosticActive(false);
         setActiveStep("sensors");
-      }, 3000); // Highlight all for exactly 3.0 seconds
-      return () => clearTimeout(timeout);
+      }, 7000);
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+        clearTimeout(t4);
+      };
+    } else {
+      // Ensure all initial anim flags clean up if diagnostic gets cancelled early or finishes
+      setBootHighlightSensors(false);
+      setBootHighlightControllers(false);
+      setBootHighlightActuators(false);
     }
   }, [isDiagnosticActive]);
 
@@ -567,7 +609,7 @@ export default function RoboticsFlowSystem() {
                 setActiveStep("sensors");
               }}
               className={`cyber-border-card cursor-pointer w-full md:flex-1 p-[1px] transition-all duration-500 hover:border-sky-500/40 select-none ${
-                (activeStep === "sensors" || isDiagnosticActive) ? "active-sensors font-semibold" : "opacity-45 scale-[0.98]"
+                (activeStep === "sensors" || bootHighlightSensors) ? "active-sensors font-semibold" : "opacity-45 scale-[0.98]"
               }`}
               title="Click to focus Sensors phase and reset slide timer"
             >
@@ -584,7 +626,7 @@ export default function RoboticsFlowSystem() {
                       </span>
                     </div>
                     <div className="p-1.5 rounded-md bg-sky-950/45 border border-sky-500/10">
-                      <SensorIcon className={`w-4 h-4 transition-all duration-500 ${(activeStep === "sensors" || isDiagnosticActive) ? "text-sky-400 rotate-12 scale-110" : "text-slate-650"}`} />
+                      <SensorIcon className={`w-4 h-4 transition-all duration-500 ${(activeStep === "sensors" || bootHighlightSensors) ? "text-sky-400 rotate-12 scale-110" : "text-slate-650"}`} />
                     </div>
                   </div>
                   
@@ -671,24 +713,24 @@ export default function RoboticsFlowSystem() {
               {/* Horizontal line (Desktop) */}
               <div className="hidden md:block w-full h-[4px] bg-slate-900 rounded-full relative overflow-hidden">
                 <div className={`absolute top-0 bottom-0 w-12 bg-gradient-to-r from-transparent via-sky-400 to-transparent animate-premonition-h ${
-                  (activeStep === "sensors" || isDiagnosticActive) ? "block bg-sky-400" : "hidden"
+                  (activeStep === "sensors" || bootHighlightControllers) ? "block bg-sky-400" : "hidden"
                 }`} />
               </div>
               {/* Vertical line (Mobile) */}
               <div className="block md:hidden w-[4px] h-8 bg-slate-900 rounded-full relative overflow-hidden">
                 <div className={`absolute left-0 right-0 h-6 bg-gradient-to-b from-transparent via-sky-400 to-transparent animate-premonition-v ${
-                  (activeStep === "sensors" || isDiagnosticActive) ? "block bg-sky-400" : "hidden"
+                  (activeStep === "sensors" || bootHighlightControllers) ? "block bg-sky-400" : "hidden"
                 }`} />
               </div>
 
               {/* Enhanced Directional Flow Arrows with colored glows */}
               <ChevronsRight className={`hidden md:block w-8 h-8 md:ml-2 transition-all duration-500 ${
-                (activeStep === "sensors" || isDiagnosticActive) 
+                (activeStep === "sensors" || bootHighlightControllers) 
                   ? "text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.7)] scale-110" 
                   : "text-slate-800 opacity-20"
               }`} />
               <ChevronsDown className={`block md:hidden w-7 h-7 transition-all duration-500 ${
-                (activeStep === "sensors" || isDiagnosticActive) 
+                (activeStep === "sensors" || bootHighlightControllers) 
                   ? "text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.7)] scale-110 animate-pulse" 
                   : "text-slate-800 opacity-20"
               }`} />
@@ -706,7 +748,7 @@ export default function RoboticsFlowSystem() {
                 setActiveStep("controllers");
               }}
               className={`cyber-border-card cursor-pointer w-full md:flex-1 p-[1px] transition-all duration-500 hover:border-indigo-500/40 select-none ${
-                (activeStep === "controllers" || isDiagnosticActive) ? "active-controllers" : "opacity-45 scale-[0.98]"
+                (activeStep === "controllers" || bootHighlightControllers) ? "active-controllers" : "opacity-45 scale-[0.98]"
               }`}
               title="Click to focus Controllers phase and reset slide timer"
             >
@@ -723,7 +765,7 @@ export default function RoboticsFlowSystem() {
                       </span>
                     </div>
                     <div className="p-1.5 rounded-md bg-indigo-950/45 border border-indigo-500/10">
-                      <ControllerIcon className={`w-4 h-4 transition-all duration-500 ${(activeStep === "controllers" || isDiagnosticActive) ? "text-indigo-400 scale-110" : "text-slate-650"}`} />
+                      <ControllerIcon className={`w-4 h-4 transition-all duration-500 ${(activeStep === "controllers" || bootHighlightControllers) ? "text-indigo-400 scale-110" : "text-slate-650"}`} />
                     </div>
                   </div>
                   
@@ -810,24 +852,24 @@ export default function RoboticsFlowSystem() {
               {/* Horizontal line (Desktop) */}
               <div className="hidden md:block w-full h-[4px] bg-slate-950/20 bg-slate-900 rounded-full relative overflow-hidden">
                 <div className={`absolute top-0 bottom-0 w-12 bg-gradient-to-r from-transparent via-indigo-400 to-transparent animate-premonition-h ${
-                  (activeStep === "controllers" || isDiagnosticActive) ? "block bg-indigo-400" : "hidden"
+                  (activeStep === "controllers" || bootHighlightActuators) ? "block bg-indigo-400" : "hidden"
                 }`} />
               </div>
               {/* Vertical line (Mobile) */}
               <div className="block md:hidden w-[4px] h-8 bg-slate-900 rounded-full relative overflow-hidden">
                 <div className={`absolute left-0 right-0 h-6 bg-gradient-to-b from-transparent via-indigo-400 to-transparent animate-premonition-v ${
-                  (activeStep === "controllers" || isDiagnosticActive) ? "block bg-indigo-400" : "hidden"
+                  (activeStep === "controllers" || bootHighlightActuators) ? "block bg-indigo-400" : "hidden"
                 }`} />
               </div>
 
               {/* Enhanced Directional Flow Arrows with colored glows */}
               <ChevronsRight className={`hidden md:block w-8 h-8 md:ml-2 transition-all duration-500 ${
-                (activeStep === "controllers" || isDiagnosticActive) 
+                (activeStep === "controllers" || bootHighlightActuators) 
                   ? "text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.7)] scale-110" 
                   : "text-slate-800 opacity-20"
               }`} />
               <ChevronsDown className={`block md:hidden w-7 h-7 transition-all duration-500 ${
-                (activeStep === "controllers" || isDiagnosticActive) 
+                (activeStep === "controllers" || bootHighlightActuators) 
                   ? "text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.7)] scale-110 animate-pulse" 
                   : "text-slate-800 opacity-20"
               }`} />
@@ -845,7 +887,7 @@ export default function RoboticsFlowSystem() {
                 setActiveStep("actuators");
               }}
               className={`cyber-border-card cursor-pointer w-full md:flex-1 p-[1px] transition-all duration-500 hover:border-emerald-500/40 select-none ${
-                (activeStep === "actuators" || isDiagnosticActive) ? "active-actuators" : "opacity-45 scale-[0.98]"
+                (activeStep === "actuators" || bootHighlightActuators) ? "active-actuators" : "opacity-45 scale-[0.98]"
               }`}
               title="Click to focus Actuators phase and reset slide timer"
             >
@@ -862,7 +904,7 @@ export default function RoboticsFlowSystem() {
                       </span>
                     </div>
                     <div className="p-1.5 rounded-md bg-emerald-950/45 border border-emerald-500/10">
-                      <ActuatorIcon className={`w-4 h-4 transition-all duration-500 ${(activeStep === "actuators" || isDiagnosticActive) ? "text-emerald-400 scale-110 animate-pulse" : "text-slate-650"}`} />
+                      <ActuatorIcon className={`w-4 h-4 transition-all duration-500 ${(activeStep === "actuators" || bootHighlightActuators) ? "text-emerald-400 scale-110 animate-pulse" : "text-slate-650"}`} />
                     </div>
                   </div>
                   

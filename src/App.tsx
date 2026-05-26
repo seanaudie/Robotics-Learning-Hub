@@ -369,8 +369,8 @@ export default function App() {
             <nav className="flex flex-col gap-2 w-full px-2">
               {[
                 { id: "foundations", label: "Core Foundations", icon: Layers },
-                { id: "explorer", label: "Component Diagnostics", icon: Compass },
                 { id: "guides", label: "Robotics Guides", icon: BookOpen },
+                { id: "explorer", label: "Component Diagnostics", icon: Compass },
                 { id: "chat", label: "Advisor", icon: MessageSquare },
               ].map((tab) => {
                 const IconComp = tab.icon;
@@ -1004,8 +1004,8 @@ export default function App() {
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#020715]/95 border-t border-slate-800/90 backdrop-blur-md flex justify-around py-3 px-2 select-none shadow-[0_-8px_32px_rgba(0,0,0,0.6)] z-50">
               {[
                 { id: "foundations", label: "Foundations", icon: Layers },
-                { id: "explorer", label: "Diagnostics", icon: Compass },
                 { id: "guides", label: "Guides", icon: BookOpen },
+                { id: "explorer", label: "Diagnostics", icon: Compass },
                 { id: "chat", label: "Advisor", icon: MessageSquare },
               ].map((tab) => {
                 const IconComp = tab.icon;

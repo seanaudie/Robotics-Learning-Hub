@@ -37,16 +37,6 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "foundat
       waveColor: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
     },
     {
-      id: "01",
-      title: "COMPONENT DIAGNOSTICS",
-      tag: "DIAGNOSTICS & SPECS",
-      icon: <Compass className="w-5 h-5 text-sky-400" />,
-      desc: "Anatomize digital microcontrollers, motor drivers, actuators & sensors. Hover or click custom hardware landmarks to read dynamic real-time electrical telemetry.",
-      actionKey: "TAP LANDMARKS",
-      badge: "IO ACTIVE",
-      waveColor: "bg-sky-500/15 text-sky-400 border border-sky-400/20",
-    },
-    {
       id: "02",
       title: "LOGIC & SYSTEM GUIDES",
       tag: "ROBOTICS SYSTEM BUILDER",
@@ -55,6 +45,16 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "foundat
       actionKey: "EXPLORE LOGIC",
       badge: "STEM LEARNING",
       waveColor: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+    },
+    {
+      id: "01",
+      title: "COMPONENT DIAGNOSTICS",
+      tag: "DIAGNOSTICS & SPECS",
+      icon: <Compass className="w-5 h-5 text-sky-400" />,
+      desc: "Anatomize digital microcontrollers, motor drivers, actuators & sensors. Hover or click custom hardware landmarks to read dynamic real-time electrical telemetry.",
+      actionKey: "TAP LANDMARKS",
+      badge: "IO ACTIVE",
+      waveColor: "bg-sky-500/15 text-sky-400 border border-sky-400/20",
     },
     {
       id: "03",
