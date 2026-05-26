@@ -149,6 +149,99 @@ export const getRealImagePath = (partId: string) => {
   return "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80";
 };
 
+const getSoftwareUsed = (partId: string, category: string): string => {
+  const customMap: Record<string, string> = {
+    controller_arduino: "Arduino IDE, PlatformIO, VS Code, Arduino CLI",
+    controller_esp32: "Arduino IDE, Thonny IDE (MicroPython), ESP-IDF",
+    controller_raspberry_pi: "Raspberry Pi OS, Thonny MicroPython, VS Code, Python SDKs",
+    sensor_ultrasonic_hc_sr04: "NewPing Library, HC-SR04 pulse-timing APIs",
+    sensor_dht11_temp: "Adafruit DHT Sensor Library, DHTStable driver, DHTxx SDK",
+    sensor_camera_esp32: "ESP32 Camera WebServer Library, OV2640 driver",
+    sensor_touch_ky036: "Standard GPIO Read, DigitalWrite Pin SDK",
+    sensor_light_ldr: "AnalogRead ADC Voltage Conversion API",
+    sensor_sound_ky038: "Microphone Comparator and ADC high-frequency sampling",
+    actuator_servo_sg90: "Servo.h Standard Library, PWM Pulse Width Generator",
+    actuator_dc_geared: "H-Bridge L298N library, PWM duty cycle speed control",
+    actuator_stepper: "AccelStepper Library, stepper clock impulse sequence",
+    actuator_buzzer: "Arduino tone Library, PWM frequency sweep scripts",
+    actuator_relay: "Direct digital GPIO output pin drive",
+    actuator_solenoid_lock: "MOSFET switch pulse drive or relay toggling",
+    actuator_led_rgb: "FastLED, Adafruit NeoPixel Library, PWM color channels",
+    display_lcd1602: "LiquidCrystal_I2C Library, Wire.h I2C connection driver",
+    display_oled_ssd1306: "Adafruit SSD1306, Adafruit GFX Graphic API, U8g2",
+    display_seven_segment: "LedControl Library, MAX7219 serial latch registers",
+    display_led_matrix: "MAX7219 LedControl, MD_MAX72XX, MD_Parola marquee control",
+  };
+  return customMap[partId] || "Standard GPIO Input/Output controller driver library";
+};
+
+const getLanguageCompatibility = (partId: string, category: string): string => {
+  if (partId === "controller_raspberry_pi") {
+    return "Python, C++, JavaScript (Node.js), Rust, Go, bash";
+  }
+  if (partId === "controller_esp32") {
+    return "C++, Python (MicroPython), JavaScript, Rust, Assembly";
+  }
+  return "C++ (Arduino), Python (MicroPython), Rust Embedded-HAL";
+};
+
+const getPinTelemetry = (partId: string) => {
+  const defaultTelemetry = [
+    { pinName: "VCC", voltage: "5.0V / 3.3V", status: "HIGH (POWER)", function: "Main voltage supply track" },
+    { pinName: "GND", voltage: "0.0V", status: "LOW (GROUND)", function: "Common system ground reference" },
+    { pinName: "SIGNAL", voltage: "0V-5V Max", status: "DYNAMIC", function: "Active I/O logic state or data bus track" },
+  ];
+
+  const specMap: Record<string, { pinName: string; voltage: string; status: string; function: string }[]> = {
+    controller_arduino: [
+      { pinName: "USB-C Jack", voltage: "5.0V Input", status: "STABLE", function: "Power supply source node" },
+      { pinName: "5V PIN", voltage: "5.01V", status: "REGULATED_HIGH", function: "Stabilized auxiliary board supply" },
+      { pinName: "Digital D0-D13", voltage: "0.0V - 5.0V PWM", status: "COMMUNICATING", function: "Digital lines and interrupt registers" },
+      { pinName: "Analog A0-A5", voltage: "0.0V - 4.9V ADC", status: "SAMPLING", function: "10-bit hardware analog measurements" },
+    ],
+    controller_esp32: [
+      { pinName: "3V3 PIN", voltage: "3.29V", status: "REGULATED_HIGH", function: "Low power processor supply rail" },
+      { pinName: "GPIO 0-39", voltage: "0.0V - 3.3V", status: "HIGH_SPEED_IO", function: "High frequency logical GPIO lines" },
+      { pinName: "ADC1/ADC2", voltage: "0V - 3.12V Max", status: "SAMPLING", function: "12-bit analog input resolution readings" },
+      { pinName: "SDA/SCL Bus", voltage: "3.28V Peak", status: "ACTIVE_I2C", function: "I2C serial protocol synchronizer" },
+    ],
+    controller_raspberry_pi: [
+      { pinName: "5V Pins (2/4)", voltage: "5.04V", status: "HIGH_CURRENT", function: "Direct heavy-load power bridge" },
+      { pinName: "3.3V Pins (1/17)", voltage: "3.30V", status: "REGULATED_HIGH", function: "SoC processor core board power" },
+      { pinName: "GPIO Bus", voltage: "0.0V - 3.3V", status: "DYNAMIC", function: "General software register interaction lines" },
+      { pinName: "TXD / RXD", voltage: "3.3V Idle", status: "UART_TRANS", function: "Full-duplex serial communication lines" },
+    ],
+    sensor_ultrasonic_hc_sr04: [
+      { pinName: "VCC", voltage: "5.0V", status: "NOMINAL", function: "Transducer acoustic controller rail" },
+      { pinName: "Trigger", voltage: "0V-5V Input", status: "ACTIVE_PULSING", function: "Initiates 10 microsecond trigger loop" },
+      { pinName: "Echo", voltage: "0V-5V PWM Output", status: "MEASURING", function: "Pulse width maps physical obstacle range" },
+      { pinName: "GND", voltage: "0.0V", status: "GROUND", function: "Inert reference return path" },
+    ],
+    sensor_dht11_temp: [
+      { pinName: "VDD/VCC", voltage: "3.3V - 5.0V", status: "NOMINAL", function: "Thermistor and humidity grid logic lines" },
+      { pinName: "DATA", voltage: "3.3V-5.0V Bus", status: "PULL_UP", function: "Coordinates bidirectional single-wire frames" },
+      { pinName: "GND", voltage: "0.0V", status: "GROUND", function: "Zero volt return reference" },
+    ],
+    sensor_camera_esp32: [
+      { pinName: "3V3 & 5V", voltage: "3.31V & 5.02V", status: "POWERED", function: "Separate digital core and sensor optics rails" },
+      { pinName: "SIOC / SIOD", voltage: "3.29V Bus", status: "SCCB_BUS", function: "Register config communication lines" },
+      { pinName: "VSYNC / PCLK", voltage: "0.0V - 3.3V", status: "STREAMING", function: "Pixel synchronizations and scan-rate frames" },
+    ],
+    display_lcd1602: [
+      { pinName: "VCC", voltage: "5.0V", status: "POWERED", function: "Main screen power and LED logic driver" },
+      { pinName: "SDA (I2C)", voltage: "4.92V Pulse", status: "DATA_IN", function: "Reads alphanumeric menu instructions" },
+      { pinName: "SCL (I2C)", voltage: "5.0V Clock", status: "CLOCK", function: "Main bus speed coordination lines" },
+    ],
+    display_oled_ssd1306: [
+      { pinName: "VDD", voltage: "3.3V", status: "NOMINAL", function: "Organic pixel grid emission voltage" },
+      { pinName: "SDA", voltage: "3.3V Pulse", status: "DATA_IN", function: "Graphic page buffers and pixel indices" },
+      { pinName: "SCL", voltage: "3.3V Clock", status: "CLOCK", function: "I2C clock alignment intervals" },
+    ],
+  };
+
+  return specMap[partId] || defaultTelemetry;
+};
+
 interface InteractiveDiagramProps {
   selectedPart: RoboticPart;
   onHoverHotspot: (name: string, description: string) => void;
@@ -179,7 +272,7 @@ export default function InteractiveDiagram({
   // Renders beautiful, fully custom vector visual schematics based on selected component
   const renderSVGDiagram = () => {
     const activeClass = "stroke-sky-400 stroke-[3] fill-sky-500/25 shadow-[0_0_12px_rgba(14,165,233,0.5)] select-none cursor-pointer transition-all duration-300";
-    const normalClass = "stroke-slate-500 stroke-[1.5] fill-slate-800/40 select-none cursor-pointer hover:stroke-sky-450 hover:fill-sky-500/10 transition-all duration-300";
+    const normalClass = "stroke-slate-500 stroke-[1.5] fill-slate-800/40 select-none cursor-pointer hover:stroke-sky-400 hover:fill-sky-500/10 transition-all duration-300";
 
     if (selectedPart.id === "actuator_servo_sg90") {
       return (
@@ -552,7 +645,7 @@ export default function InteractiveDiagram({
           {/* High speed Quad Broadcom SoC chip */}
           <rect x="95" y="95" width="80" height="80" rx="3" className={activeHotspotId === "rpi_cpu" ? activeClass : normalClass} />
           <text x="135" y="132" textAnchor="middle" className="fill-[#ffffff] font-bold font-mono text-[9px] pointer-events-none">BCM2711</text>
-          <text x="135" y="146" textAnchor="middle" className="fill-slate-450 font-mono text-[7px] pointer-events-none">64-BIT ARM</text>
+          <text x="135" y="146" textAnchor="middle" className="fill-slate-400 font-mono text-[7px] pointer-events-none">64-BIT ARM</text>
 
           {/* RAM module card */}
           <rect x="95" y="185" width="55" height="40" rx="1" className={activeHotspotId === "rpi_ram" ? activeClass : normalClass} />
@@ -774,7 +867,7 @@ export default function InteractiveDiagram({
 
           {/* Digital 8bit MCU processor */}
           <rect x="210" y="75" width="55" height="40" rx="2" className={activeHotspotId === "dht_mcu" ? activeClass : normalClass} />
-          <text x="237.5" y="99" textAnchor="middle" className="fill-sky-450 font-mono text-[7px] font-bold">8-BIT MCU</text>
+          <text x="237.5" y="99" textAnchor="middle" className="fill-sky-400 font-mono text-[7px] font-bold">8-BIT MCU</text>
         </svg>
       );
     }
@@ -836,7 +929,7 @@ export default function InteractiveDiagram({
       return (
         <svg viewBox="10 10 280 200" className="w-full max-w-sm h-auto mx-auto select-none" id="soil-moisture-svg" preserveAspectRatio="xMidYMid meet">
           <rect x="20" y="20" width="260" height="170" rx="8" className="stroke-emerald-600 fill-slate-900" strokeWidth="2" />
-          <text x="150" y="42" textAnchor="middle" className="fill-emerald-450 font-mono text-[9px] font-bold tracking-widest">SOIL MOISTURE DETECTOR</text>
+          <text x="150" y="42" textAnchor="middle" className="fill-emerald-400 font-mono text-[9px] font-bold tracking-widest">SOIL MOISTURE DETECTOR</text>
           
           {/* Soil Probe Tines */}
           <g className={activeHotspotId === "slm_tines" ? activeClass : normalClass}>
@@ -1539,8 +1632,8 @@ export default function InteractiveDiagram({
             {/* Vertically Stacked Handcrafted Hotspot Button Navigation */}
             <div className="md:col-span-5 flex flex-col justify-between gap-3.5">
               <div className="space-y-2 font-sans">
-                <span className="font-mono text-[9px] text-slate-500 uppercase tracking-widest block font-bold">
-                  🎛️ CROSS-SECTION LANDMARKS
+                <span className="font-mono text-[9px] text-slate-500 uppercase tracking-widest block font-bold flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-slate-500" /> CROSS-SECTION LANDMARKS
                 </span>
                 
                 <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[260px] pr-1 scrollbar-thin scrollbar-thumb-slate-800">
@@ -1624,26 +1717,54 @@ export default function InteractiveDiagram({
             
             {/* Physical Capture Metadata Panel */}
             <div className="md:col-span-5 flex flex-col justify-between gap-3.5">
-              <div className="space-y-2">
-                <span className="font-mono text-[9px] text-indigo-400 font-bold uppercase tracking-widest block">
-                  📸 PHYSICAL HARDWARE CAPTURE
-                </span>
-                <h4 className="font-sans font-extrabold text-[#f1f5f9] text-[14px] uppercase tracking-wide">Production Model Layout</h4>
-                <p className="text-[11px] text-slate-400 leading-normal font-sans">
-                  This macro rendering details the exact physical profile dimensions, surface board layout, and trace distribution on production-level hardware packages. Use it as a clear bridge to reality.
-                </p>
-              </div>
-              
-              <div className="border-t border-slate-900 pt-3 flex flex-col gap-2 text-[10px] font-mono text-slate-500 select-none">
-                <div className="flex justify-between items-center bg-slate-950/40 border border-slate-900 p-2 rounded-lg">
-                  <span className="text-[9px]">PACKAGING STANDARD:</span>
-                  <span className="font-extrabold text-slate-200">
-                    {selectedPart.category === "microcontroller" || selectedPart.category === "motordriver" ? "FR-4 GLASS EPOXY (SMD)" : selectedPart.category === "sensor" ? "TRANSDUCER HOUSING" : "COMPOSITE MOTOR SHAFT"}
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-1.5 text-indigo-400">
+                  <Info className="w-4 h-4 text-indigo-400" />
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-widest block">
+                    IMPORTANT COMPONENT INFORMATION
                   </span>
                 </div>
-                <div className="flex justify-between items-center bg-slate-950/40 border border-slate-900 p-2 rounded-lg">
-                  <span className="text-[9px]">REPRESENTATION VALUE:</span>
-                  <span className="font-extrabold text-slate-200">1:1 PHYSICAL ANCHOR</span>
+                <h4 className="font-sans font-extrabold text-[#f1f5f9] text-[14px] uppercase tracking-wide">
+                  {selectedPart.name} Software Profile
+                </h4>
+                
+                {/* Real-time Pin Telemetry table instead of physical text */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center gap-1 text-[9.5px] font-mono text-emerald-400 font-bold uppercase">
+                    <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                    <span>Real-Time Pin Telemetry</span>
+                  </div>
+                  <div className="space-y-1 max-h-[145px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-900">
+                    {getPinTelemetry(selectedPart.id).map((pin, i) => (
+                      <div key={i} className="bg-slate-950/60 border border-slate-900 p-2 rounded text-[10px] flex flex-col gap-0.5">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-slate-200 font-mono text-[10.5px]">{pin.pinName}</span>
+                          <span className="font-mono text-[9px] text-emerald-400 font-semibold bg-emerald-950/30 border border-emerald-900/30 px-1.5 py-0.5 rounded">
+                            {pin.voltage}
+                          </span>
+                        </div>
+                        <span className="text-slate-400 font-sans text-[9px] leading-tight block">
+                          {pin.function}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Software used, programming language compatibility */}
+              <div className="border-t border-slate-900 pt-2.5 flex flex-col gap-2 text-[10px] font-mono text-slate-500 select-none">
+                <div className="flex flex-col gap-1 bg-slate-950/40 border border-slate-900 p-2.5 rounded-lg">
+                  <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">SOFTWARE USED:</span>
+                  <span className="font-extrabold text-slate-200 text-[10.5px]">
+                    {getSoftwareUsed(selectedPart.id, selectedPart.category)}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1 bg-slate-950/40 border border-slate-900 p-2.5 rounded-lg">
+                  <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">PROGRAMMING LANGUAGE COMPATIBILITY:</span>
+                  <span className="font-extrabold text-sky-400 text-[10.5px]">
+                    {getLanguageCompatibility(selectedPart.id, selectedPart.category)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1672,11 +1793,11 @@ export default function InteractiveDiagram({
 
         {/* Diagnostic instructional bar */}
         <div className="bg-slate-950/50 border border-slate-900/60 px-3.5 py-2.5 rounded-lg text-center font-mono text-[10px] text-slate-500 flex items-center justify-center gap-1.5 relative z-10 select-none mt-4">
-          <HelpCircle className="w-3.5 h-3.5 text-slate-600" />
+          <HelpCircle className="w-3.5 h-3.5 text-slate-650" />
           {activeMode === "crosssection" ? (
             <span>Use the vertically stacked landmark panel to highlight and reveal internal electronic mechanics.</span>
           ) : activeMode === "realphoto" ? (
-            <span>Observe the actual high-contrast component picture with microchip positions mapped accurately.</span>
+            <span>Active pin telemetry monitor. Trace voltage pathways and logic levels across peripheral connections.</span>
           ) : (
             <span>Comprehensive voltage, processor speeds, and physical interface wiring specifications.</span>
           )}

@@ -230,7 +230,8 @@ export default function App() {
   const [sandboxResponse, setSandboxResponse] = useState<string | null>(null);
   const [sandboxLoading, setSandboxLoading] = useState<boolean>(false);
   const [chatLoading, setChatLoading] = useState<boolean>(false);
-  const [selectedSensorSubcategory, setSelectedSensorSubcategory] = useState<string>("all");
+  const [selectedSensorSubcategory, setSelectedSensorSubcategory] = useState<string>("sound");
+  const [selectedActuatorSubcategory, setSelectedActuatorSubcategory] = useState<string>("motion");
 
   // Hotspot details hover state
   const [hoveredHotspot, setHoveredHotspot] = useState<{ name: string; desc: string } | null>(null);
@@ -303,7 +304,7 @@ export default function App() {
         throw new Error(data.error || "Failed to analyze chassis loops.");
       }
     } catch (err: any) {
-      setSandboxResponse(`### ⚠️ System Warning\n\nFailed to establish link with AI Advisor: ${err.message || "Unknown communication state."}`);
+      setSandboxResponse(`### [System Warning]\n\nFailed to establish link with AI Advisor: ${err.message || "Unknown communication state."}`);
     } finally {
       setSandboxLoading(false);
     }
@@ -426,8 +427,8 @@ export default function App() {
                 </button>
 
                 {/* Right Status Panel Details */}
-                <div className="flex items-center gap-4 text-xs font-mono text-slate-550">
-                  <div className="hidden md:flex items-center gap-1.5 text-slate-450">
+                <div className="flex items-center gap-4 text-xs font-mono text-slate-300">
+                  <div className="hidden md:flex items-center gap-1.5 text-slate-400">
                     <Clock className="w-3.5 h-3.5 text-sky-400" />
                     <span>UTC: <strong className="text-slate-200">2026-05-25 08:43:00</strong></span>
                   </div>
@@ -465,7 +466,7 @@ export default function App() {
                         {/* Hardware Catalog Category Deck */}
                         <div className="space-y-4">
                           {([
-                            { id: "microcontroller", name: "Microcontrollers", icon: <Cpu className="w-3.5 h-3.5 text-sky-450" />, badgeColor: "bg-sky-500/10 text-sky-450 border border-sky-500/20" },
+                            { id: "microcontroller", name: "Microcontrollers", icon: <Cpu className="w-3.5 h-3.5 text-sky-400" />, badgeColor: "bg-sky-500/10 text-sky-400 border border-sky-500/20" },
                             { id: "sensor", name: "Sensors", icon: <Eye className="w-3.5 h-3.5 text-indigo-400" />, badgeColor: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" },
                             { id: "actuator", name: "Actuators", icon: <Zap className="w-3.5 h-3.5 text-emerald-400" />, badgeColor: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" },
                             { id: "motordriver", name: "Motor Drivers", icon: <Sliders className="w-3.5 h-3.5 text-amber-500" />, badgeColor: "bg-amber-500/10 text-amber-400 border border-amber-500/20" }
@@ -473,17 +474,20 @@ export default function App() {
                             let partsList = ROBOTIC_PARTS.filter((p) => p.category === cat.id);
                             const totalCount = partsList.length;
                             
-                            if (cat.id === "sensor" && selectedSensorSubcategory !== "all") {
+                            if (cat.id === "sensor") {
                               partsList = partsList.filter((p) => p.sensorApplication === selectedSensorSubcategory);
+                            }
+                            if (cat.id === "actuator") {
+                              partsList = partsList.filter((p) => p.actuatorApplication === selectedActuatorSubcategory);
                             }
 
                             return (
                               <div key={cat.id} className={`space-y-2.5 ${catIdx > 0 ? "pt-3.5 border-t border-slate-800/60" : ""}`}>
                                 <div className="flex items-center justify-between pl-1 select-none">
-                                  <span className="font-mono text-[9px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                                  <span className="font-mono text-[11px] text-slate-300 font-extrabold uppercase tracking-wider flex items-center gap-1.5">
                                     {cat.icon} {cat.name}
                                   </span>
-                                  <span className="font-mono text-[8.5px] bg-slate-900 border border-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold">
+                                  <span className="font-mono text-[10px] bg-slate-900 border border-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-bold">
                                     {totalCount}
                                   </span>
                                 </div>
@@ -492,21 +496,20 @@ export default function App() {
                                 {cat.id === "sensor" && (
                                   <div className="flex flex-wrap gap-1 pb-1 outline-none">
                                     {([
-                                      { id: "all", name: "All", color: "border-slate-800 bg-slate-950 text-slate-400" },
-                                      { id: "sound", name: "🔊 Sound", color: "border-sky-500/20 bg-sky-500/10 text-sky-300" },
-                                      { id: "touch", name: "👉 Touch", color: "border-pink-500/20 bg-pink-500/10 text-pink-300" },
-                                      { id: "vision", name: "👁️ Vision", color: "border-purple-500/20 bg-purple-500/10 text-purple-300" },
-                                      { id: "light", name: "🔆 Light", color: "border-amber-500/20 bg-amber-500/10 text-amber-300" },
-                                      { id: "environment", name: "🌍 Env", color: "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" },
-                                      { id: "motion", name: "🔄 Motion", color: "border-blue-500/20 bg-blue-500/10 text-blue-300" },
-                                      { id: "security", name: "🔑 Security", color: "border-indigo-500/20 bg-indigo-500/10 text-indigo-300" }
+                                      { id: "sound", name: "Sound", color: "border-sky-500/20 bg-sky-500/10 text-sky-300" },
+                                      { id: "touch", name: "Touch", color: "border-pink-500/20 bg-pink-500/10 text-pink-300" },
+                                      { id: "vision", name: "Vision", color: "border-purple-500/20 bg-purple-500/10 text-purple-300" },
+                                      { id: "light", name: "Light", color: "border-amber-500/20 bg-amber-500/10 text-amber-350" },
+                                      { id: "environment", name: "Env", color: "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" },
+                                      { id: "motion", name: "Motion", color: "border-blue-500/20 bg-blue-500/10 text-blue-350" },
+                                      { id: "security", name: "Security", color: "border-indigo-500/20 bg-indigo-500/10 text-indigo-300" }
                                     ] as const).map((sub) => {
                                       const isActive = selectedSensorSubcategory === sub.id;
                                       return (
                                         <button
                                           key={sub.id}
                                           onClick={() => setSelectedSensorSubcategory(sub.id)}
-                                          className={`text-[8px] font-mono px-1.5 py-0.5 rounded transition-all select-none border cursor-pointer ${
+                                          className={`text-[10px] font-mono px-1.5 py-0.5 rounded transition-all select-none border cursor-pointer ${
                                             isActive
                                               ? "border-sky-500 bg-sky-500/20 text-sky-400 font-bold shadow-[0_0_6px_rgba(56,189,248,0.2)]"
                                               : "border-slate-800/65 bg-slate-950/40 text-slate-400 hover:text-slate-200 hover:border-slate-700 hover:bg-slate-900/60"
@@ -519,10 +522,37 @@ export default function App() {
                                   </div>
                                 )}
 
+                                {/* Custom Subcategory Filters only for Actuators */}
+                                {cat.id === "actuator" && (
+                                  <div className="flex flex-wrap gap-1 pb-1 outline-none">
+                                    {([
+                                      { id: "motion", name: "Motion", color: "border-emerald-500/20 bg-emerald-500/10 text-emerald-305" },
+                                      { id: "display", name: "Display", color: "border-sky-500/20 bg-sky-500/10 text-sky-305" },
+                                      { id: "indicator", name: "Alert", color: "border-amber-500/20 bg-amber-500/10 text-amber-305" },
+                                      { id: "switch", name: "Switch", color: "border-pink-500/20 bg-pink-500/10 text-pink-305" }
+                                    ] as const).map((sub) => {
+                                      const isActive = selectedActuatorSubcategory === sub.id;
+                                      return (
+                                        <button
+                                          key={sub.id}
+                                          onClick={() => setSelectedActuatorSubcategory(sub.id)}
+                                          className={`text-[10px] font-mono px-1.5 py-0.5 rounded transition-all select-none border cursor-pointer ${
+                                            isActive
+                                              ? "border-emerald-500 bg-emerald-500/20 text-emerald-400 font-bold shadow-[0_0_6px_rgba(16,185,129,0.2)]"
+                                              : "border-slate-800/65 bg-slate-950/40 text-slate-400 hover:text-slate-200 hover:border-slate-700 hover:bg-slate-900/60"
+                                          }`}
+                                        >
+                                          {sub.name}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+
                                 <div className="space-y-1 max-h-[280px] overflow-y-auto pr-1">
                                   {partsList.length === 0 ? (
-                                    <div className="font-mono text-[9px] text-slate-500 italic p-3 text-center border border-slate-900 bg-slate-950/20 rounded-lg">
-                                      No sensors found under this application category
+                                    <div className="font-mono text-[9px] text-slate-500 italic p-3 text-center border border-slate-900 bg-slate-950/20 rounded-lg w-full">
+                                      No components found under this application category
                                     </div>
                                   ) : (
                                     partsList.map((part) => {
@@ -539,7 +569,7 @@ export default function App() {
                                           className={`w-full group/btn p-2 rounded-lg border text-left flex items-center justify-between gap-2.5 transition-all relative overflow-hidden cursor-pointer select-none ${
                                             isSelected
                                               ? "border-sky-500 bg-sky-500/[0.04] ring-1 ring-sky-500/30 text-white"
-                                              : "border-slate-800/60 bg-slate-950/40 hover:border-slate-700 hover:bg-slate-900/40 text-slate-400 hover:text-slate-100"
+                                              : "border-slate-800/60 bg-slate-950/40 hover:border-slate-700 hover:bg-slate-900/40 text-slate-300 hover:text-slate-100"
                                           }`}
                                         >
                                           {/* Left selection neon stick indicator */}
@@ -547,15 +577,20 @@ export default function App() {
                                             <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-sky-400 shadow-[2px_0_8px_rgba(56,189,248,0.7)]" />
                                           )}
                                           <div className="truncate flex-1 pl-1">
-                                            <h4 className="font-sans font-bold text-[11.5px] truncate">{part.name}</h4>
+                                            <h4 className="font-sans font-bold text-[13px] truncate">{part.name}</h4>
                                             {part.category === "sensor" && part.sensorApplication && (
-                                              <span className="text-[8px] font-mono text-indigo-400 uppercase tracking-wider block mt-0.5">
+                                              <span className="text-[10px] font-mono text-indigo-300 uppercase tracking-wider block mt-0.5">
                                                 Application: {part.sensorApplication}
+                                              </span>
+                                            )}
+                                            {part.category === "actuator" && part.actuatorApplication && (
+                                              <span className="text-[10px] font-mono text-emerald-300 uppercase tracking-wider block mt-0.5">
+                                                Application: {part.actuatorApplication}
                                               </span>
                                             )}
                                           </div>
                                           <span
-                                            className={`font-mono text-[8px] px-1.5 py-0.5 rounded font-extrabold select-none shrink-0 ${
+                                            className={`font-mono text-[10px] px-1.5 py-0.5 rounded font-extrabold select-none shrink-0 ${
                                               isSelected
                                                 ? "bg-sky-400 text-slate-950 shadow-[0_0_8px_rgba(56,189,248,0.4)]"
                                                 : cat.badgeColor
@@ -646,7 +681,7 @@ export default function App() {
                                   
                                   <div className="flex items-center justify-between border-b border-sky-950/70 pb-2 mb-3">
                                     <span className="font-mono text-[9px] text-sky-400 font-extrabold tracking-widest block uppercase">
-                                      📡 REAL-TIME PIN TELEMETRY
+                                      REAL-TIME PIN TELEMETRY
                                     </span>
                                     <span className="bg-sky-400/10 text-sky-400 text-[8px] font-mono px-1.5 py-0.5 rounded border border-sky-400/20 font-bold animate-pulse">
                                       ANALYSIS ACTIVE
@@ -656,7 +691,7 @@ export default function App() {
                                   <h4 className="font-sans font-extrabold text-[13px] text-white flex items-center gap-1.5 uppercase tracking-wide truncate">
                                     <Sliders className="w-4 h-4 text-sky-400 animate-spin flex-shrink-0" style={{ animationDuration: '6s' }} /> {hoveredHotspot.name}
                                   </h4>
-                                  <p className="font-sans text-[11px] text-slate-350 leading-relaxed mt-1.5 font-medium">
+                                  <p className="font-sans text-[12px] text-slate-300 leading-relaxed mt-1.5 font-medium">
                                     {hoveredHotspot.desc}
                                   </p>
                                 </div>
@@ -690,7 +725,7 @@ export default function App() {
                               <div className="bg-[#050C1C]/95 border border-slate-800/80 rounded-xl p-4 backdrop-blur-md flex flex-col justify-between min-h-[195px]">
                                 <div>
                                   <span className="font-mono text-[9px] text-slate-500 font-bold uppercase tracking-widest block mb-1.5">
-                                    📡 REAL-TIME PIN TELEMETRY
+                                    REAL-TIME PIN TELEMETRY
                                   </span>
                                   <div className="bg-slate-900/40 border border-slate-800/50 p-3 rounded-lg text-[11px] text-slate-400 leading-relaxed flex items-start gap-2 select-none">
                                     <span className="text-sky-400 font-bold font-mono text-xs">ⓘ</span>
@@ -814,18 +849,18 @@ export default function App() {
                                     <span className="font-mono text-[9px] text-[#f1f5f9] font-extrabold uppercase line-clamp-1 block leading-tight">
                                       {sigInfo.type}
                                     </span>
-                                    <div className="grid grid-cols-2 gap-x-1.5 gap-y-0.5 text-[8px] font-mono leading-none pt-0.5">
+                                    <div className="grid grid-cols-2 gap-x-1.5 gap-y-0.5 text-[10px] font-mono leading-none pt-0.5">
                                       <div>
-                                        <span className="text-slate-500 block uppercase">FREQUENCY</span>
-                                        <span className="text-slate-300 font-bold tracking-tight block truncate mt-0.5">{sigInfo.frequency}</span>
+                                        <span className="text-slate-400 block uppercase">FREQUENCY</span>
+                                        <span className="text-slate-200 font-bold tracking-tight block truncate mt-0.5">{sigInfo.frequency}</span>
                                       </div>
                                       <div>
-                                        <span className="text-slate-500 block uppercase">AMPLITUDE</span>
-                                        <span className="text-slate-350 font-bold block truncate mt-0.5">{sigInfo.amplitude}</span>
+                                        <span className="text-slate-400 block uppercase">AMPLITUDE</span>
+                                        <span className="text-slate-200 font-bold block truncate mt-0.5">{sigInfo.amplitude}</span>
                                       </div>
                                       <div className="mt-1">
-                                        <span className="text-slate-500 block uppercase">RANGE</span>
-                                        <span className="text-slate-350 font-bold block mt-0.5">{sigInfo.voltageRange}</span>
+                                        <span className="text-slate-400 block uppercase">RANGE</span>
+                                        <span className="text-slate-200 font-bold block mt-0.5">{sigInfo.voltageRange}</span>
                                       </div>
                                       <div className="mt-1">
                                         <span className="text-slate-500 block uppercase">INTEGRITY</span>
@@ -860,20 +895,20 @@ export default function App() {
                               <h4 className="font-sans font-extrabold text-[#f1f5f9] text-[18px] uppercase tracking-wide mt-1">{selectedPart.name}</h4>
                               {selectedPart.category === "sensor" && selectedPart.sensorApplication && (
                                 <div className="mt-1.5 flex items-center gap-1.5">
-                                  <span className="text-[8px] font-mono uppercase bg-slate-900 text-sky-400 px-1.5 py-0.5 rounded border border-sky-950/40 font-bold">
+                                  <span className="text-[9px] font-mono uppercase bg-slate-950 text-sky-400 px-1.5 py-0.5 rounded border border-sky-900/30 font-bold">
                                     APPLICATION: {selectedPart.sensorApplication} SENSING
                                   </span>
-                                  {selectedPart.sensorApplication === "sound" && <span className="text-xs" title="Sound application">🔊</span>}
-                                  {selectedPart.sensorApplication === "touch" && <span className="text-xs" title="Touch application">👉</span>}
-                                  {selectedPart.sensorApplication === "vision" && <span className="text-xs" title="Vision application">👁️</span>}
-                                  {selectedPart.sensorApplication === "light" && <span className="text-xs" title="Light application">🔆</span>}
-                                  {selectedPart.sensorApplication === "environment" && <span className="text-xs" title="Environment application">🌍</span>}
-                                  {selectedPart.sensorApplication === "motion" && <span className="text-xs" title="Motion application">🔄</span>}
-                                  {selectedPart.sensorApplication === "security" && <span className="text-xs" title="Security application">🔑</span>}
+                                </div>
+                              )}
+                              {selectedPart.category === "actuator" && selectedPart.actuatorApplication && (
+                                <div className="mt-1.5 flex items-center gap-1.5">
+                                  <span className="text-[9px] font-mono uppercase bg-slate-950 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-900/30 font-bold">
+                                    APPLICATION: {selectedPart.actuatorApplication} ACTUATION
+                                  </span>
                                 </div>
                               )}
                             </div>
-                            <span className="font-mono text-[10px] bg-slate-900 text-sky-450 px-2.5 py-1 rounded border border-slate-800 font-bold self-start">
+                            <span className="font-mono text-[11px] bg-slate-900 text-sky-400 px-2.5 py-1 rounded border border-slate-800 font-bold self-start">
                               {selectedPart.symbol}
                             </span>
                           </div>
@@ -899,17 +934,17 @@ export default function App() {
                           {/* How it Works physics block */}
                           <div className="border-t border-slate-800/85 pt-3.5">
                             <span className="font-mono text-[9.5px] text-sky-400 font-bold uppercase flex items-center gap-1.5 mb-1.5">
-                              <Terminal className="w-3.5 h-3.5 text-sky-450" /> PHYSICS & SIGNAL PATHWAYS
+                              <Terminal className="w-3.5 h-3.5 text-sky-400" /> PHYSICS & SIGNAL PATHWAYS
                             </span>
-                            <p className="text-[12px] text-slate-400 leading-relaxed font-sans">
+                            <p className="text-[13px] text-slate-300 leading-relaxed font-sans font-medium">
                               {selectedPart.howItWorks}
                             </p>
                           </div>
 
                           {/* Real World context application */}
                           <div className="border-t border-slate-800/85 pt-3.5">
-                            <span className="font-mono text-[9.5px] text-indigo-400 font-bold uppercase flex items-center gap-1.5 mb-1.5">
-                              <Database className="w-3.5 h-3.5 text-indigo-450" /> INDUSTRIAL ROBOTIC APPLICATIONS
+                            <span className="font-mono text-[10.5px] text-indigo-400 font-bold uppercase flex items-center gap-1.5 mb-1.5">
+                              <Database className="w-3.5 h-3.5 text-indigo-400" /> INDUSTRIAL ROBOTIC APPLICATIONS
                             </span>
                             <p className="text-[12px] text-slate-400 leading-relaxed font-sans">
                               {selectedPart.realWorldExample}
@@ -983,7 +1018,7 @@ export default function App() {
             </nav>
 
             {/* Primary Footer */}
-            <footer className="border-t border-slate-800 bg-slate-950/30 text-center py-6 font-mono text-[10px] text-slate-550 relative z-10 select-none mt-12">
+            <footer className="border-t border-slate-800 bg-slate-950/30 text-center py-6 font-mono text-[11px] text-slate-400 relative z-10 select-none mt-12">
               <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p>© 2026 Robotics Explorer Lab. Formulated for advanced cybernetic engineering STEM models.</p>
               </div>

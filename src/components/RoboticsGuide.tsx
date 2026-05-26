@@ -27,7 +27,6 @@ interface ComponentOption {
   id: string;
   name: string;
   symbol: string;
-  emoji: string;
   description: string;
   details: string;
 }
@@ -37,7 +36,6 @@ const SENSOR_OPTIONS: ComponentOption[] = [
     id: "ultrasonic",
     name: "Ultrasonic Distance Sensor",
     symbol: "S-ULS",
-    emoji: "🔊",
     description: "Measures distance by transmitting ultrasound pulses.",
     details: "Perfect for measuring physical distance to front obstacles. Translates time-of-flight bounce rates into centimeter values."
   },
@@ -45,7 +43,6 @@ const SENSOR_OPTIONS: ComponentOption[] = [
     id: "soil_moisture",
     name: "Soil Moisture Sensor",
     symbol: "S-SMO",
-    emoji: "🌍",
     description: "Measures water content across root substrates.",
     details: "Measures electrical conductivity through moisture. Higher water volumes yield higher conductivity and lower resistance."
   },
@@ -53,7 +50,6 @@ const SENSOR_OPTIONS: ComponentOption[] = [
     id: "sound_mic",
     name: "Acoustic Decibel Microphone",
     symbol: "S-SND",
-    emoji: "🎤",
     description: "Detects acoustic transient threshold spikes.",
     details: "Converts pressure fluctuations of audio waves into quantized, rapid voltage spikes."
   },
@@ -61,7 +57,6 @@ const SENSOR_OPTIONS: ComponentOption[] = [
     id: "fingerprint",
     name: "Optical Fingerprint Scanner",
     symbol: "S-FPS",
-    emoji: "🔑",
     description: "Captures biometrics and checks safe hashes.",
     details: "Constructs biometric hash maps on request, comparing scans with saved internal secure databases."
   },
@@ -69,7 +64,6 @@ const SENSOR_OPTIONS: ComponentOption[] = [
     id: "photo_ldr",
     name: "LDR Photoresistor",
     symbol: "S-LDR",
-    emoji: "🔆",
     description: "Measures visual ambient light lux levels.",
     details: "Light-dependent resistor that reduces its internal resistance as light intensity grows, perfect for dawn/dusk state triggers."
   }
@@ -80,7 +74,6 @@ const CONTROLLER_OPTIONS: ComponentOption[] = [
     id: "arduino",
     name: "Arduino Uno R3",
     symbol: "C-ARD",
-    emoji: "🔌",
     description: "Robust 8-bit chip, ideal for low-latency loop processing.",
     details: "Runs a continuous bare-metal loop at 16 MHz. Unmatched for low-level direct GPIO timing safety."
   },
@@ -88,7 +81,6 @@ const CONTROLLER_OPTIONS: ComponentOption[] = [
     id: "esp32",
     name: "ESP32 Core Module",
     symbol: "C-ESP",
-    emoji: "📡",
     description: "Dual-core processor with onboard Wi-Fi / Bluetooth.",
     details: "Ideal for smart IoT. Leverages dual processing threads to read complex inputs and post web data in parallel."
   },
@@ -96,7 +88,6 @@ const CONTROLLER_OPTIONS: ComponentOption[] = [
     id: "jetson",
     name: "NVIDIA Jetson Nano",
     symbol: "C-JET",
-    emoji: "🧠",
     description: "AI-Specialist computer featuring Maxwell GPU.",
     details: "Unlocks high-performance machine learning inference directly on the platform, like facial matching."
   }
@@ -107,7 +98,6 @@ const ACTUATOR_OPTIONS: ComponentOption[] = [
     id: "servo",
     name: "SG90 Micro Servo",
     symbol: "A-SRV",
-    emoji: "⚙️",
     description: "Delivers micro-stepped, high-torque joint control.",
     details: "Takes precise PWM pulses of 50 Hz to sweep an output arm from 0° up to 180° with angular safety locks."
   },
@@ -115,7 +105,6 @@ const ACTUATOR_OPTIONS: ComponentOption[] = [
     id: "motor_driver",
     name: "DC Gear Motor Suite",
     symbol: "A-MTR",
-    emoji: "🏎️",
     description: "Drives dual tracks to navigate chassis wheels.",
     details: "Needs motor drivers to deliver up to 1.5 Amps to electromagnets, turning gears to propel standard robot platforms."
   },
@@ -123,7 +112,6 @@ const ACTUATOR_OPTIONS: ComponentOption[] = [
     id: "piezo_buzzer",
     name: "Acoustic Piezo Buzzer",
     symbol: "A-BUZ",
-    emoji: "🔔",
     description: "Drives mechanical waves to announce alerts.",
     details: "Utilizes rapid electrical oscillations to vibrate a thin quartz plate, generating audible warning tones."
   },
@@ -131,7 +119,6 @@ const ACTUATOR_OPTIONS: ComponentOption[] = [
     id: "solenoid_lock",
     name: "12V Electronic Deadbolt",
     symbol: "A-SOL",
-    emoji: "🔒",
     description: "Electromagnetic core piston lock.",
     details: "When energized with 12V supply, the copper core generates a powerful electromagnetic field, pulling back the bolt frame."
   }
@@ -423,10 +410,10 @@ export default function RoboticsGuide() {
     const actuatorObj = ACTUATOR_OPTIONS.find(a => a.id === customActuator)!;
 
     const steps = [
-      `[1/4] 🟢 System initialized. Power rails operational at stable input voltages.`,
-      `[2/4] 📡 Interrogating sensor... ${sensorObj.name} is registering direct physical variables.`,
-      `[3/4] 🧠 Processing central logic on the ${controllerObj.name}... Computing threshold variables.`,
-      `[4/4] ⚙️ Output command sent! Active signal successfully pulsing the ${actuatorObj.name}. Loop repeating...`
+      `[1/4] [SYS] System initialized. Power rails operational at stable input voltages.`,
+      `[2/4] [INPUT] Interrogating sensor... ${sensorObj.name} is registering direct physical variables.`,
+      `[3/4] [PROCESS] Processing central logic on the ${controllerObj.name}... Computing threshold variables.`,
+      `[4/4] [OUTPUT] Output command sent! Active signal successfully pulsing the ${actuatorObj.name}. Loop repeating...`
     ];
 
     steps.forEach((step, idx) => {
@@ -505,10 +492,10 @@ export default function RoboticsGuide() {
               <div className="space-y-1.5 pt-2">
                 <span className="font-mono text-[9px] text-[#94a3b8] font-extrabold tracking-wider block uppercase">Examples:</span>
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="text-[10px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-350 px-2 py-0.5 rounded-md">🔊 Ultrasonic (Sound Echo)</span>
-                  <span className="text-[10px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-350 px-2 py-0.5 rounded-md">🌍 DHT11 (Environment)</span>
-                  <span className="text-[10px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-350 px-2 py-0.5 rounded-md">👉 Touch Switch</span>
-                  <span className="text-[10px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-350 px-2 py-0.5 rounded-md">🔆 Photo LDR</span>
+                  <span className="text-[11px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded-md">Ultrasonic Sourcing (S-ULS)</span>
+                  <span className="text-[11px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded-md">Soil Moisture Sensor (S-SMO)</span>
+                  <span className="text-[11px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded-md">GPIO Touch Switch (S-FPS)</span>
+                  <span className="text-[11px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded-md">Analog LDR Photoresistor (S-LDR)</span>
                 </div>
               </div>
             </div>
@@ -534,9 +521,9 @@ export default function RoboticsGuide() {
               <div className="space-y-1.5 pt-2">
                 <span className="font-mono text-[9px] text-[#94a3b8] font-extrabold tracking-wider block uppercase">Examples:</span>
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="text-[10px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-350 px-2 py-0.5 rounded-md">🔌 Arduino (Embedded Loop)</span>
-                  <span className="text-[10px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-350 px-2 py-0.5 rounded-md">📡 ESP32 (IoT Processor)</span>
-                  <span className="text-[10px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-350 px-2 py-0.5 rounded-md">🧠 Jetson Nano (Edge Neural AI)</span>
+                  <span className="text-[11px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded-md">Arduino Uno Board (C-ARD)</span>
+                  <span className="text-[11px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded-md">ESP32 Core Module (C-ESP)</span>
+                  <span className="text-[11px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded-md">NVIDIA Jetson Nano (C-JET)</span>
                 </div>
               </div>
             </div>
@@ -562,10 +549,10 @@ export default function RoboticsGuide() {
               <div className="space-y-1.5 pt-2">
                 <span className="font-mono text-[9px] text-[#94a3b8] font-extrabold tracking-wider block uppercase">Examples:</span>
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="text-[10px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-350 px-2 py-0.5 rounded-md">⚙️ Servo Joint Sweeper</span>
-                  <span className="text-[10px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-350 px-2 py-0.5 rounded-md">🏎️ DC Motors (Chassis drive)</span>
-                  <span className="text-[10px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-350 px-2 py-0.5 rounded-md">🔒 12V Solenoid Bolt</span>
-                  <span className="text-[10px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-350 px-2 py-0.5 rounded-md">🔔 Acoustic Audio Piezo</span>
+                  <span className="text-[11px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded-md">SG90 Servo Drive (A-SRV)</span>
+                  <span className="text-[11px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded-md">DC Geared Chassis (A-MTR)</span>
+                  <span className="text-[11px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded-md">12V Solenoid Bolt (A-SOL)</span>
+                  <span className="text-[11px] font-sans font-bold bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded-md">Acoustic Piezo Buzzer (A-BUZ)</span>
                 </div>
               </div>
             </div>
@@ -620,7 +607,7 @@ export default function RoboticsGuide() {
                     id: "diamond", 
                     name: "Decision Fork Shape", 
                     shape: "Diamond", 
-                    indicator: <div className="w-3.5 h-3.5 border border-yellow-550 bg-yellow-550/10 rotate-45 shrink-0" />, 
+                    indicator: <div className="w-3.5 h-3.5 border border-yellow-500 bg-yellow-500/10 rotate-45 shrink-0" />,
                     desc: "Checks boolean comparisons. Splits flow of direction based on True / False outputs.",
                     code: "if (sensorVal < threshold) {\n  triggerAlarm();\n} else {\n  standbyState();\n}"
                   },
@@ -786,16 +773,16 @@ delay(250); // Pause execution`}
               {/* Detail section */}
               <div className="bg-[#030712] p-4 rounded-xl border border-slate-900 flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div className="space-y-1 max-w-lg">
-                  <h4 className="font-sans text-sm font-extrabold text-indigo-450 uppercase tracking-wide">{activeCase.title}</h4>
+                  <h4 className="font-sans text-sm font-extrabold text-indigo-400 uppercase tracking-wide">{activeCase.title}</h4>
                   <span className="font-mono text-[9px] text-slate-500 block uppercase font-bold">{activeCase.subtitle}</span>
-                  <p className="font-sans text-xs text-slate-400 leading-relaxed pt-1">{activeCase.explanation}</p>
+                  <p className="font-sans text-xs text-slate-300 leading-relaxed pt-1">{activeCase.explanation}</p>
                 </div>
                 {/* Block badges linked for verification */}
                 <div className="flex flex-col gap-1 pr-1 border-l border-slate-900/60 pl-3 shrink-0">
-                  <span className="font-mono text-[8px] uppercase text-slate-400 tracking-wider">Sourcing System Map:</span>
-                  <span className="text-[10px] font-sans text-slate-350">👁️ Sensor: <strong className="font-bold text-sky-450">{SENSOR_OPTIONS.find(s => s.id === activeCase.sensor)?.name}</strong></span>
-                  <span className="text-[10px] font-sans text-slate-350">🧠 Brain: <strong className="font-bold text-indigo-400">{CONTROLLER_OPTIONS.find(c => c.id === activeCase.controller)?.name}</strong></span>
-                  <span className="text-[10px] font-sans text-slate-350">⚙️ Actuator: <strong className="font-bold text-emerald-450">{ACTUATOR_OPTIONS.find(a => a.id === activeCase.actuator)?.name}</strong></span>
+                  <span className="font-mono text-[10px] uppercase text-slate-400 tracking-wider">Sourcing System Map:</span>
+                  <span className="text-[11px] font-sans text-slate-300">[IN] Sensor: <strong className="font-bold text-sky-400">{SENSOR_OPTIONS.find(s => s.id === activeCase.sensor)?.name}</strong></span>
+                  <span className="text-[11px] font-sans text-slate-300">[CPU] Brain: <strong className="font-bold text-indigo-400">{CONTROLLER_OPTIONS.find(c => c.id === activeCase.controller)?.name}</strong></span>
+                  <span className="text-[11px] font-sans text-slate-300">[OUT] Actuator: <strong className="font-bold text-emerald-400">{ACTUATOR_OPTIONS.find(a => a.id === activeCase.actuator)?.name}</strong></span>
                 </div>
               </div>
 
@@ -976,7 +963,7 @@ delay(250); // Pause execution`}
 
               {/* Selector 1: Sensors */}
               <div className="space-y-1.5 pt-1.5 border-t border-slate-900">
-                <label className="font-mono text-[9px] uppercase font-bold text-sky-450 flex items-center gap-1.5 justify-between">
+                <label className="font-mono text-[11px] uppercase font-bold text-sky-400 flex items-center gap-1.5 justify-between">
                   <span>1. Choose Sensor Input</span>
                   <span className="text-slate-500">STAGE 1</span>
                 </label>
@@ -987,7 +974,7 @@ delay(250); // Pause execution`}
                     className="w-full bg-[#030712] border border-slate-800 rounded-lg p-2.5 font-sans text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer"
                   >
                     {SENSOR_OPTIONS.map(opt => (
-                      <option key={opt.id} value={opt.id}>{opt.emoji} {opt.name}</option>
+                      <option key={opt.id} value={opt.id}>[{opt.symbol}] {opt.name}</option>
                     ))}
                   </select>
                 </div>
@@ -1006,7 +993,7 @@ delay(250); // Pause execution`}
                     className="w-full bg-[#030712] border border-slate-800 rounded-lg p-2.5 font-sans text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer"
                   >
                     {CONTROLLER_OPTIONS.map(opt => (
-                      <option key={opt.id} value={opt.id}>{opt.emoji} {opt.name}</option>
+                      <option key={opt.id} value={opt.id}>[{opt.symbol}] {opt.name}</option>
                     ))}
                   </select>
                 </div>
@@ -1025,7 +1012,7 @@ delay(250); // Pause execution`}
                     className="w-full bg-[#030712] border border-slate-800 rounded-lg p-2.5 font-sans text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer"
                   >
                     {ACTUATOR_OPTIONS.map(opt => (
-                      <option key={opt.id} value={opt.id}>{opt.emoji} {opt.name}</option>
+                      <option key={opt.id} value={opt.id}>[{opt.symbol}] {opt.name}</option>
                     ))}
                   </select>
                 </div>
@@ -1063,24 +1050,24 @@ delay(250); // Pause execution`}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="bg-[#030712] p-3 rounded-xl border border-slate-900 text-center relative">
                     <span className="font-mono text-[8px] text-sky-400 font-extrabold tracking-wider block mb-1 uppercase">Sensing (Input)</span>
-                    <span className="text-xl mb-1 block" role="img" aria-label="sensor-emoji">
-                      {SENSOR_OPTIONS.find(s => s.id === customSensor)?.emoji}
+                    <span className="inline-block mt-0.5 mb-1.5 px-2.5 py-1 text-xs font-mono font-bold bg-sky-950/40 border border-sky-800/30 text-sky-400 rounded-md">
+                      {SENSOR_OPTIONS.find(s => s.id === customSensor)?.symbol}
                     </span>
                     <h4 className="font-sans font-bold text-xs text-slate-300 truncate">{SENSOR_OPTIONS.find(s => s.id === customSensor)?.name}</h4>
                   </div>
                   
                   <div className="bg-[#030712] p-3 rounded-xl border border-slate-900 text-center relative flex flex-col items-center justify-center">
                     <span className="font-mono text-[8px] text-indigo-400 font-extrabold tracking-wider block mb-1 uppercase">Sourcing (Processing)</span>
-                    <span className="text-xl mb-1 block" role="img" aria-label="controller-emoji">
-                      {CONTROLLER_OPTIONS.find(c => c.id === customController)?.emoji}
+                    <span className="inline-block mt-0.5 mb-1.5 px-2.5 py-1 text-xs font-mono font-bold bg-indigo-950/40 border border-indigo-800/30 text-indigo-400 rounded-md">
+                      {CONTROLLER_OPTIONS.find(c => c.id === customController)?.symbol}
                     </span>
                     <h4 className="font-sans font-bold text-xs text-slate-300 truncate">{CONTROLLER_OPTIONS.find(c => c.id === customController)?.name}</h4>
                   </div>
 
                   <div className="bg-[#030712] p-3 rounded-xl border border-slate-900 text-center relative">
-                    <span className="font-mono text-[8px] text-emerald-450 font-extrabold tracking-wider block mb-1 uppercase">Driving (Output)</span>
-                    <span className="text-xl mb-1 block" role="img" aria-label="actuator-emoji">
-                      {ACTUATOR_OPTIONS.find(a => a.id === customActuator)?.emoji}
+                    <span className="font-mono text-[10px] text-emerald-400 font-extrabold tracking-wider block mb-1 uppercase">Driving (Output)</span>
+                    <span className="inline-block mt-0.5 mb-1.5 px-2.5 py-1 text-xs font-mono font-bold bg-emerald-950/40 border border-emerald-800/30 text-emerald-400 rounded-md">
+                      {ACTUATOR_OPTIONS.find(a => a.id === customActuator)?.symbol}
                     </span>
                     <h4 className="font-sans font-bold text-xs text-slate-300 truncate">{ACTUATOR_OPTIONS.find(a => a.id === customActuator)?.name}</h4>
                   </div>
@@ -1091,7 +1078,7 @@ delay(250); // Pause execution`}
                   <span className="font-mono text-[9px] text-slate-400 tracking-wider block uppercase">Systems Engineers Analysis:</span>
                   <div className="space-y-1.5">
                     <p className="font-sans text-xs text-slate-300 leading-relaxed">
-                      💡 The <strong className="text-indigo-400">{CONTROLLER_OPTIONS.find(c => c.id === customController)?.name}</strong> reads physical data spikes sourced from the <strong className="text-sky-400">{SENSOR_OPTIONS.find(s => s.id === customSensor)?.name}</strong>. If measured thresholds go critical, logic coordinates commands to fire the <strong className="text-emerald-450">{ACTUATOR_OPTIONS.find(a => a.id === customActuator)?.name}</strong> immediately.
+                      The <strong className="text-indigo-400">{CONTROLLER_OPTIONS.find(c => c.id === customController)?.name}</strong> reads physical data spikes sourced from the <strong className="text-sky-400">{SENSOR_OPTIONS.find(s => s.id === customSensor)?.name}</strong>. If measured thresholds go critical, logic coordinates commands to fire the <strong className="text-emerald-400">{ACTUATOR_OPTIONS.find(a => a.id === customActuator)?.name}</strong> immediately.
                     </p>
                     <p className="font-sans text-[11px] text-slate-500 italic">
                       {SENSOR_OPTIONS.find(s => s.id === customSensor)?.details} {ACTUATOR_OPTIONS.find(a => a.id === customActuator)?.details}
@@ -1160,11 +1147,11 @@ delay(250); // Pause execution`}
                       onClick={() => setSelectedTypeIdx(idx)}
                       className={`text-left p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between min-h-[105px] ${
                         isSelected 
-                          ? "border-indigo-505 bg-indigo-500/[0.04] ring-1 ring-indigo-500/30" 
+                          ? "border-indigo-500 bg-indigo-500/[0.04] ring-1 ring-indigo-500/30" 
                           : "border-slate-800 hover:border-slate-700 bg-slate-900/10 hover:bg-slate-905/30"
                       }`}
                     >
-                      <span className="font-mono text-[8.5px] uppercase text-indigo-450 font-bold">{type.category}</span>
+                      <span className="font-mono text-[10px] uppercase text-indigo-400 font-bold">{type.category}</span>
                       <h4 className="font-sans font-extrabold text-slate-100 text-xs mt-1 leading-tight">{type.name}</h4>
                     </button>
                   );
@@ -1182,18 +1169,18 @@ delay(250); // Pause execution`}
                     className="p-4 rounded-xl border border-slate-900 bg-[#030712] space-y-3"
                   >
                     <div>
-                      <span className="font-mono text-[8px] text-slate-550 uppercase font-bold tracking-widest">{activeType.category} Architecture</span>
+                      <span className="font-mono text-[10px] text-slate-400 uppercase font-bold tracking-widest">{activeType.category} Architecture</span>
                       <h4 className="font-sans text-sm font-extrabold text-[#38bdf8] uppercase tracking-wide mt-0.5">{activeType.name}</h4>
                       <p className="font-sans text-[11.5px] text-slate-400 leading-relaxed mt-1.5">{activeType.description}</p>
                     </div>
 
                     {/* Core Mechanics */}
                     <div className="space-y-1.5 pt-1.5 border-t border-slate-900/60">
-                      <span className="font-mono text-[8px] uppercase text-slate-500 tracking-wider">Core Engineering Concepts:</span>
+                      <span className="font-mono text-[10px] uppercase text-slate-500 tracking-wider">Core Engineering Concepts:</span>
                       <div className="flex flex-wrap gap-1.5">
                         {activeType.coreConcepts.map((concept, i) => (
-                          <span key={i} className="text-[10px] bg-slate-900 border border-slate-800/80 text-slate-350 px-2.5 py-0.5 rounded-full font-sans">
-                            ⚙️ {concept}
+                          <span key={i} className="text-[10px] bg-slate-900 border border-slate-800/80 text-slate-300 px-2.5 py-0.5 rounded-full font-sans">
+                            • {concept}
                           </span>
                         ))}
                       </div>
@@ -1214,7 +1201,7 @@ delay(250); // Pause execution`}
                         </ul>
                       </div>
                       <div className="p-2 rounded bg-slate-950/40 border border-slate-900">
-                        <span className="font-mono text-[7.5px] uppercase text-emerald-450 block mb-1 font-bold">Actuators</span>
+                        <span className="font-mono text-[9px] uppercase text-emerald-400 block mb-1 font-bold">Actuators</span>
                         <ul className="space-y-0.5 text-slate-400">
                           {activeType.componentsNeeded.actuators.map((a, i) => <li key={i} className="truncate">• {a}</li>)}
                         </ul>
@@ -1243,7 +1230,7 @@ delay(250); // Pause execution`}
           <div className="lg:col-span-6 flex flex-col gap-4">
             <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-900 pb-3">
-                <div className="p-1 px-2 rounded bg-emerald-500/10 text-emerald-450 font-mono text-xs font-bold uppercase border border-emerald-500/20">
+                <div className="p-1 px-2 rounded bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold uppercase border border-emerald-500/20">
                   Open Projects
                 </div>
                 <div>
@@ -1269,7 +1256,7 @@ delay(250); // Pause execution`}
                       onClick={() => setSelectedProjectIdx(idx)}
                       className={`text-left p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between min-h-[105px] ${
                         isSelected 
-                          ? "border-emerald-505 bg-emerald-500/[0.04] ring-1 ring-emerald-500/30" 
+                          ? "border-emerald-500 bg-emerald-500/[0.04] ring-1 ring-emerald-500/30" 
                           : "border-slate-800 hover:border-slate-700 bg-slate-900/10 hover:bg-slate-905/30"
                       }`}
                     >
@@ -1303,7 +1290,7 @@ delay(250); // Pause execution`}
                         <span>•</span>
                         <span>{activeProj.timeEstimate} build</span>
                       </div>
-                      <h4 className="font-sans text-sm font-extrabold text-emerald-450 uppercase tracking-wide mt-0.5">{activeProj.name}</h4>
+                      <h4 className="font-sans text-sm font-extrabold text-emerald-400 uppercase tracking-wide mt-0.5">{activeProj.name}</h4>
                       <p className="font-sans text-[11.5px] text-slate-400 leading-relaxed mt-1.5">{activeProj.description}</p>
                     </div>
 
@@ -1313,7 +1300,7 @@ delay(250); // Pause execution`}
                       <div className="flex flex-wrap gap-1.5">
                         {activeProj.partsList.map((part, i) => (
                           <span key={i} className="text-[10px] bg-indigo-950/20 border border-indigo-900/40 text-indigo-300 px-2.5 py-0.5 rounded-md font-mono">
-                            🛠️ {part}
+                            • {part}
                           </span>
                         ))}
                       </div>

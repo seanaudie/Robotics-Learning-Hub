@@ -1024,9 +1024,26 @@ const SENSOR_APP_MAP: Record<string, "sound" | "touch" | "vision" | "light" | "e
   sensor_touch: "touch",
 };
 
+const ACTUATOR_APP_MAP: Record<string, "motion" | "display" | "indicator" | "switch"> = {
+  actuator_servo_sg90: "motion",
+  actuator_dc_geared: "motion",
+  actuator_stepper: "motion",
+  actuator_buzzer: "indicator",
+  actuator_relay: "switch",
+  actuator_solenoid_lock: "switch",
+  actuator_led_rgb: "indicator",
+  display_lcd1602: "display",
+  display_oled_ssd1306: "display",
+  display_seven_segment: "display",
+  display_led_matrix: "display",
+};
+
 ROBOTIC_PARTS.forEach(part => {
   if (part.category === "sensor" && SENSOR_APP_MAP[part.id]) {
     part.sensorApplication = SENSOR_APP_MAP[part.id];
+  }
+  if (part.category === "actuator" && ACTUATOR_APP_MAP[part.id]) {
+    part.actuatorApplication = ACTUATOR_APP_MAP[part.id];
   }
 });
 

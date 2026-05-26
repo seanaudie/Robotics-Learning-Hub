@@ -19,7 +19,7 @@ export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps
     {
       id: "welcome",
       role: "model",
-      text: "👋 Hello, fellow robotics engineer! I am your AI Robotics Advisor. Ask me anything about microcontrollers, closed-loop servo physics, capacitive encoders, H-bridge drivers, or write-up custom control loops!",
+      text: "Hello, fellow robotics engineer! I am your AI Robotics Advisor. Ask me anything about microcontrollers, closed-loop servo physics, capacitive encoders, H-bridge drivers, or write-up custom control loops!",
       timestamp: new Date(),
     },
   ]);
@@ -75,7 +75,7 @@ export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps
       {
         id: "welcome",
         role: "model",
-        text: "👋 Welcome back! I am your AI Robotics Advisor. What cyber-physical systems shall we investigate today?",
+        text: "Welcome back! I am your AI Robotics Advisor. What cyber-physical systems shall we investigate today?",
         timestamp: new Date(),
       },
     ]);
@@ -89,7 +89,7 @@ export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps
         </span>
         <button
           onClick={clearChat}
-          className="text-slate-500 hover:text-slate-350 font-mono text-[10px] flex items-center gap-0.5"
+          className="text-slate-500 hover:text-slate-300 font-mono text-[11px] flex items-center gap-0.5"
         >
           <RefreshCw className="w-2.5 h-2.5" /> Reset chat
         </button>
@@ -148,7 +148,7 @@ export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps
       {/* Recommended Prompt Chip links */}
       {messages.length === 1 && (
         <div className="mb-3 space-y-1.5">
-          <span className="font-mono text-[8px] text-slate-550 block font-bold uppercase tracking-wider">
+          <span className="font-mono text-[10px] text-slate-400 block font-bold uppercase tracking-wider">
             RECOMMENDED LEARNING TOPICS:
           </span>
           <div className="flex flex-wrap gap-1.5">

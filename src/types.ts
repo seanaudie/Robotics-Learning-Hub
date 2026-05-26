@@ -11,6 +11,7 @@ export interface RoboticPart {
   name: string;
   category: PartCategory;
   sensorApplication?: "sound" | "touch" | "vision" | "light" | "environment" | "motion" | "security";
+  actuatorApplication?: "motion" | "display" | "indicator" | "switch";
   symbol: string; // Brief mnemonic e.g. "S-ULS" for Ultrasonic Sensor
   shortDesc: string;
   description: string; // Rich detailed description

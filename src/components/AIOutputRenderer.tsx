@@ -115,7 +115,7 @@ export default function AIOutputRenderer({ content }: AIOutputRendererProps) {
               // Bullet lists
               if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
                 return (
-                  <div key={lineIdx} className="flex gap-2 pl-2 my-1 font-sans text-xs text-slate-350 leading-relaxed">
+                  <div key={lineIdx} className="flex gap-2 pl-2 my-1 font-sans text-xs text-slate-300 leading-relaxed">
                     <span className="text-amber-500 select-none flex-shrink-0">•</span>
                     <span className="flex-1">{parseInlineMarkups(trimmed.slice(2))}</span>
                   </div>
@@ -126,7 +126,7 @@ export default function AIOutputRenderer({ content }: AIOutputRendererProps) {
               const numMatch = trimmed.match(/^(\d+)\.\s(.*)$/);
               if (numMatch) {
                 return (
-                  <div key={lineIdx} className="flex gap-2 pl-2 my-1.5 font-sans text-xs text-slate-350 leading-relaxed">
+                  <div key={lineIdx} className="flex gap-2 pl-2 my-1.5 font-sans text-xs text-slate-300 leading-relaxed">
                     <span className="text-amber-500/90 font-mono font-bold select-none text-[10px] bg-slate-800 border border-slate-750 w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0">
                       {numMatch[1]}
                     </span>

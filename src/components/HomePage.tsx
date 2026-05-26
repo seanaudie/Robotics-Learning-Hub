@@ -34,7 +34,7 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "explore
       desc: "Anatomize digital microcontrollers, motor drivers, actuators & sensors. Hover or click custom hardware landmarks to read dynamic real-time electrical telemetry.",
       actionKey: "TAP LANDMARKS",
       badge: "IO ACTIVE",
-      waveColor: "bg-sky-450/15 text-sky-400 border border-sky-400/20",
+      waveColor: "bg-sky-500/15 text-sky-400 border border-sky-400/20",
     },
     {
       id: "02",
@@ -176,7 +176,7 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "explore
         <div className="flex items-center gap-5 text-[10px] hidden sm:flex">
           <span>LATENCY: <strong className="text-sky-400 font-mono">1.2ms</strong></span>
           <span>SYSTEM CLOCK: <strong className="text-emerald-400 font-mono">25.0 MHz</strong></span>
-          <span>IO STATUS: <strong className="text-slate-350 font-mono">STANDBY_CONNECTED</strong></span>
+          <span>IO STATUS: <strong className="text-slate-300 font-mono">STANDBY_CONNECTED</strong></span>
         </div>
       </header>
 
@@ -460,7 +460,7 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "explore
           {/* Main Action trigger button */}
           <button
             onClick={() => onEnter("explorer")}
-            className="group relative px-12 py-5 bg-sky-600 hover:bg-sky-550 text-slate-950 font-bold text-xs font-mono tracking-widest rounded-xl transition-all shadow-[0_0_30px_-5px_rgba(14,165,233,0.35)] hover:shadow-[0_0_40px_rgba(14,165,233,0.55)] active:scale-98 duration-200 uppercase cursor-pointer"
+            className="group relative px-12 py-5 bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold text-xs font-mono tracking-widest rounded-xl transition-all shadow-[0_0_30px_-5px_rgba(14,165,233,0.35)] hover:shadow-[0_0_40px_rgba(14,165,233,0.55)] active:scale-98 duration-200 uppercase cursor-pointer"
           >
             <span className="flex items-center gap-2">
               INITIATE SYSTEM LINK
@@ -470,7 +470,7 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "explore
             <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-sky-400" />
             <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-sky-400" />
             <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-sky-400" />
-            <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-sky-450" />
+            <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-sky-400" />
           </button>
         </div>
       </section>
@@ -509,7 +509,7 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "explore
                   <span className="font-mono text-[10px] text-slate-500 uppercase tracking-wider font-bold">
                     {st.subtitle}
                   </span>
-                  <span className="font-mono text-xs text-sky-450/70 font-extrabold bg-sky-950/40 border border-sky-950 px-2 py-0.5 rounded">
+                  <span className="font-mono text-xs text-sky-400/70 font-extrabold bg-sky-950/40 border border-sky-950 px-2 py-0.5 rounded">
                     STAGE {st.num}
                   </span>
                 </div>
