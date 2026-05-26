@@ -287,40 +287,28 @@ export default function RoboticsFlowSystem() {
   // Cascade initial animation timeline orchestrator
   useEffect(() => {
     if (isDiagnosticActive) {
-      // Step 1: Highlight Sensor immediately
+      // Step 1: Highlight all three core parts together immediately
       setBootHighlightSensors(true);
-      setBootHighlightControllers(false);
-      setBootHighlightActuators(false);
+      setBootHighlightControllers(true);
+      setBootHighlightActuators(true);
       setActiveStep(null);
 
-      // Step 2: Highlight Controller after 1000ms
+      // Step 2: Highlighted together stay active for 3000ms, then fade out together
       const t1 = setTimeout(() => {
-        setBootHighlightControllers(true);
-      }, 1000);
-
-      // Step 3: Highlight Actuators after 2000ms
-      const t2 = setTimeout(() => {
-        setBootHighlightActuators(true);
-      }, 2000);
-
-      // Step 4: Fade out boot highlight (all three fade out at 5000ms)
-      const t3 = setTimeout(() => {
         setBootHighlightSensors(false);
         setBootHighlightControllers(false);
         setBootHighlightActuators(false);
-      }, 5000);
+      }, 3000);
 
-      // Step 5: Introduce the requested pause while in the faded out state (2000ms), then start the flow cycle at 7000ms
-      const t4 = setTimeout(() => {
+      // Step 3: Pause while completely faded out (2000ms), then start the standard looping cycles at 5000ms
+      const t2 = setTimeout(() => {
         setIsDiagnosticActive(false);
         setActiveStep("sensors");
-      }, 7000);
+      }, 5000);
 
       return () => {
         clearTimeout(t1);
         clearTimeout(t2);
-        clearTimeout(t3);
-        clearTimeout(t4);
       };
     } else {
       // Ensure all initial anim flags clean up if diagnostic gets cancelled early or finishes
@@ -490,6 +478,20 @@ export default function RoboticsFlowSystem() {
           animation: cyberGlowActuators 3s infinite ease-in-out;
         }
         
+        /* Static highlight states without scale transform or glowing animations for initial boot highlight */
+        .cyber-border-card.boot-highlight-sensors {
+          border-color: rgba(56, 189, 248, 0.45);
+          background: rgba(56, 189, 248, 0.04);
+        }
+        .cyber-border-card.boot-highlight-controllers {
+          border-color: rgba(99, 102, 241, 0.45);
+          background: rgba(99, 102, 241, 0.04);
+        }
+        .cyber-border-card.boot-highlight-actuators {
+          border-color: rgba(16, 185, 129, 0.45);
+          background: rgba(16, 185, 129, 0.04);
+        }
+        
         /* Card content sits safely over mask */
         .cyber-card-inner {
           position: relative;
@@ -576,12 +578,7 @@ export default function RoboticsFlowSystem() {
               )}
             </div>
           </div>
-
-          {/* Futuristic holographic boot sequence scanline sweep (subtle, seamless & non-blocking) */}
-          {isDiagnosticActive && (
-            <div className="cyber-scanline pointer-events-none z-0" />
-          )}
-
+          
           {/* Feathery soft background radar line waves */}
           <div className="absolute inset-0 flex items-center justify-center opacity-[0.04] pointer-events-none select-none">
             <svg viewBox="0 0 400 100" className="w-full h-32 select-none pointer-events-none">
@@ -609,7 +606,11 @@ export default function RoboticsFlowSystem() {
                 setActiveStep("sensors");
               }}
               className={`cyber-border-card cursor-pointer w-full md:flex-1 p-[1px] transition-all duration-500 hover:border-sky-500/40 select-none ${
-                (activeStep === "sensors" || bootHighlightSensors) ? "active-sensors font-semibold" : "opacity-45 scale-[0.98]"
+                activeStep === "sensors"
+                  ? "active-sensors font-semibold"
+                  : bootHighlightSensors
+                    ? "boot-highlight-sensors font-semibold"
+                    : "opacity-45 scale-[0.98]"
               }`}
               title="Click to focus Sensors phase and reset slide timer"
             >
@@ -626,7 +627,7 @@ export default function RoboticsFlowSystem() {
                       </span>
                     </div>
                     <div className="p-1.5 rounded-md bg-sky-950/45 border border-sky-500/10">
-                      <SensorIcon className={`w-4 h-4 transition-all duration-500 ${(activeStep === "sensors" || bootHighlightSensors) ? "text-sky-400 rotate-12 scale-110" : "text-slate-650"}`} />
+                      <SensorIcon className={`w-4 h-4 transition-all duration-500 ${activeStep === "sensors" ? "text-sky-400 rotate-12 scale-110" : bootHighlightSensors ? "text-sky-400/80 scale-100" : "text-slate-650"}`} />
                     </div>
                   </div>
                   
@@ -713,26 +714,30 @@ export default function RoboticsFlowSystem() {
               {/* Horizontal line (Desktop) */}
               <div className="hidden md:block w-full h-[4px] bg-slate-900 rounded-full relative overflow-hidden">
                 <div className={`absolute top-0 bottom-0 w-12 bg-gradient-to-r from-transparent via-sky-400 to-transparent animate-premonition-h ${
-                  (activeStep === "sensors" || bootHighlightControllers) ? "block bg-sky-400" : "hidden"
+                  activeStep === "sensors" ? "block bg-sky-400" : "hidden"
                 }`} />
               </div>
               {/* Vertical line (Mobile) */}
               <div className="block md:hidden w-[4px] h-8 bg-slate-900 rounded-full relative overflow-hidden">
                 <div className={`absolute left-0 right-0 h-6 bg-gradient-to-b from-transparent via-sky-400 to-transparent animate-premonition-v ${
-                  (activeStep === "sensors" || bootHighlightControllers) ? "block bg-sky-400" : "hidden"
+                  activeStep === "sensors" ? "block bg-sky-400" : "hidden"
                 }`} />
               </div>
 
               {/* Enhanced Directional Flow Arrows with colored glows */}
               <ChevronsRight className={`hidden md:block w-8 h-8 md:ml-2 transition-all duration-500 ${
-                (activeStep === "sensors" || bootHighlightControllers) 
+                activeStep === "sensors" 
                   ? "text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.7)] scale-110" 
-                  : "text-slate-800 opacity-20"
+                  : bootHighlightControllers
+                    ? "text-sky-400/80"
+                    : "text-slate-800 opacity-20"
               }`} />
               <ChevronsDown className={`block md:hidden w-7 h-7 transition-all duration-500 ${
-                (activeStep === "sensors" || bootHighlightControllers) 
+                activeStep === "sensors" 
                   ? "text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.7)] scale-110 animate-pulse" 
-                  : "text-slate-800 opacity-20"
+                  : bootHighlightControllers
+                    ? "text-sky-400/80"
+                    : "text-slate-800 opacity-20"
               }`} />
             </div>
 
@@ -748,7 +753,11 @@ export default function RoboticsFlowSystem() {
                 setActiveStep("controllers");
               }}
               className={`cyber-border-card cursor-pointer w-full md:flex-1 p-[1px] transition-all duration-500 hover:border-indigo-500/40 select-none ${
-                (activeStep === "controllers" || bootHighlightControllers) ? "active-controllers" : "opacity-45 scale-[0.98]"
+                activeStep === "controllers"
+                  ? "active-controllers"
+                  : bootHighlightControllers
+                    ? "boot-highlight-controllers"
+                    : "opacity-45 scale-[0.98]"
               }`}
               title="Click to focus Controllers phase and reset slide timer"
             >
@@ -765,7 +774,7 @@ export default function RoboticsFlowSystem() {
                       </span>
                     </div>
                     <div className="p-1.5 rounded-md bg-indigo-950/45 border border-indigo-500/10">
-                      <ControllerIcon className={`w-4 h-4 transition-all duration-500 ${(activeStep === "controllers" || bootHighlightControllers) ? "text-indigo-400 scale-110" : "text-slate-650"}`} />
+                      <ControllerIcon className={`w-4 h-4 transition-all duration-500 ${activeStep === "controllers" ? "text-indigo-400 scale-110" : bootHighlightControllers ? "text-indigo-400/80 scale-100" : "text-slate-650"}`} />
                     </div>
                   </div>
                   
@@ -852,26 +861,30 @@ export default function RoboticsFlowSystem() {
               {/* Horizontal line (Desktop) */}
               <div className="hidden md:block w-full h-[4px] bg-slate-950/20 bg-slate-900 rounded-full relative overflow-hidden">
                 <div className={`absolute top-0 bottom-0 w-12 bg-gradient-to-r from-transparent via-indigo-400 to-transparent animate-premonition-h ${
-                  (activeStep === "controllers" || bootHighlightActuators) ? "block bg-indigo-400" : "hidden"
+                  activeStep === "controllers" ? "block bg-indigo-400" : "hidden"
                 }`} />
               </div>
               {/* Vertical line (Mobile) */}
               <div className="block md:hidden w-[4px] h-8 bg-slate-900 rounded-full relative overflow-hidden">
                 <div className={`absolute left-0 right-0 h-6 bg-gradient-to-b from-transparent via-indigo-400 to-transparent animate-premonition-v ${
-                  (activeStep === "controllers" || bootHighlightActuators) ? "block bg-indigo-400" : "hidden"
+                  activeStep === "controllers" ? "block bg-indigo-400" : "hidden"
                 }`} />
               </div>
 
               {/* Enhanced Directional Flow Arrows with colored glows */}
               <ChevronsRight className={`hidden md:block w-8 h-8 md:ml-2 transition-all duration-500 ${
-                (activeStep === "controllers" || bootHighlightActuators) 
+                activeStep === "controllers" 
                   ? "text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.7)] scale-110" 
-                  : "text-slate-800 opacity-20"
+                  : bootHighlightActuators
+                    ? "text-indigo-400/80"
+                    : "text-slate-800 opacity-20"
               }`} />
               <ChevronsDown className={`block md:hidden w-7 h-7 transition-all duration-500 ${
-                (activeStep === "controllers" || bootHighlightActuators) 
+                activeStep === "controllers" 
                   ? "text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.7)] scale-110 animate-pulse" 
-                  : "text-slate-800 opacity-20"
+                  : bootHighlightActuators
+                    ? "text-indigo-400/80"
+                    : "text-slate-800 opacity-20"
               }`} />
             </div>
 
@@ -887,7 +900,11 @@ export default function RoboticsFlowSystem() {
                 setActiveStep("actuators");
               }}
               className={`cyber-border-card cursor-pointer w-full md:flex-1 p-[1px] transition-all duration-500 hover:border-emerald-500/40 select-none ${
-                (activeStep === "actuators" || bootHighlightActuators) ? "active-actuators" : "opacity-45 scale-[0.98]"
+                activeStep === "actuators"
+                  ? "active-actuators"
+                  : bootHighlightActuators
+                    ? "boot-highlight-actuators"
+                    : "opacity-45 scale-[0.98]"
               }`}
               title="Click to focus Actuators phase and reset slide timer"
             >
@@ -904,7 +921,7 @@ export default function RoboticsFlowSystem() {
                       </span>
                     </div>
                     <div className="p-1.5 rounded-md bg-emerald-950/45 border border-emerald-500/10">
-                      <ActuatorIcon className={`w-4 h-4 transition-all duration-500 ${(activeStep === "actuators" || bootHighlightActuators) ? "text-emerald-400 scale-110 animate-pulse" : "text-slate-650"}`} />
+                      <ActuatorIcon className={`w-4 h-4 transition-all duration-500 ${activeStep === "actuators" ? "text-emerald-400 scale-110 animate-pulse" : bootHighlightActuators ? "text-emerald-400/80 scale-100" : "text-slate-650"}`} />
                     </div>
                   </div>
                   

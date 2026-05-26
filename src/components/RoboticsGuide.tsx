@@ -277,20 +277,20 @@ export default function RoboticsGuide() {
               STEM Robotics Academy
             </span>
             <h2 className="font-sans text-2xl md:text-3xl font-extrabold text-[#f8fafc] tracking-tight">
-              CYBERNETICS & FIRMWARE SCHOOL
+              ROBOTICS & CODING GUIDE
             </h2>
             <p className="font-sans text-xs md:text-sm text-slate-400 leading-relaxed">
-              Every school-grade or industrial-grade machine follows an elegant cycle: it senses physical waveforms, compiles logical branches, and commands mechanical joints. Master these guides to engineer your own custom autonomous rigs!
+              Robots interact with the real world using a basic loop: they read physical sensors, make logical decisions, and control mechanical motors or indicators. Discover these core concepts clearly below!
             </p>
           </div>
           <div className="lg:col-span-5 flex flex-col gap-2 bg-slate-900/40 p-3 rounded-xl border border-slate-800/80 backdrop-blur-sm w-full">
             <span className="font-mono text-[9px] text-[#818cf8] font-extrabold tracking-widest uppercase pl-1.5 mb-1 block">
-              SELECT LAB STATION
+              CHOOSE A STATION
             </span>
             {([
-              { id: "coding", label: "1. Coding & Syntax", sub: "Learn Variables, Loop timers & Condition checks", icon: Code2, num: "01" },
-              { id: "flowchart", label: "2. Logic Flow", sub: "Interactive decision flowcharts & C++ loops", icon: Activity, num: "02" },
-              { id: "electronics", label: "3. Basic Electronics", sub: "Interactive Ohm's Law & Circuit schematic runs", icon: Zap, num: "03" }
+              { id: "coding", label: "1. Code & Commands", sub: "Learn Variables, Loop timers & Condition checks", icon: Code2, num: "01" },
+              { id: "flowchart", label: "2. Logic & Flowcharts", sub: "Interactive decision flowcharts & C++ loops", icon: Activity, num: "02" },
+              { id: "electronics", label: "3. Basic Circuits", sub: "Ohm's Law & Circuit schematic simulations", icon: Zap, num: "03" }
             ] as const).map((tab) => {
               const IconComp = tab.icon;
               const isActive = activeGuideTab === tab.id;
@@ -330,17 +330,17 @@ export default function RoboticsGuide() {
             <div className="rounded-2xl border border-slate-805 bg-slate-950 p-5 space-y-4">
               <span className="font-mono text-[8px] uppercase tracking-wider text-sky-400 font-extrabold">Lab Session 01</span>
               <div>
-                <h3 className="font-sans font-extrabold text-slate-205 text-md uppercase tracking-tight">Firmware Sandbox</h3>
+                <h3 className="font-sans font-extrabold text-slate-205 text-md uppercase tracking-tight">Code Learning Sandbox</h3>
                 <p className="font-sans text-xs text-slate-400 leading-normal mt-1">
-                  Robots need firmware instructions to behave. Select a programming concept below to test C++ compiling rules on a physical chip:
+                  Robots need code instructions to function. Choose a concept below to test how it controls a physical chip:
                 </p>
               </div>
 
               <div className="space-y-2 pt-2 border-t border-slate-900">
                 {([
-                  { id: "variables", label: "Variables & Memory Registers", desc: "How processors cache input data physics states", flagColor: "border-indigo-500" },
-                  { id: "conditions", label: "Conditional Branches (if/else)", desc: "Trigger different outputs using comparisons", flagColor: "border-sky-500" },
-                  { id: "loops", label: "Execution Loop Cycles", desc: "Inside the continuous infinite void loop()", flagColor: "border-emerald-500" }
+                  { id: "variables", label: "Variables & Storage", desc: "How programs save sensor values in memory", flagColor: "border-indigo-500" },
+                  { id: "conditions", label: "If / Else Decisions", desc: "Choose what the robot does based on sensor readings", flagColor: "border-sky-500" },
+                  { id: "loops", label: "The Continuous Loop", desc: "How robots read inputs and update outputs over and over again", flagColor: "border-emerald-500" }
                 ] as const).map((sub) => {
                   const isCur = activeCodingSubTab === sub.id;
                   return (
@@ -1017,7 +1017,7 @@ delay(250); // Pause execution`}
                       shapeNode = (
                         <polygon
                           points={points}
-                          className={`${isStepCurrentlyWalkingActive ? "stroke-pink-400 fill-pink-950/20 shadow-lg" : "stroke-slate-705 fill-[#030712]"} transition-all duration-350`}
+                          className={`${isStepCurrentlyWalkingActive ? "stroke-pink-400 fill-pink-950/20 shadow-lg" : "stroke-slate-700 fill-[#030712]"} transition-all duration-350`}
                           strokeWidth={isStepCurrentlyWalkingActive ? "3.5" : "1.5"}
                           filter={isStepCurrentlyWalkingActive ? "url(#glow)" : ""}
                         />
@@ -1030,7 +1030,7 @@ delay(250); // Pause execution`}
                           width={step.width}
                           height={step.height}
                           rx="6"
-                          className={`${isStepCurrentlyWalkingActive ? "stroke-purple-400 fill-purple-950/20 shadow-lg" : "stroke-slate-705 fill-[#030712]"} transition-all duration-350`}
+                          className={`${isStepCurrentlyWalkingActive ? "stroke-purple-400 fill-purple-950/20 shadow-lg" : "stroke-slate-700 fill-[#030712]"} transition-all duration-350`}
                           strokeWidth={isStepCurrentlyWalkingActive ? "3.5" : "1.5"}
                           filter={isStepCurrentlyWalkingActive ? "url(#glow)" : ""}
                         />
@@ -1045,7 +1045,7 @@ delay(250); // Pause execution`}
                       shapeNode = (
                         <polygon
                           points={points}
-                          className={`${isStepCurrentlyWalkingActive ? "stroke-yellow-400 fill-yellow-950/20 shadow-lg" : "stroke-slate-705 fill-[#030712]"} transition-all duration-350`}
+                          className={`${isStepCurrentlyWalkingActive ? "stroke-yellow-400 fill-yellow-950/20 shadow-lg" : "stroke-slate-700 fill-[#030712]"} transition-all duration-350`}
                           strokeWidth={isStepCurrentlyWalkingActive ? "3.5" : "1.5"}
                           filter={isStepCurrentlyWalkingActive ? "url(#glow)" : ""}
                         />
@@ -1071,16 +1071,6 @@ delay(250); // Pause execution`}
                         >
                           {step.subtext}
                         </text>
-
-                        {/* Walking energy orb indicators */}
-                        {isStepCurrentlyWalkingActive && (
-                          <circle
-                            cx={step.x + step.width / 2}
-                            cy={step.y}
-                            r="4.5"
-                            className="fill-[#38bdf8] stroke-[#ffffff] stroke-2 animate-ping"
-                          />
-                        )}
                       </g>
                     );
                   })}
@@ -1238,9 +1228,8 @@ delay(250); // Pause execution`}
                         
                         {/* Dynamic Wire Animation Container */}
                         <div className="rounded-xl border border-slate-900 bg-[#030712] p-4 flex flex-col items-center justify-center space-y-3 min-h-[160px] relative overflow-hidden">
-                          
-                          {/* Animated particle wire line loop */}
-                          <svg viewBox="0 0 220 100" className="w-full h-24 overflow-visible">
+                             {/* Animated particle wire line loop */}
+                          <svg viewBox="0 0 220 120" className="w-full h-28 overflow-visible">
                             <rect 
                               x="10" 
                               y="10" 
@@ -1276,6 +1265,33 @@ delay(250); // Pause execution`}
                                 animationDuration: `${Math.max(0.12, 1.8 / Math.max(0.12, currentAmps * 35))}s`
                               }}
                             />
+
+                            {/* Battery representation on left wire centered at y=50 */}
+                            <g>
+                              {/* Battery positive cap */}
+                              <rect x="7" y="31" width="6" height="3" fill="#f97316" rx="0.5" />
+                              {/* Battery cell casing */}
+                              <rect x="3" y="34" width="14" height="32" rx="3" fill="#1e1b4b" stroke="#4f46e5" strokeWidth="1" />
+                              {/* Dynamic highlight segment for positive indicator */}
+                              <rect x="3.5" y="34.5" width="13" height="12" fill="#ef4444" rx="1.5" />
+                              <text x="10" y="43" textAnchor="middle" className="fill-white font-sans text-[8px] font-black">+</text>
+                              <text x="10" y="60" textAnchor="middle" className="fill-slate-400 font-sans text-[9px] font-black">-</text>
+                              {/* Text description nestled inside circuit loop */}
+                              <text x="24" y="52" textAnchor="start" className="fill-indigo-400 font-mono text-[8px] font-extrabold">{ohmsVoltage.toFixed(1)}V Battery</text>
+                            </g>
+
+                            {/* Resistor on bottom side centered at x=110, y=90 */}
+                            <g>
+                              {/* Ceramic resistor body */}
+                              <rect x="92" y="82" width="36" height="16" rx="4" fill="#deb887" stroke="#ac783e" strokeWidth="1" />
+                              {/* Color bands representing resistance value */}
+                              <rect x="98.5" y="82.5" width="3.5" height="15" fill="#78350f" /> {/* Band 1: Brown (1) */}
+                              <rect x="107" y="82.5" width="3.5" height="15" fill="#000000" /> {/* Band 2: Black (0) */}
+                              <rect x="115.5" y="82.5" width="3.5" height="15" fill={ohmsResistance >= 500 ? "#ea580c" : "#dc2626"} /> {/* Band 3: Multiplier */}
+                              <rect x="123.5" y="82.5" width="2" height="15" fill="#f59e0b" /> {/* Band 4: Gold tolerance */}
+                              {/* Text label underneath */}
+                              <text x="110" y="114" textAnchor="middle" className="fill-emerald-400 font-mono text-[8.5px] font-extrabold">{ohmsResistance}Ω Resistor</text>
+                            </g>
                           </svg>
 
                           <style>{`
@@ -1336,38 +1352,99 @@ delay(250); // Pause execution`}
 
                         {/* Interactive Visual Wire with bulbs */}
                         <div className="py-4 px-2 bg-slate-950 rounded-xl border border-slate-900 flex flex-col items-center justify-center space-y-3 relative">
-                          <div className="flex justify-around items-center w-full min-h-[60px]">
-                            {/* LED 1 */}
-                            <div className="text-center space-y-1">
-                              <span className="font-mono text-[8px] text-slate-500 block">LED-01</span>
-                              <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${(!isSeriesCut) ? "bg-amber-500/30 border-amber-400 shadow-[0_0_12px_#f59e0b] text-amber-300" : "bg-slate-900 border-slate-800 text-slate-700"}`}>
-                                <Zap className="w-4 h-4" />
-                              </div>
-                            </div>
+                          
+                          {/* Rich Interactive SVG Series Circuit */}
+                          <svg viewBox="0 0 220 110" className="w-full h-28 overflow-visible mt-2 select-none">
+                            {/* main loop path wire outline */}
+                            <path
+                              d={isSeriesCut 
+                                ? "M 15 55 V 15 H 90 M 115 15 H 205 V 85 H 15 V 55"
+                                : "M 15 55 V 15 H 205 V 85 H 15 V 55"
+                              }
+                              fill="none"
+                              stroke={isSeriesCut ? "#f43f5e" : "#334155"}
+                              strokeWidth="2.5"
+                              className="transition-all duration-300"
+                            />
 
-                            {/* Interconnector Wire Switch */}
+                            {/* Flowing electrons when closed */}
+                            {!isSeriesCut && (
+                              <rect
+                                x="15"
+                                y="15"
+                                width="190"
+                                height="70"
+                                rx="3"
+                                fill="none"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                                strokeDasharray="6 12"
+                                style={{ animation: "dash 1.2s linear infinite" }}
+                              />
+                            )}
+
+                            {/* 5V Source Battery at x=15 (Centered vertically at y=55) */}
+                            <g>
+                              {/* Battery cap */}
+                              <rect x="12" y="44" width="6" height="2" fill="#f97316" rx="0.5" />
+                              {/* Battery body */}
+                              <rect x="8" y="46" width="14" height="20" rx="1.5" fill="#1e1b4b" stroke="#4f46e5" strokeWidth="1" />
+                              <text x="15" y="55" textAnchor="middle" className="fill-white font-sans text-[7px] font-black">+</text>
+                              <text x="15" y="64" textAnchor="middle" className="fill-slate-450 font-sans text-[7px] font-black">-</text>
+                              <text x="26" y="58" textAnchor="start" className="fill-indigo-400 font-mono text-[7px] font-extrabold">5V Source</text>
+                            </g>
+
+                            {/* Interactive Swivel Switch at x=90 to 115 */}
+                            <g className="cursor-pointer" onClick={() => setIsSeriesCut(!isSeriesCut)}>
+                              <circle cx="90" cy="15" r="2.5" fill="#94a3b8" />
+                              <circle cx="115" cy="15" r="2.5" fill="#94a3b8" />
+                              {isSeriesCut ? (
+                                <line x1="90" y1="15" x2="108" y2="4" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+                              ) : (
+                                <line x1="90" y1="15" x2="115" y2="15" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+                              )}
+                              <text x="102" y="30" textAnchor="middle" className={`font-mono text-[6.5px] font-bold ${isSeriesCut ? "fill-rose-450" : "fill-emerald-450"}`}>
+                                {isSeriesCut ? "OPEN" : "CLOSED"}
+                              </text>
+                            </g>
+
+                            {/* LED-01 at x=65, y=85 */}
+                            <g>
+                              {!isSeriesCut && (
+                                <circle cx="65" cy="85" r="11" fill="rgba(245, 158, 11, 0.2)" className="animate-pulse" />
+                              )}
+                              <circle cx="65" cy="85" r="6.5" fill={!isSeriesCut ? "#fbbf24" : "#1e293b"} stroke={!isSeriesCut ? "#f59e0b" : "#475569"} strokeWidth="1" />
+                              <text x="65" y="87" textAnchor="middle" className="font-sans text-[6.5px]">💡</text>
+                              <text x="65" y="101" textAnchor="middle" className="fill-slate-500 font-mono text-[6.5px]">LED-1</text>
+                            </g>
+
+                            {/* LED-02 at x=145, y=85 */}
+                            <g>
+                              {!isSeriesCut && (
+                                <circle cx="145" cy="85" r="11" fill="rgba(245, 158, 11, 0.2)" className="animate-pulse" />
+                              )}
+                              <circle cx="145" cy="85" r="6.5" fill={!isSeriesCut ? "#fbbf24" : "#1e293b"} stroke={!isSeriesCut ? "#f59e0b" : "#475569"} strokeWidth="1" />
+                              <text x="145" y="87" textAnchor="middle" className="font-sans text-[6.5px]">💡</text>
+                              <text x="145" y="101" textAnchor="middle" className="fill-slate-500 font-mono text-[6.5px]">LED-2</text>
+                            </g>
+                          </svg>
+
+                          <div className="flex justify-around items-center w-full min-h-[40px] pt-1">
+                            {/* Interconnector Wire Switch Toggle Button */}
                             <button
                               onClick={() => setIsSeriesCut(!isSeriesCut)}
-                              className={`px-2 py-1.5 rounded-md font-mono text-[8.5px] font-bold border cursor-pointer select-none transition-all ${
+                              className={`px-3 py-1 rounded-md font-mono text-[8.5px] font-bold border cursor-pointer select-none transition-all ${
                                 isSeriesCut 
                                   ? "bg-slate-900 border-rose-900 text-rose-400" 
                                   : "bg-emerald-950/20 border-emerald-900 text-emerald-400"
                               }`}
                             >
-                              {isSeriesCut ? "🔓 CUT SWITCH (OPEN)" : "🔒 WIRE LINK (CLOSED)"}
+                              {isSeriesCut ? "🔓 ATTACH WIRE LINK" : "🔒 DISCONNECT WIRE"}
                             </button>
-
-                            {/* LED 2 */}
-                            <div className="text-center space-y-1">
-                              <span className="font-mono text-[8px] text-slate-500 block">LED-02</span>
-                              <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${(!isSeriesCut) ? "bg-amber-500/30 border-amber-400 shadow-[0_0_12px_#f59e0b] text-amber-300" : "bg-slate-900 border-slate-800 text-slate-700"}`}>
-                                <Zap className="w-4 h-4" />
-                              </div>
-                            </div>
                           </div>
 
                           <div className="font-mono text-[9px] text-center">
-                            Voltage Loop State: <span className={isSeriesCut ? "text-rose-400 font-extrabold" : "text-emerald-400 font-bold"}>{isSeriesCut ? "BROKEN FLUD (0.0 V)" : "POWER HIGH (5.0 V)"}</span>
+                            Voltage Loop State: <span className={isSeriesCut ? "text-rose-400 font-extrabold" : "text-emerald-400 font-bold"}>{isSeriesCut ? "BROKEN CIRCUIT (0.0 V)" : "ACTIVE LOOP (5.0 V)"}</span>
                           </div>
                         </div>
                       </div>
@@ -1384,54 +1461,160 @@ delay(250); // Pause execution`}
 
                         {/* Interactive parallel schematic */}
                         <div className="py-4 px-2 bg-slate-950 rounded-xl border border-slate-900 flex flex-col items-center justify-center space-y-3 relative">
-                          <div className="flex flex-col gap-3 w-full">
-                            
-                            {/* Branch 1 */}
+                          
+                          {/* Rich Interactive SVG Parallel Circuit */}
+                          <svg viewBox="0 0 220 115" className="w-full h-28 overflow-visible mt-2 select-none">
+                            {/* Main background wires topology */}
+                            {/* Left vertical link (x=20) with battery. Top route horizontal (y=15), bottom route (y=95) */}
+                            <path
+                              d="M 20 15 H 180 M 20 95 H 180 M 20 15 V 95"
+                              fill="none"
+                              stroke="#334155"
+                              strokeWidth="2.5"
+                            />
+
+                            {/* Individual Branch Vertical Wires */}
+                            <line x1="100" y1="15" x2="100" y2="95" stroke="#334155" strokeWidth="2" />
+                            <line x1="170" y1="15" x2="170" y2="95" stroke="#334155" strokeWidth="2" />
+
+                            {/* Feed electrons animation on Main Feed (if any branch is running) */}
+                            {(!isParallel1Cut || !isParallel2Cut) && (
+                              <g>
+                                <path
+                                  d={`M 20 55 V 15 H ${!isParallel2Cut ? "170" : "100"}`}
+                                  fill="none"
+                                  stroke="#10b981"
+                                  strokeWidth="2.5"
+                                  strokeDasharray="4 8"
+                                  style={{ animation: "dash 1.2s linear infinite" }}
+                                />
+                                <path
+                                  d={`M 20 55 V 95 H ${!isParallel2Cut ? "170" : "100"}`}
+                                  fill="none"
+                                  stroke="#10b981"
+                                  strokeWidth="2.5"
+                                  strokeDasharray="4 8"
+                                  style={{ animation: "dash 1.2s linear infinite", animationDirection: "reverse" }}
+                                />
+                              </g>
+                            )}
+
+                            {/* Branch 1 flowing electrons animation if closed */}
+                            {!isParallel1Cut && (
+                              <line
+                                x1="100"
+                                y1="15"
+                                x2="100"
+                                y2="95"
+                                stroke="#10b981"
+                                strokeWidth="2.5"
+                                strokeDasharray="4 8"
+                                style={{ animation: "dash 1s linear infinite" }}
+                              />
+                            )}
+
+                            {/* Branch 2 flowing electrons animation if closed */}
+                            {!isParallel2Cut && (
+                              <line
+                                x1="170"
+                                y1="15"
+                                x2="170"
+                                y2="95"
+                                stroke="#10b981"
+                                strokeWidth="2.5"
+                                strokeDasharray="4 8"
+                                style={{ animation: "dash 1s linear infinite" }}
+                              />
+                            )}
+
+                            {/* 5V Source Battery at x=20 (Centered vertically at y=55) */}
+                            <g>
+                              {/* battery positive cap */}
+                              <rect x="17" y="44" width="6" height="2" fill="#34d399" rx="0.5" />
+                              <rect x="13" y="46" width="14" height="20" rx="1.5" fill="#042f1a" stroke="#10b981" strokeWidth="1" />
+                              <text x="20" y="55" textAnchor="middle" className="fill-white font-sans text-[7px] font-bold">+</text>
+                              <text x="20" y="64" textAnchor="middle" className="fill-slate-400 font-sans text-[7px] font-bold">-</text>
+                            </g>
+
+                            {/* Switch A on Branch 1 at x=100 (y=25 to 40) */}
+                            <g className="cursor-pointer" onClick={() => setIsParallel1Cut(!isParallel1Cut)}>
+                              <circle cx="100" cy="22" r="2.5" fill="#94a3b8" />
+                              <circle cx="100" cy="40" r="2.5" fill="#94a3b8" />
+                              {isParallel1Cut ? (
+                                <line x1="100" y1="40" x2="114" y2="28" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+                              ) : (
+                                <line x1="100" y1="22" x2="100" y2="40" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+                              )}
+                            </g>
+
+                            {/* Switch B on Branch 2 at x=170 (y=25 to 40) */}
+                            <g className="cursor-pointer" onClick={() => setIsParallel2Cut(!isParallel2Cut)}>
+                              <circle cx="170" cy="22" r="2.5" fill="#94a3b8" />
+                              <circle cx="170" cy="40" r="2.5" fill="#94a3b8" />
+                              {isParallel2Cut ? (
+                                <line x1="170" y1="40" x2="184" y2="28" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+                              ) : (
+                                <line x1="170" y1="22" x2="170" y2="40" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+                              )}
+                            </g>
+
+                            {/* LED-A on Branch 1 at x=100, y=70 */}
+                            <g>
+                              {!isParallel1Cut && (
+                                <circle cx="100" cy="70" r="11" fill="rgba(16, 185, 129, 0.2)" className="animate-pulse" />
+                              )}
+                              <circle cx="100" cy="70" r="6.5" fill={!isParallel1Cut ? "#34d399" : "#1e293b"} stroke={!isParallel1Cut ? "#10b981" : "#475569"} strokeWidth="1" />
+                              <text x="100" y="72" textAnchor="middle" className="font-sans text-[6.5px]">💡</text>
+                              <text x="108" y="72" textAnchor="start" className="fill-slate-500 font-mono text-[6px]">LED-A</text>
+                            </g>
+
+                            {/* LED-B on Branch 2 at x=170, y=70 */}
+                            <g>
+                              {!isParallel2Cut && (
+                                <circle cx="170" cy="70" r="11" fill="rgba(16, 185, 129, 0.2)" className="animate-pulse" />
+                              )}
+                              <circle cx="170" cy="70" r="6.5" fill={!isParallel2Cut ? "#34d399" : "#1e293b"} stroke={!isParallel2Cut ? "#10b981" : "#475569"} strokeWidth="1" />
+                              <text x="170" y="72" textAnchor="middle" className="font-sans text-[6.5px]">💡</text>
+                              <text x="178" y="72" textAnchor="start" className="fill-slate-500 font-mono text-[6px]">LED-B</text>
+                            </g>
+                          </svg>
+
+                          <div className="flex flex-col gap-2 w-full pt-1">
+                            {/* Branch 1 toggle button */}
                             <div className="flex justify-between items-center bg-[#070b13] p-1.5 rounded-lg border border-slate-900">
-                              <div className="flex items-center gap-2 pl-2">
-                                <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all ${(!isParallel1Cut) ? "bg-emerald-500/30 border-emerald-400 shadow-[0_0_8px_#10b981] text-emerald-305" : "bg-slate-90D border-slate-800 text-slate-700"}`}>
-                                  <Zap className="w-3.5 h-3.5" />
-                                </div>
-                                <span className="font-mono text-[8.5px] text-slate-400">LED-01 (PATH A)</span>
-                              </div>
+                              <span className="font-mono text-[8px] text-slate-400 pl-1.5">LED-A BRANCH SOURCE:</span>
                               <button
                                 onClick={() => setIsParallel1Cut(!isParallel1Cut)}
-                                className={`px-2 py-1 rounded-md font-mono text-[8.5px] font-bold border cursor-pointer select-none transition-all ${
+                                className={`px-2 py-0.5 rounded font-mono text-[8px] font-bold border cursor-pointer transition-all ${
                                   isParallel1Cut 
                                     ? "bg-slate-900 border-rose-900 text-rose-400" 
                                     : "bg-emerald-950/20 border-emerald-900 text-emerald-400"
                                 }`}
                               >
-                                {isParallel1Cut ? "OPEN" : "CLOSED"}
+                                {isParallel1Cut ? "DISCONNECTED (OPEN)" : "CONNECTED (CLOSED)"}
                               </button>
                             </div>
 
-                            {/* Branch 2 */}
+                            {/* Branch 2 toggle button */}
                             <div className="flex justify-between items-center bg-[#070b13] p-1.5 rounded-lg border border-slate-900">
-                              <div className="flex items-center gap-2 pl-2">
-                                <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all ${(!isParallel2Cut) ? "bg-emerald-500/30 border-emerald-400 shadow-[0_0_8px_#10b981] text-emerald-305" : "bg-slate-90D border-slate-800 text-slate-705"}`}>
-                                  <Zap className="w-3.5 h-3.5" />
-                                </div>
-                                <span className="font-mono text-[8.5px] text-slate-400">LED-02 (PATH B)</span>
-                              </div>
+                              <span className="font-mono text-[8px] text-slate-400 pl-1.5">LED-B BRANCH SOURCE:</span>
                               <button
                                 onClick={() => setIsParallel2Cut(!isParallel2Cut)}
-                                className={`px-2 py-1 rounded-md font-mono text-[8.5px] font-bold border cursor-pointer select-none transition-all ${
+                                className={`px-2 py-0.5 rounded font-mono text-[8px] font-bold border cursor-pointer transition-all ${
                                   isParallel2Cut 
                                     ? "bg-slate-900 border-rose-900 text-rose-400" 
                                     : "bg-emerald-950/20 border-emerald-900 text-emerald-400"
                                 }`}
                               >
-                                {isParallel2Cut ? "OPEN" : "CLOSED"}
+                                {isParallel2Cut ? "DISCONNECTED (OPEN)" : "CONNECTED (CLOSED)"}
                               </button>
                             </div>
-
                           </div>
-                          <div className="font-mono text-[8.5px] text-slate-505 text-center leading-tight">
+
+                          <div className="font-mono text-[8.5px] text-slate-505 text-center leading-tight pt-0.5">
                             Status: <span className="text-slate-300">Independent electricity flow branching verified.</span>
                           </div>
                         </div>
-
                       </div>
                     </div>
                   </motion.div>

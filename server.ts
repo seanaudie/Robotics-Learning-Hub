@@ -138,6 +138,9 @@ Please answer their question in an engaging, visual way. If they ask about senso
 
 // Configure Vite middleware in development or express static files in production
 async function startServer() {
+  // Always serve src/assets as static directory for component images in dev & production
+  app.use("/src/assets", express.static(path.join(process.cwd(), "src/assets")));
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
