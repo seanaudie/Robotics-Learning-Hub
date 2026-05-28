@@ -13,7 +13,7 @@ import RoboticsFlowSystem from "./components/RoboticsFlowSystem";
 import AIOutputRenderer from "./components/AIOutputRenderer";
 import HomePage from "./components/HomePage";
 import PremiumLogo from "./components/PremiumLogo";
-import { Cpu, Zap, Eye, HelpCircle, HardDrive, Compass, BookOpen, Clock, Activity, Settings, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Terminal, Radio, Layers, Info, Sliders, Database } from "lucide-react";
+import { Cpu, Zap, Eye, HelpCircle, HardDrive, Compass, BookOpen, Clock, Activity, Settings, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Terminal, Radio, Layers, Info, Sliders, Database, Code2 } from "lucide-react";
 
 interface SignalDetails {
   type: string;
@@ -165,17 +165,18 @@ const getSignalInfo = (partId: string, partCategory: string, hotspotId?: string 
 };
 
 export default function App() {
-  const [isStarted, setIsStarted] = useState(() => {
-    const hash = window.location.hash;
-    return hash !== "" && hash !== "#home" && ["#foundations", "#explorer", "#guides", "#chat"].includes(hash);
-  });
-  const [activeTab, setActiveTab] = useState<"foundations" | "explorer" | "guides" | "chat">(() => {
-    const hash = window.location.hash;
-    if (hash === "#guides") return "guides";
-    if (hash === "#chat") return "chat";
-    if (hash === "#explorer") return "explorer";
-    return "foundations";
-  });
+  const [isStarted, setIsStarted] = useState(false);
+  const [activeTab, setActiveTab] = useState<"foundations" | "explorer" | "programming" | "electronics" | "chat">("foundations");
+
+  useEffect(() => {
+    // Reset to homepage on reload/mount so users don't resume left-off state
+    window.location.hash = "home";
+  }, []);
+
+  useEffect(() => {
+    // Scroll to top immediately when active view or tab changes
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [activeTab, isStarted]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -188,9 +189,12 @@ export default function App() {
       } else if (hash === "#explorer") {
         setIsStarted(true);
         setActiveTab("explorer");
-      } else if (hash === "#guides") {
+      } else if (hash === "#programming") {
         setIsStarted(true);
-        setActiveTab("guides");
+        setActiveTab("programming");
+      } else if (hash === "#electronics") {
+        setIsStarted(true);
+        setActiveTab("electronics");
       } else if (hash === "#chat") {
         setIsStarted(true);
         setActiveTab("chat");
@@ -352,7 +356,7 @@ export default function App() {
     <>
       {!isStarted ? (
         <HomePage onEnter={(startingTab) => {
-          window.location.hash = startingTab || "explorer";
+          window.location.hash = startingTab || "foundations";
         }} />
       ) : (
         <div className="min-h-screen bg-[#020617] text-slate-50 flex font-sans relative overflow-x-hidden antialiased">
@@ -369,7 +373,8 @@ export default function App() {
             <nav className="flex flex-col gap-2 w-full px-2">
               {[
                 { id: "foundations", label: "Core Foundations", icon: Layers },
-                { id: "guides", label: "Robotics Guides", icon: BookOpen },
+                { id: "programming", label: "Learn Programming", icon: Code2 },
+                { id: "electronics", label: "Learn Electronics", icon: Zap },
                 { id: "explorer", label: "Component Diagnostics", icon: Compass },
                 { id: "chat", label: "Advisor", icon: MessageSquare },
               ].map((tab) => {
@@ -983,10 +988,17 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Active Tab Assembly Guides Content layout */}
-                {activeTab === "guides" && (
+                {/* Active Tab Programming Guide Content layout */}
+                {activeTab === "programming" && (
                   <div className="lg:col-span-12 space-y-6">
-                    <RoboticsGuide />
+                    <RoboticsGuide viewType="programming" />
+                  </div>
+                )}
+
+                {/* Active Tab Electronics Guide Content layout */}
+                {activeTab === "electronics" && (
+                  <div className="lg:col-span-12 space-y-6">
+                    <RoboticsGuide viewType="electronics" />
                   </div>
                 )}
 
@@ -1004,7 +1016,8 @@ export default function App() {
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#020715]/95 border-t border-slate-800/90 backdrop-blur-md flex justify-around py-3 px-2 select-none shadow-[0_-8px_32px_rgba(0,0,0,0.6)] z-50">
               {[
                 { id: "foundations", label: "Foundations", icon: Layers },
-                { id: "guides", label: "Guides", icon: BookOpen },
+                { id: "programming", label: "Programming", icon: Code2 },
+                { id: "electronics", label: "Electronics", icon: Zap },
                 { id: "explorer", label: "Diagnostics", icon: Compass },
                 { id: "chat", label: "Advisor", icon: MessageSquare },
               ].map((tab) => {

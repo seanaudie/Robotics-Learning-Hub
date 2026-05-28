@@ -1,20 +1,34 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChatMessage } from "../types";
 import AIOutputRenderer from "./AIOutputRenderer";
-import { Send, RefreshCw, Bot, User, Sparkles } from "lucide-react";
+import { Send, RefreshCw, Bot, User, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 
 interface AIChatTutorProps {
   onSendMessage: (prompt: string, history: ChatMessage[]) => Promise<string>;
   loading: boolean;
 }
 
-const STARTER_PROMPTS = [
-  "How do PID control loops prevent motor overshoot?",
-  "What is the difference between I2C and SPI wiring protocols?",
-  "Explain 2D LiDAR SLAM room mapping.",
-];
+const LEVEL_PROMPTS = {
+  beginner: [
+    "How do I configure an ultrasonic sensor on an Arduino?",
+    "What is the difference between digital and analog pins?",
+    "How does a standard resistor protect a common LED?",
+  ],
+  advanced: [
+    "How do PID control loops prevent motor overshoot?",
+    "What is the difference between I2C and SPI wiring protocols?",
+    "Explain how H-bridge components control DC motor direction.",
+  ],
+  expert: [
+    "Explain 2D LiDAR SLAM spatial room mapping.",
+    "How do Kalman Filters fuse IMU and encoder variables?",
+    "Explain ROS2 subscriber/publisher node loop architectures.",
+  ],
+};
 
 export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps) {
+  const [activeLevel, setActiveLevel] = useState<"beginner" | "advanced" | "expert">("beginner");
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(true);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
@@ -82,17 +96,35 @@ export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps
   };
 
   return (
-    <div className="bg-[#050B18]/60 border border-slate-800 p-4 rounded-xl flex flex-col justify-between h-[450px] shadow-inner relative">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3.5 z-10">
-        <span className="font-mono text-[9px] text-sky-400 uppercase tracking-wider font-bold flex items-center gap-1">
+    <div className="bg-[#050B18]/60 border border-slate-800 p-4 rounded-xl flex flex-col justify-between h-[450px] shadow-inner relative transition-all">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3.5 z-10 gap-2">
+        <span className="font-mono text-[9px] text-sky-400 uppercase tracking-wider font-bold flex items-center gap-1 select-none">
           <Sparkles className="w-3.5 h-3.5 text-sky-400" /> Interactive AI Robotics Tutor
         </span>
-        <button
-          onClick={clearChat}
-          className="text-slate-500 hover:text-slate-300 font-mono text-[11px] flex items-center gap-0.5"
-        >
-          <RefreshCw className="w-2.5 h-2.5" /> Reset chat
-        </button>
+        <div className="flex items-center gap-2 font-mono text-[9px]">
+          <button
+            type="button"
+            onClick={() => setShowSuggestions(!showSuggestions)}
+            className="text-slate-400 hover:text-sky-350 bg-slate-900/40 hover:bg-slate-900 border border-slate-800 px-2 py-0.5 rounded cursor-pointer transition-all flex items-center gap-0.5"
+          >
+            {showSuggestions ? (
+              <>
+                <ChevronUp className="w-2.5 h-2.5" /> Hide Prompts
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-2.5 h-2.5" /> Easy Prompts
+              </>
+            )}
+          </button>
+          <div className="w-[1px] h-3 bg-slate-800" />
+          <button
+            onClick={clearChat}
+            className="text-slate-500 hover:text-slate-300 font-mono text-[10px] flex items-center gap-0.5 cursor-pointer"
+          >
+            <RefreshCw className="w-2.5 h-2.5" /> Reset chat
+          </button>
+        </div>
       </div>
 
       {/* Messages Scrolling Hub */}
@@ -145,20 +177,40 @@ export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Recommended Prompt Chip links */}
-      {messages.length === 1 && (
-        <div className="mb-3 space-y-1.5">
-          <span className="font-mono text-[10px] text-slate-400 block font-bold uppercase tracking-wider">
-            RECOMMENDED LEARNING TOPICS:
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {STARTER_PROMPTS.map((p, idx) => (
+      {/* Recommended Prompt Chip links categorized by Level (Toggleable) */}
+      {showSuggestions && (
+        <div className="mb-3.5 space-y-2 border-t border-[#1e293b]/70 border-slate-900 pt-2.5 animate-fadeIn">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span className="font-mono text-[9px] text-slate-400 block font-bold uppercase tracking-wider">
+              SUGGESTED ENGINEERING LEVEL:
+            </span>
+            <div className="flex bg-slate-950 p-0.5 rounded-lg border border-slate-900 gap-1 select-none">
+              {(["beginner", "advanced", "expert"] as const).map((lvl) => (
+                <button
+                  key={lvl}
+                  type="button"
+                  onClick={() => setActiveLevel(lvl)}
+                  className={`px-2 py-0.5 rounded font-mono text-[9px] tracking-wider uppercase font-extrabold transition-all cursor-pointer ${
+                    activeLevel === lvl
+                      ? "bg-sky-500/20 text-sky-400 border border-sky-400/20"
+                      : "text-slate-500 hover:text-slate-350 border border-transparent"
+                  }`}
+                >
+                  {lvl}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-1.5">
+            {LEVEL_PROMPTS[activeLevel].map((p, idx) => (
               <button
                 key={idx}
+                type="button"
                 onClick={() => handleSend(p)}
-                className="bg-slate-950 hover:bg-slate-800 text-[10px] text-slate-400 hover:text-sky-400 p-1.5 rounded-lg border border-slate-800 hover:border-sky-500/30 font-mono transition-all text-left cursor-pointer"
+                className="bg-slate-950/45 hover:bg-slate-900 text-[10.5px] text-slate-400 hover:text-sky-400 p-2 rounded-lg border border-slate-900 hover:border-sky-500/30 font-mono transition-all text-left cursor-pointer flex items-center gap-1.5"
               >
-                {p}
+                <span className="text-sky-400 animate-pulse font-bold">•</span> {p}
               </button>
             ))}
           </div>
