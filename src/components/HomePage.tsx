@@ -25,8 +25,15 @@ import {
   Info,
   Code2
 } from 'lucide-react';
+import { CreatorProfileCard } from './CreatorProfileCard';
 
-export default function HomePage({ onEnter }: { onEnter: (startingTab?: "foundations" | "explorer" | "programming" | "electronics" | "chat") => void }) {
+export default function HomePage({ 
+  onEnter,
+  onOpenCreatorModal
+}: { 
+  onEnter: (startingTab?: "foundations" | "explorer" | "programming" | "electronics" | "chat") => void;
+  onOpenCreatorModal?: () => void;
+}) {
   const [hoveredModule, setHoveredModule] = React.useState<string | null>(null);
 
   // Onboarding On-Click Guide states
@@ -778,12 +785,30 @@ export default function HomePage({ onEnter }: { onEnter: (startingTab?: "foundat
         </div>
       </section>
 
+      {/* SECTION 5: SYSTEM AUTHOR DETAILS */}
+      <section className="relative z-10 w-full max-w-7xl mx-auto py-8 border-t border-slate-900 mt-8">
+        <div className="mb-4">
+          <span className="font-mono text-[9px] text-sky-400 font-extrabold tracking-widest block uppercase mb-1">SYSTEM CONTROLLER LOGS</span>
+          <h2 className="font-sans font-extrabold text-lg md:text-xl text-slate-100 uppercase tracking-tight flex items-center gap-2">
+            ABOUT THE PLATFORM &amp; CREATOR
+          </h2>
+        </div>
+        <CreatorProfileCard />
+      </section>
+
       {/* Footer Diagnostic Readout status */}
-      <footer className="relative z-10 w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between border-t border-slate-950 pt-5 mt-6 text-[9px] font-mono text-slate-600 gap-2">
-        <span>© ELECTRICAL PHYSICS SIMULATION CORE. ALL RIGHTS RESERVED.</span>
-        <div className="flex gap-4 select-none">
-          <span>[ STAGE: PROTOTYPING ]</span>
-          <span>[ LINK_BUS: ENGAGED ]</span>
+      <footer className="relative z-10 w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between border-t border-slate-900 pt-5 mt-6 text-[9.5px] font-mono text-slate-500 gap-2">
+        <span>Robotics Learning Hub © 2026 — Developed in Dubai, UAE by Sean Buscano</span>
+        <div className="flex gap-4 select-none items-center">
+          {onOpenCreatorModal && (
+            <button 
+              onClick={onOpenCreatorModal} 
+              className="hover:text-sky-400 transition-colors cursor-pointer text-slate-400 font-bold"
+            >
+              [ SYSTEM CREATOR MODULE ]
+            </button>
+          )}
+          <span>[ STEM Build v2.0 ]</span>
         </div>
       </footer>
 

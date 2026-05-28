@@ -13,6 +13,7 @@ import RoboticsFlowSystem from "./components/RoboticsFlowSystem";
 import AIOutputRenderer from "./components/AIOutputRenderer";
 import HomePage from "./components/HomePage";
 import PremiumLogo from "./components/PremiumLogo";
+import { CreatorProfileModal } from "./components/CreatorProfileCard";
 import { Cpu, Zap, Eye, HelpCircle, HardDrive, Compass, BookOpen, Clock, Activity, Settings, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Terminal, Radio, Layers, Info, Sliders, Database, Code2 } from "lucide-react";
 
 interface SignalDetails {
@@ -167,6 +168,7 @@ const getSignalInfo = (partId: string, partCategory: string, hotspotId?: string 
 export default function App() {
   const [isStarted, setIsStarted] = useState(false);
   const [activeTab, setActiveTab] = useState<"foundations" | "explorer" | "programming" | "electronics" | "chat">("foundations");
+  const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
 
   useEffect(() => {
     // Reset to homepage on reload/mount so users don't resume left-off state
@@ -355,9 +357,12 @@ export default function App() {
   return (
     <>
       {!isStarted ? (
-        <HomePage onEnter={(startingTab) => {
-          window.location.hash = startingTab || "foundations";
-        }} />
+        <HomePage 
+          onEnter={(startingTab) => {
+            window.location.hash = startingTab || "foundations";
+          }} 
+          onOpenCreatorModal={() => setIsCreatorModalOpen(true)}
+        />
       ) : (
         <div className="min-h-screen bg-[#020617] text-slate-50 flex font-sans relative overflow-x-hidden antialiased">
           {/* Left Action Sidebar (Geometric Balance styling) */}
@@ -397,10 +402,40 @@ export default function App() {
                 );
               })}
             </nav>
-            <div className="mt-auto px-4">
+
+            {/* Creator Badge in Sidebar */}
+            <div className="mt-auto px-4 mb-3 pt-3 border-t border-slate-900 select-none">
+              {isSidebarExpanded ? (
+                <div 
+                  onClick={() => setIsCreatorModalOpen(true)}
+                  className="p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-950 hover:border-sky-500/25 transition-all duration-305 relative group overflow-hidden cursor-pointer"
+                  title="View System Creator Profile"
+                >
+                  <div className="absolute inset-x-0 bottom-0 h-[1.5px] bg-gradient-to-r from-sky-500/20 via-sky-400/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  <div className="flex flex-col gap-1 select-none text-left">
+                    <span className="font-mono text-[8px] text-sky-405 text-sky-400 tracking-widest font-extrabold pb-0.5 uppercase block">SYSTEM AUTHOR</span>
+                    <h4 className="font-sans font-black text-[11px] text-white uppercase tracking-tight truncate leading-tight">Sean Audie I. Buscano II</h4>
+                    <p className="font-sans text-[8.5px] text-slate-400 leading-none">AI &amp; Robotics Educator</p>
+                    <p className="font-sans text-[8.5px] text-slate-500 leading-none">Electronics Engineer</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-center mb-1">
+                  <button
+                    onClick={() => setIsCreatorModalOpen(true)}
+                    className="w-10 h-10 rounded-xl border border-slate-800 bg-slate-950 text-sky-400 flex items-center justify-center hover:bg-sky-500/10 hover:border-sky-500/40 hover:shadow-[0_0_10px_rgba(56,189,248,0.2)] transition-all cursor-pointer"
+                    title="View System Creator Profile"
+                  >
+                    <Info className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="px-4 pb-2">
               <button 
                 onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} 
-                className="w-full flex items-center gap-3 text-slate-500 hover:text-white transition-colors p-3 rounded-xl hover:bg-slate-900/40"
+                className="w-full flex items-center justify-center lg:justify-start gap-3 text-slate-500 hover:text-white transition-colors p-3 rounded-xl hover:bg-slate-900/40"
               >
                 {isSidebarExpanded ? <ChevronLeft className="w-6 h-6 shrink-0" /> : <ChevronRight className="w-6 h-6 shrink-0" />}
                 {isSidebarExpanded && <span className="font-mono font-bold uppercase text-xs">Collapse</span>}
@@ -431,14 +466,25 @@ export default function App() {
                   <div>
                     <div className="flex items-center gap-1.5">
                       <span className="font-sans font-extrabold text-[15px] sm:text-lg tracking-tight text-white group-hover:text-sky-300 transition-colors">Robotics Learning Hub</span>
-                      <span className="bg-sky-500/10 text-sky-400 font-mono text-[9px] px-1.5 py-0.5 rounded border border-sky-500/20 font-bold">STEM 2.0</span>
+                      <span className="bg-sky-500/10 text-sky-405 text-sky-400 font-mono text-[9px] px-1.5 py-0.5 rounded border border-sky-500/20 font-bold">STEM Build v2.0</span>
                     </div>
-                    <p className="text-[10px] sm:text-[11px] text-slate-500 font-mono group-hover:text-slate-400 transition-colors">Interactive Hardware Cross-Sections & AI Co-pilot</p>
+                    <p className="text-[10px] sm:text-[11px] text-slate-500 font-mono group-hover:text-slate-400 transition-colors">Interactive Hardware Cross-Sections &amp; AI Co-pilot</p>
                   </div>
                 </button>
 
                 {/* Right Status Panel Details */}
-                <div className="flex items-center gap-4 text-xs font-mono text-slate-300">
+                <div className="flex items-center gap-3 md:gap-4 text-xs font-mono text-slate-300">
+                  {/* Small Creator Label in Header */}
+                  <div 
+                    onClick={() => setIsCreatorModalOpen(true)}
+                    className="hidden lg:flex flex-col text-right border-r border-slate-850 border-slate-800 pr-4 select-none mr-2 cursor-pointer hover:opacity-80 transition-opacity"
+                    title="View System Creator Profile"
+                  >
+                    <span className="font-mono text-[8.5px] text-sky-400 font-extrabold tracking-widest uppercase">Developer</span>
+                    <span className="font-sans font-black text-[11px] text-slate-200 leading-tight">Sean Audie I. Buscano II</span>
+                    <span className="font-sans text-[8.5px] text-slate-500 leading-none font-bold">AI &amp; Robotics Educator • Electronics Engineer</span>
+                  </div>
+
                   <div className="hidden md:flex items-center gap-1.5 text-slate-400">
                     <Clock className="w-3.5 h-3.5 text-sky-400" />
                     <span>UTC: <strong className="text-slate-200">2026-05-25 08:43:00</strong></span>
@@ -1045,14 +1091,24 @@ export default function App() {
             </nav>
 
             {/* Primary Footer */}
-            <footer className="border-t border-slate-800 bg-slate-950/30 text-center py-6 font-mono text-[11px] text-slate-400 relative z-10 select-none mt-12">
+            <footer className="border-t border-slate-800 bg-slate-950/40 text-center py-6 font-mono text-[11px] text-slate-400 relative z-10 select-none mt-12 bg-[#020617]">
               <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p>© 2026 Robotics Explorer Lab. Formulated for advanced cybernetic engineering STEM models.</p>
+                <p>Robotics Learning Hub © 2026 — Developed in Dubai, UAE by Sean Buscano</p>
+                <div className="flex items-center gap-4 text-slate-500 font-mono text-[9px]">
+                  <button 
+                    onClick={() => setIsCreatorModalOpen(true)} 
+                    className="hover:text-sky-400 transition-colors cursor-pointer text-slate-400 font-extrabold"
+                  >
+                    [ AUTHOR INDEX ]
+                  </button>
+                  <span>STEM Build v2.0</span>
+                </div>
               </div>
             </footer>
           </div>
         </div>
       )}
+      <CreatorProfileModal isOpen={isCreatorModalOpen} onClose={() => setIsCreatorModalOpen(false)} />
     </>
   );
 }
