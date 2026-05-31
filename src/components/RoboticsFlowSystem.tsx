@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Eye, Cpu, Zap, ChevronsRight, ChevronsDown, Sparkles, RefreshCw, Camera, Thermometer, Activity, Layers, Bell, Play, Radar, Wifi, Terminal, ArrowUpDown, Volume2, Droplet, X } from "lucide-react";
+import { Eye, Cpu, Zap, ChevronsRight, ChevronsDown, Sparkles, RefreshCw, Camera, Thermometer, Activity, Layers, Bell, Play, Radar, Wifi, Terminal, ArrowUpDown, Volume2, Droplet, X, Cog } from "lucide-react";
 
 const EXAMPLE_IMAGES: Record<string, string> = {
   camera: "/src/assets/images/photo_ai_camera_1779710685980.png",
@@ -630,11 +630,7 @@ export default function RoboticsFlowSystem() {
   };
 
   const getActuatorIcon = () => {
-    if (!activeId) return Zap;
-    if (activeId === "mobot") return Play;
-    if (activeId === "monitoring") return Bell;
-    if (activeId === "automation") return ArrowUpDown;
-    return Zap;
+    return Cog;
   };
 
   const SensorIcon = getSensorIcon();
@@ -1164,7 +1160,7 @@ export default function RoboticsFlowSystem() {
                       </span>
                     </div>
                     <div className="p-1.5 rounded-md bg-emerald-950/45 border border-emerald-500/10">
-                      <ActuatorIcon className={`w-4 h-4 transition-all duration-500 ${activeStep === "actuators" ? "text-emerald-400 scale-110 animate-pulse" : bootHighlightActuators ? "text-emerald-400/80 scale-100" : "text-slate-650"}`} />
+                      <ActuatorIcon className={`w-4 h-4 transition-all duration-500 ${activeStep === "actuators" ? "text-emerald-400 scale-110 animate-spin" : bootHighlightActuators ? "text-emerald-400/80 scale-100 animate-spin [animation-duration:8s]" : "text-slate-650"}`} />
                     </div>
                   </div>
                   

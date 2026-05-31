@@ -28,7 +28,7 @@ const LEVEL_PROMPTS = {
 
 export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps) {
   const [activeLevel, setActiveLevel] = useState<"beginner" | "advanced" | "expert">("beginner");
-  const [showSuggestions, setShowSuggestions] = useState<boolean>(true);
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",

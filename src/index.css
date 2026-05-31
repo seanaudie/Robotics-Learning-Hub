@@ -47,3 +47,15 @@
 .animate-fadeIn {
   animation: fadeIn 0.35s ease-out forwards;
 }
+
+@keyframes synapticPulse {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.animate-synapticFlow {
+  stroke-dasharray: 6, 6;
+  animation: synapticPulse 0.9s linear infinite;
+}
+

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { SevenSegInteractiveModal } from "./SevenSegInteractiveModal";
 import { 
   BookOpen, 
   Settings, 
@@ -28,6 +29,233 @@ import {
   Layers,
   Thermometer
 } from "lucide-react";
+
+const highlightCppCodeText = (code: string) => {
+  if (!code) return null;
+  const tokenRegex = /(\/\/.*|"[^"]*"|'[^']*'|\b\d+(?:\.\d+)?\b|\b[a-zA-Z_][a-zA-Z0-9_\.]*\b)/g;
+  const parts = code.split(tokenRegex);
+  return parts.map((part, index) => {
+    if (!part) return null;
+    
+    // Comments
+    if (part.startsWith("//")) {
+      return <span key={index} className="text-emerald-500 opacity-80 italic select-none">{part}</span>;
+    }
+    // Strings
+    if (part.startsWith('"') || part.startsWith("'")) {
+      return <span key={index} className="text-rose-400 font-medium">{part}</span>;
+    }
+    // Numbers
+    if (/^\d+(?:\.\d+)?$/.test(part)) {
+      return <span key={index} className="text-amber-500">{part}</span>;
+    }
+    
+    // Types / keywords
+    const keywords = ["const", "int", "float", "bool", "char", "void", "double", "unsigned", "long"];
+    if (keywords.includes(part)) {
+      return <span key={index} className="text-[#f43f5e] font-bold">{part}</span>;
+    }
+    
+    // Control structures
+    const controls = ["if", "else", "for", "while", "return"];
+    if (controls.includes(part)) {
+      return <span key={index} className="text-[#a855f7] font-extrabold">{part}</span>;
+    }
+    
+    // Core constants
+    const constants = ["HIGH", "LOW", "INPUT", "OUTPUT", "true", "false"];
+    if (constants.includes(part)) {
+      return <span key={index} className="text-[#38bdf8] font-extrabold">{part}</span>;
+    }
+    
+    // Known API calls / special registers
+    const functions = [
+      "setup", "loop", "pinMode", "digitalWrite", "digitalRead", "analogRead", "analogWrite", 
+      "delay", "delayMicroseconds", "pulseIn", "Serial", "begin", "println", "pow", 
+      "WiFi", "Wire", "lidarServo", "attach", "write", "readLidarDistance", "mapObstacle", 
+      "isHeadingEnvelopeClear", "calculateSteeringOffset", "findWidestSectorGap", "steerLeft", 
+      "driveForward", "haltAndRecalculate", "sysLog", "stopSearch", "controlActuators", 
+      "readSensorValues", "sysLog.println", "WiFi.begin", "Wire.begin", "lidarServo.attach", 
+      "lidarServo.write", "Serial.begin", "Serial.println"
+    ];
+    if (functions.includes(part) || (part.includes(".") && functions.some(f => part.endsWith(f) || part.startsWith(f)))) {
+      return <span key={index} className="text-sky-450 font-semibold">{part}</span>;
+    }
+    
+    return <span key={index}>{part}</span>;
+  });
+};
+
+const UART_CHAR_BITS: Record<string, number[]> = {
+  "A": [0, 1, 0, 0, 0, 0, 0, 1],
+  "B": [0, 1, 0, 0, 0, 0, 1, 0],
+  "C": [0, 1, 0, 0, 0, 0, 1, 1],
+  "X": [0, 1, 0, 1, 1, 0, 0, 0],
+};
+
+const segmentLogicTerms: Record<
+  "a" | "b" | "c" | "d" | "e" | "f" | "g",
+  { label: string; wires: string[] }[]
+> = {
+  a: [
+    { label: "I3", wires: ["I3"] },
+    { label: "I1", wires: ["I1"] },
+    { label: "I2 ∧ I0", wires: ["I2", "I0"] },
+    { label: "I2' ∧ I0'", wires: ["!I2", "!I0"] }
+  ],
+  b: [
+    { label: "I2'", wires: ["!I2"] },
+    { label: "I1' ∧ I0'", wires: ["!I1", "!I0"] },
+    { label: "I1 ∧ I0", wires: ["I1", "I0"] }
+  ],
+  c: [
+    { label: "I2", wires: ["I2"] },
+    { label: "I1'", wires: ["!I1"] },
+    { label: "I0", wires: ["I0"] }
+  ],
+  d: [
+    { label: "I3", wires: ["I3"] },
+    { label: "I2' ∧ I0'", wires: ["!I2", "!I0"] },
+    { label: "I1 ∧ I0'", wires: ["I1", "!I0"] },
+    { label: "I2' ∧ I1", wires: ["!I2", "I1"] },
+    { label: "I2 ∧ I1' ∧ I0", wires: ["I2", "!I1", "I0"] }
+  ],
+  e: [
+    { label: "I2' ∧ I0'", wires: ["!I2", "!I0"] },
+    { label: "I1 ∧ I0'", wires: ["I1", "!I0"] }
+  ],
+  f: [
+    { label: "I3", wires: ["I3"] },
+    { label: "I1' ∧ I0'", wires: ["!I1", "!I0"] },
+    { label: "I2 ∧ I1'", wires: ["I2", "!I1"] },
+    { label: "I2 ∧ I0'", wires: ["I2", "!I0"] }
+  ],
+  g: [
+    { label: "I3", wires: ["I3"] },
+    { label: "I2 ∧ I1'", wires: ["I2", "!I1"] },
+    { label: "I2' ∧ I1", wires: ["!I2", "I1"] },
+    { label: "I1 ∧ I0'", wires: ["I1", "!I0"] }
+  ]
+};
+
+const isWireActive = (wire: string, bits: boolean[]) => {
+  if (wire === "I3") return bits[0];
+  if (wire === "!I3") return !bits[0];
+  if (wire === "I2") return bits[1];
+  if (wire === "!I2") return !bits[1];
+  if (wire === "I1") return bits[2];
+  if (wire === "!I1") return !bits[2];
+  if (wire === "I0") return bits[3];
+  if (wire === "!I0") return !bits[3];
+  return false;
+};
+
+const SevenSegmentDigit = ({ value, glowingColor = "fill-cyan-400 stroke-cyan-400" }: { value: number | string, glowingColor?: string, key?: any }) => {
+  const segmentsMap: Record<string, boolean[]> = {
+    "0": [true, true, true, true, true, true, false],
+    "1": [false, true, true, false, false, false, false],
+    "2": [true, true, false, true, true, false, true],
+    "3": [true, true, true, true, false, false, true],
+    "4": [false, true, true, false, false, true, true],
+    "5": [true, false, true, true, false, true, true],
+    "6": [true, false, true, true, true, true, true],
+    "7": [true, true, true, false, false, false, false],
+    "8": [true, true, true, true, true, true, true],
+    "9": [true, true, true, true, false, true, true],
+    "a": [true, true, true, false, true, true, true],
+    "b": [false, false, true, true, true, true, true],
+    "c": [true, false, false, true, true, true, false],
+    "d": [false, true, true, true, true, false, true],
+    "e": [true, false, false, true, true, true, true],
+    "f": [true, false, false, false, true, true, true],
+  };
+
+  const char = String(value).toLowerCase();
+  const s = segmentsMap[char] || [false, false, false, false, false, false, false];
+
+  return (
+    <svg width="22" height="34" viewBox="0 0 34 54" className="inline-block relative">
+      {/* segment a */}
+      <path d="M 6,4 L 28,4 L 25,7 L 9,7 Z" className={s[0] ? glowingColor : "fill-slate-900"} />
+      {/* segment f */}
+      <path d="M 4,6 L 7,9 L 7,24 L 4,26 Z" className={s[5] ? glowingColor : "fill-slate-900"} />
+      {/* segment b */}
+      <path d="M 30,6 L 30,26 L 27,24 L 27,9 Z" className={s[1] ? glowingColor : "fill-slate-900"} />
+      {/* segment g */}
+      <path d="M 6,27 L 9,25 L 25,25 L 28,27 L 25,29 L 9,29 Z" className={s[6] ? glowingColor : "fill-slate-900"} />
+      {/* segment e */}
+      <path d="M 4,28 L 7,30 L 7,45 L 4,48 Z" className={s[4] ? glowingColor : "fill-slate-900"} />
+      {/* segment c */}
+      <path d="M 30,28 L 30,48 L 27,45 L 27,30 Z" className={s[2] ? glowingColor : "fill-slate-900"} />
+      {/* segment d */}
+      <path d="M 6,50 L 9,47 L 25,47 L 28,50 Z" className={s[3] ? glowingColor : "fill-slate-900"} />
+    </svg>
+  );
+};
+
+const renderGateSymbol = (
+  gate: "AND" | "OR" | "XOR" | "NAND" | "NOT",
+  inputA?: boolean,
+  inputB?: boolean,
+  output?: boolean
+) => {
+  // Thick, vibrant colors for logic gate lines depending on high/low states
+  const colorA = inputA ? "#10b981" : "#475569"; // Emerald for active 1, slate for 0
+  const colorB = inputB ? "#10b981" : "#475569";
+  const colorOut = output ? "#10b981" : "#475569";
+  const strokeW_Active = "2.8";
+  const strokeW_Inactive = "2.0";
+  
+  // Custom active fill color for the gate capsule itself
+  const gateBorderColor = output ? "stroke-emerald-400 fill-emerald-500/15 animate-pulse" : "stroke-sky-400 fill-sky-500/5";
+
+  return (
+    <svg viewBox="0 0 60 30" className="w-28 h-14 md:w-36 md:h-18 mt-1.5 select-none transition-all duration-300">
+      {/* Input pins lines */}
+      {gate !== "NOT" ? (
+        <>
+          <path d="M 5,8 L 15,8" stroke={colorA} strokeWidth={inputA ? strokeW_Active : strokeW_Inactive} strokeLinecap="round" />
+          <path d="M 5,22 L 15,22" stroke={colorB} strokeWidth={inputB ? strokeW_Active : strokeW_Inactive} strokeLinecap="round" />
+        </>
+      ) : (
+        <path d="M 5,15 L 15,15" stroke={colorA} strokeWidth={inputA ? strokeW_Active : strokeW_Inactive} strokeLinecap="round" />
+      )}
+      
+      {/* Shape based on Gate */}
+      {gate === "AND" && (
+        <path d="M 15,4 L 28,4 A 11,11 0 0,1 28,26 L 15,26 Z" className={gateBorderColor} strokeWidth="2.2" strokeLinejoin="round" />
+      )}
+      {gate === "NAND" && (
+        <>
+          <path d="M 15,4 L 28,4 A 11,11 0 0,1 28,26 L 15,26 Z" className={gateBorderColor} strokeWidth="2.2" strokeLinejoin="round" />
+          <circle cx="41.5" cy="15" r="2.5" className={output ? "stroke-emerald-400 fill-emerald-500/15" : "stroke-sky-400 fill-slate-950"} strokeWidth="2.2" />
+        </>
+      )}
+      {gate === "OR" && (
+        <path d="M 12,4 Q 20,4 32,15 Q 20,26 12,26 Q 17,15 12,4 Z" className={gateBorderColor} strokeWidth="2.2" strokeLinejoin="round" />
+      )}
+      {gate === "XOR" && (
+        <>
+          <path d="M 8,4 Q 13,15 8,26" stroke={output ? "#34d399" : "#38bdf8"} strokeWidth="2" fill="none" />
+          <path d="M 12,4 Q 20,4 32,15 Q 20,26 12,26 Q 17,15 12,4 Z" className={gateBorderColor} strokeWidth="2.2" strokeLinejoin="round" />
+        </>
+      )}
+      {gate === "NOT" && (
+        <>
+          <polygon points="15,4 33,15 15,26" className={gateBorderColor} strokeWidth="2.2" strokeLinejoin="round" />
+          <circle cx="36.5" cy="15" r="2.5" className={output ? "stroke-emerald-400 fill-emerald-500/15" : "stroke-sky-400 fill-slate-950"} strokeWidth="2.2" />
+        </>
+      )}
+      
+      {/* Output Pin lines */}
+      {gate === "AND" && <path d="M 39,15 L 55,15" stroke={colorOut} strokeWidth={output ? strokeW_Active : strokeW_Inactive} strokeLinecap="round" />}
+      {gate === "NAND" && <path d="M 44,15 L 55,15" stroke={colorOut} strokeWidth={output ? strokeW_Active : strokeW_Inactive} strokeLinecap="round" />}
+      {gate === "OR" && <path d="M 32,15 L 55,15" stroke={colorOut} strokeWidth={output ? strokeW_Active : strokeW_Inactive} strokeLinecap="round" />}
+      {gate === "XOR" && <path d="M 32,15 L 55,15" stroke={colorOut} strokeWidth={output ? strokeW_Active : strokeW_Inactive} strokeLinecap="round" />}
+      {gate === "NOT" && <path d="M 39,15 L 55,15" stroke={colorOut} strokeWidth={output ? strokeW_Active : strokeW_Inactive} strokeLinecap="round" />}
+    </svg>
+  );
+};
 
 // Structure definition for the custom architect options
 interface ComponentOption {
@@ -536,17 +764,159 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
   const [servoAngleDegrees, setServoAngleDegrees] = useState<number>(90);
 
   // Electronics interactive state
-  const [activeElectSubTab, setActiveElectSubTab] = useState<"ohms" | "circuits">("ohms");
+  const [activeElectSubTab, setActiveElectSubTab] = useState<"ohms" | "circuits" | "signals" | "binary" | "protocols">("ohms");
   const [isOhmsModalOpen, setIsOhmsModalOpen] = useState<boolean>(false);
+  const [isAdcSandboxModalOpen, setIsAdcSandboxModalOpen] = useState<boolean>(false);
   const [ohmsHighlightItem, setOhmsHighlightItem] = useState<"voltage" | "resistance" | "current">("voltage");
   const [ohmsVoltage, setOhmsVoltage] = useState<number>(5.0); // 0-12V
   const [ohmsResistance, setOhmsResistance] = useState<number>(220); // 100-1000 ohms
   const [isSeriesCut, setIsSeriesCut] = useState<boolean>(false);
   const [isParallel1Cut, setIsParallel1Cut] = useState<boolean>(false);
   const [isParallel2Cut, setIsParallel2Cut] = useState<boolean>(false);
+  const [isCombinedCircuitModalOpen, setIsCombinedCircuitModalOpen] = useState<boolean>(false);
+  const [isCombinedMainCut, setIsCombinedMainCut] = useState<boolean>(false);
+  const [isCombinedBranchACut, setIsCombinedBranchACut] = useState<boolean>(false);
+  const [isCombinedBranchBCut, setIsCombinedBranchBCut] = useState<boolean>(false);
+
+  // Signals subtab state variables
+  const [signalType, setSignalType] = useState<"sine" | "square">("sine");
+  const [signalFrequency, setSignalFrequency] = useState<number>(2); // 1 to 5 Hz
+  const [signalAmplitude, setSignalAmplitude] = useState<number>(4.0); // 1.0 to 5.0 V
+  const [signalNoise, setSignalNoise] = useState<boolean>(false);
+  const [signalMode, setSignalMode] = useState<"oscilloscope" | "adc_dac">("oscilloscope");
+  const [adcResolutionBits, setAdcResolutionBits] = useState<number>(3); // 2, 3, 4, 8 bits
+  const [samplingFrequency, setSamplingFrequency] = useState<number>(4); // Hz
+  const [manualSampleValue, setManualSampleValue] = useState<number>(2.5); // 0.0 to 5.0 V
+  const [isLiveAdc, setIsLiveAdc] = useState<boolean>(true);
+
+  // Binary counting & logic gate workshop states
+  const [logicInputA, setLogicInputA] = useState<boolean>(true);
+  const [logicInputB, setLogicInputB] = useState<boolean>(false);
+  const [logicGate, setLogicGate] = useState<"AND" | "OR" | "XOR" | "NAND" | "NOT">("AND");
+  const [binaryBits, setBinaryBits] = useState<boolean[]>([false, false, false, false]); // [bit3/8, bit2/4, bit1/2, bit0/1]
+
+  // Protocols workshop state variables
+  const [protocolType, setProtocolType] = useState<"uart" | "i2c" | "spi">("uart");
+  const [isManualStepMode, setIsManualStepMode] = useState<boolean>(false);
+  const [uartChar, setUartChar] = useState<string>("A");
+  const [isUartTransmitting, setIsUartTransmitting] = useState<boolean>(false);
+  const [uartTxStep, setUartTxStep] = useState<number>(-1); // -1=idle, 0=Start, 1-8=bits, 9=Stop
+  const [i2cAddress, setI2cAddress] = useState<"0x2A" | "0x3F">("0x2A");
+  const [i2cData, setI2cData] = useState<string>("0xFE");
+  const [isI2cTransmitting, setIsI2cTransmitting] = useState<boolean>(false);
+  const [i2cTxStep, setI2cTxStep] = useState<number>(-1); // -1=idle, 0=START, 1=Addr, 2=ACK1, 3=Data, 4=ACK2, 5=STOP
+
+  // SPI Protocol states
+  const [isSpiTransmitting, setIsSpiTransmitting] = useState<boolean>(false);
+  const [spiTxStep, setSpiTxStep] = useState<number>(-1); // -1=idle, 0=CS_LOW, 1-8=bits, 9=CS_HIGH
+  const [spiData, setSpiData] = useState<string>("0xD4");
+
+  // PID Control Feedback states
+  const [pidKp, setPidKp] = useState<number>(3.5);
+  const [pidKi, setPidKi] = useState<number>(1.2);
+  const [pidKd, setPidKd] = useState<number>(0.6);
+  const [isPidClosedLoop, setIsPidClosedLoop] = useState<boolean>(true);
+  const [pidSetpoint, setPidSetpoint] = useState<number>(1.0);
+
+  // Seven Segment Interactive Modal States
+  const [isSevenSegModalOpen, setIsSevenSegModalOpen] = useState<boolean>(false);
+  const [sevenSegModalTab, setSevenSegModalTab] = useState<"logic" | "ic">("logic");
+  const [sevenSegSelectedSegment, setSevenSegSelectedSegment] = useState<"a" | "b" | "c" | "d" | "e" | "f" | "g" | null>(null);
+  const [sevenSegAutoCount, setSevenSegAutoCount] = useState<boolean>(false);
+  const [sevenSegIcType, setSevenSegIcType] = useState<"decoder" | "shift">("decoder");
+
+  // 74HC595 shift register simulation state
+  const [shiftRegisterBits, setShiftRegisterBits] = useState<boolean[]>([false, false, false, false, false, false, false, false]); // QA' to QH' latch register
+  const [shiftRegisterOutputBits, setShiftRegisterOutputBits] = useState<boolean[]>([false, false, false, false, false, false, false, false]); // Parallel latch outputs QA to QH
+  const [shiftRegisterSerPin, setShiftRegisterSerPin] = useState<boolean>(false); // Serial data input pin
+  const [shiftRegAnimStep, setShiftRegAnimStep] = useState<number>(-1); // -1 = idle, 0 to 7 = shifting bit, 8 = latching
+
+  // Serial Shift Register Simulation effect
+  useEffect(() => {
+    if (shiftRegAnimStep === -1) return;
+    
+    // Calculate the target 8-pin byte representing the current digit's segments!
+    const sum = binaryBits.reduce((acc, currentVal, bIdx) => acc + (currentVal ? Math.pow(2, 3 - bIdx) : 0), 0);
+    const hexDigit = sum.toString(16).toLowerCase();
+    const segMap: Record<string, boolean[]> = {
+      "0": [true, true, true, true, true, true, false, false],
+      "1": [false, true, true, false, false, false, false, false],
+      "2": [true, true, false, true, true, false, true, false],
+      "3": [true, true, true, true, false, false, true, false],
+      "4": [false, true, true, false, false, true, true, false],
+      "5": [true, false, true, true, false, true, true, false],
+      "6": [true, false, true, true, true, true, true, false],
+      "7": [true, true, true, false, false, false, false, false],
+      "8": [true, true, true, true, true, true, true, false],
+      "9": [true, true, true, true, false, true, true, false],
+      "a": [true, true, true, false, true, true, true, false],
+      "b": [false, false, true, true, true, true, true, false],
+      "c": [true, false, false, true, true, true, false, false],
+      "d": [false, true, true, true, true, false, true, false],
+      "e": [true, false, false, true, true, true, true, false],
+      "f": [true, false, false, false, true, true, true, false],
+    };
+    
+    const targetBits = segMap[hexDigit] || [false, false, false, false, false, false, false, false];
+
+    const timer = setTimeout(() => {
+      if (shiftRegAnimStep >= 0 && shiftRegAnimStep < 8) {
+        const nextBit = targetBits[7 - shiftRegAnimStep];
+        setShiftRegisterSerPin(nextBit);
+        setShiftRegisterBits((prev) => {
+          const updated = [...prev];
+          updated.pop();
+          updated.unshift(nextBit);
+          return updated;
+        });
+        setShiftRegAnimStep(shiftRegAnimStep + 1);
+      } else if (shiftRegAnimStep === 8) {
+        setShiftRegisterOutputBits([...shiftRegisterBits]);
+        setShiftRegAnimStep(-1);
+      }
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [shiftRegAnimStep, binaryBits, shiftRegisterBits]);
+
+  const pushShiftClock = (serValue: boolean) => {
+    setShiftRegisterBits((prev) => {
+      const updated = [...prev];
+      updated.pop();
+      updated.unshift(serValue);
+      return updated;
+    });
+  };
+
+  const pushLatchClock = () => {
+    setShiftRegisterOutputBits([...shiftRegisterBits]);
+  };
+
+  const startAutoShift = () => {
+    setShiftRegisterBits([false, false, false, false, false, false, false, false]);
+    setShiftRegAnimStep(0);
+  };
 
   // Flowchart animation state
   const [activeFlowStep, setActiveFlowStep] = useState<number>(0);
+
+  // 7-segment display autocompleter count-up
+  useEffect(() => {
+    if (!sevenSegAutoCount) return;
+    const interval = setInterval(() => {
+      setBinaryBits((prev) => {
+        const val = prev.reduce((acc, b, i) => acc + (b ? Math.pow(2, 3 - i) : 0), 0);
+        const nextVal = (val + 1) % 16;
+        return [
+          (nextVal & 8) !== 0,
+          (nextVal & 4) !== 0,
+          (nextVal & 2) !== 0,
+          (nextVal & 1) !== 0,
+        ];
+      });
+    }, 1200);
+    return () => clearInterval(interval);
+  }, [sevenSegAutoCount, setBinaryBits]);
 
   // Rapid 30fps continuous animation tick state for mechatronic visualizers
   const [simTick, setSimTick] = useState<number>(0);
@@ -565,6 +935,49 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
     }, 30);
     return () => clearInterval(interval);
   }, [activeCodingSubTab, activeLoopExample, loopFrequencySelected]);
+
+  // Action triggers for serial protocols
+  useEffect(() => {
+    if (!isUartTransmitting || isManualStepMode) return;
+    const interval = setInterval(() => {
+      setUartTxStep((prev) => {
+        if (prev >= 9) {
+          setIsUartTransmitting(false);
+          return -1;
+        }
+        return prev + 1;
+      });
+    }, 850);
+    return () => clearInterval(interval);
+  }, [isUartTransmitting, isManualStepMode]);
+
+  useEffect(() => {
+    if (!isI2cTransmitting || isManualStepMode) return;
+    const interval = setInterval(() => {
+      setI2cTxStep((prev) => {
+        if (prev >= 5) {
+          setIsI2cTransmitting(false);
+          return -1;
+        }
+        return prev + 1;
+      });
+    }, 950);
+    return () => clearInterval(interval);
+  }, [isI2cTransmitting, isManualStepMode]);
+
+  useEffect(() => {
+    if (!isSpiTransmitting || isManualStepMode) return;
+    const interval = setInterval(() => {
+      setSpiTxStep((prev) => {
+        if (prev >= 9) {
+          setIsSpiTransmitting(false);
+          return -1;
+        }
+        return prev + 1;
+      });
+    }, 750);
+    return () => clearInterval(interval);
+  }, [isSpiTransmitting, isManualStepMode]);
 
   const activeCase = CASE_STUDIES[selectedCaseIdx];
 
@@ -647,10 +1060,10 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
             {viewType === "electronics" ? (
               <>
                 <span className="font-mono text-xs font-bold uppercase tracking-widest text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2.5 py-1 rounded-full">
-                  STEM Electronics Academy
+                  STEM Electronics & Digital Systems
                 </span>
                 <h2 className="font-sans text-2xl md:text-3xl font-extrabold text-[#f8fafc] tracking-tight">
-                  BASIC ELECTRONICS LAB
+                  BASIC ELECTRONICS AND DIGITAL SYSTEM
                 </h2>
                 <p className="font-sans text-xs md:text-sm text-slate-400 leading-relaxed">
                   Explore foundational hardware physics, trace live series or parallel circuit current drops, study and compute Ohm's Law formulas in real-time. Pull virtual breakers to route wire currents safely.
@@ -999,10 +1412,10 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                               <span className="text-slate-600 block">// Registers proximity sensor input pins</span>
                               <p><span className="text-[#f43f5e]">const int</span> trigPin = <span className="text-indigo-400">3</span>;</p>
                               <p><span className="text-[#f43f5e]">const int</span> echoPin = <span className="text-indigo-400">4</span>;</p>
-                              <p className="text-indigo-305 transition-colors duration-150 bg-indigo-500/5 px-1 rounded">
+                              <p className="text-pink-400 bg-pink-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f43f5e] transition-colors duration-150">
                                 <span className="text-[#f43f5e]">int</span> distance = <span className="text-sky-400 font-extrabold">{userDistance}</span>; <span className="text-slate-655 text-[9.5px]">// updated dynamically</span>
                               </p>
-                              <p className="text-emerald-305 transition-colors duration-150 bg-emerald-500/5 px-1 rounded">
+                              <p className="text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f59e0b] transition-colors duration-150">
                                 <span className="text-[#f43f5e]">bool</span> obstacleDetected = <span className="text-emerald-400 font-extrabold">{userDistance < 20 ? "true" : "false"}</span>;
                               </p>
                             </div>
@@ -1010,10 +1423,10 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                             <div className="space-y-2 text-slate-400">
                               <span className="text-slate-600 block">// Registers Thermistor temperature coefficient parameters</span>
                               <p><span className="text-[#f43f5e]">const int</span> thermistorPin = <span className="text-indigo-400">A1</span>;</p>
-                              <p className="text-indigo-305 transition-colors duration-150 bg-indigo-500/5 px-1 rounded">
+                              <p className="text-pink-400 bg-pink-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f43f5e] transition-colors duration-150">
                                 <span className="text-[#f43f5e]">float</span> tempSensorVal = <span className="text-[#38bdf8] font-bold">{tempSensorValue.toFixed(1)}</span>; <span className="text-slate-655 text-[9.5px]">// Float storing decimel levels</span>
                               </p>
-                              <p className="text-emerald-305 transition-colors duration-150 bg-emerald-500/5 px-1 rounded">
+                              <p className="text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f59e0b] transition-colors duration-150">
                                 <span className="text-[#f43f5e]">bool</span> activeCoolerState = <span className="text-emerald-400 font-extrabold">{tempSensorValue > 35 ? "true" : "false"}</span>;
                               </p>
                             </div>
@@ -1187,11 +1600,11 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                               <p className="text-slate-200">
                                 <span className="text-[#f43f5e] font-bold">if</span> (ambientLight &lt; <span className="text-indigo-400 font-bold">400</span>) &#123;
                               </p>
-                              <p className={`pl-4 py-1.5 transition-all rounded ${lightRawADC < 400 ? "bg-amber-500/15 text-amber-300 font-bold shadow-[inset_2px_0_0_#f59e0b]" : "text-slate-600 opacity-30"}`}>
+                              <p className={`pl-4 py-1.5 transition-all rounded ${lightRawADC < 400 ? "bg-emerald-500/15 text-emerald-300 font-bold shadow-[inset_2px_0_0_#10b981]" : "text-slate-600 opacity-30"}`}>
                                 digitalWrite(streetlampLED, HIGH); <span className="text-[9px] font-sans italic opacity-60">// streetlight ON</span>
                               </p>
                               <p className="text-slate-200">&#125; <span className="text-[#f43f5e] font-bold">else</span> &#123;</p>
-                              <p className={`pl-4 py-1.5 transition-all rounded ${lightRawADC >= 400 ? "bg-indigo-500/15 text-indigo-300 font-bold shadow-[inset_2px_0_0_#6366f1]" : "text-slate-600 opacity-30"}`}>
+                              <p className={`pl-4 py-1.5 transition-all rounded ${lightRawADC >= 400 ? "bg-emerald-500/15 text-emerald-300 font-bold shadow-[inset_2px_0_0_#10b981]" : "text-slate-600 opacity-30"}`}>
                                 digitalWrite(streetlampLED, LOW); <span className="text-[9px] font-sans italic opacity-60">// light standby OFF</span>
                               </p>
                               <p className="text-slate-200">&#125;</p>
@@ -1381,16 +1794,16 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                           {activeLoopExample === "orbit" ? (
                             <div className="space-y-0.5 text-slate-400">
                               <p className="text-[#a855f7]"><span className="text-[#f43f5e] font-bold">void</span> <span className="text-white font-bold">loop</span>() &#123;</p>
-                              <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 0 ? "bg-emerald-500/10 text-emerald-300 font-bold" : "text-slate-650"}`}>
+                              <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 0 ? "bg-pink-500/10 text-pink-400 font-bold shadow-[inset_2px_0_0_#f43f5e]" : "text-slate-650"}`}>
                                 <span className="text-[#f43f5e]">int</span> r = analogRead(A0); <span className="text-[9.5px] font-sans opacity-60">// Acquisition (read raw input)</span>
                               </p>
-                              <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 1 ? "bg-emerald-500/10 text-emerald-300 font-bold" : "text-slate-650"}`}>
+                              <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 1 ? "bg-purple-500/10 text-purple-400 font-bold shadow-[inset_2px_0_0_#a855f7]" : "text-slate-650"}`}>
                                 <span className="text-[#f43f5e]">float</span> val = r * <span className="text-indigo-400">0.12</span>; <span className="text-[9.5px] font-sans opacity-60">// Calibration (scale inputs)</span>
                               </p>
-                              <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 2 ? "bg-emerald-500/10 text-emerald-300 font-bold" : "text-slate-650"}`}>
+                              <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 2 ? "bg-amber-500/10 text-amber-400 font-bold shadow-[inset_2px_0_0_#f59e0b]" : "text-slate-650"}`}>
                                 checkThresholdFlags(val); <span className="text-[9.5px] font-sans opacity-60">// Decision (verify logic)</span>
                               </p>
-                              <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 3 ? "bg-emerald-500/10 text-emerald-300 font-bold" : "text-slate-650"}`}>
+                              <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 3 ? "bg-emerald-500/10 text-emerald-300 font-bold shadow-[inset_2px_0_0_#10b981]" : "text-slate-650"}`}>
                                 digitalWrite(motor, HIGH); <span className="text-[9.5px] font-sans opacity-60">// Output (action trigger)</span>
                               </p>
                               <p className="pl-4 text-slate-600">delay(<span className="text-indigo-400 font-bold">{[2800, 1000, 180][loopFrequencySelected]}</span>); <span className="text-[9.5px] font-sans opacity-60">// Sleep interval</span></p>
@@ -1400,7 +1813,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                             <div className="space-y-0.5 text-slate-400">
                               <p className="text-[#a855f7]"><span className="text-[#f43f5e] font-bold">void</span> <span className="text-white font-bold">loop</span>() &#123;</p>
                               <p className="pl-4 text-slate-600">// Cycles angle value registers in sequence loops</p>
-                              <p className="pl-4 py-0.5 rounded transition-indigo bg-indigo-500/10 text-indigo-3 w-max">
+                               <p className="pl-4 py-0.5 rounded transition-all bg-emerald-500/10 text-emerald-300 font-bold shadow-[inset_2px_0_0_#10b981] w-max">
                                 servoMotor.write(<span className="text-sky-305 font-extrabold">{servoAngleDegrees}</span>); <span className="text-[9.5px] font-sans opacity-60">// angle sweep updated</span>
                               </p>
                               <p className="pl-4 text-slate-600">delay(<span className="text-indigo-400 font-bold">{[40, 20, 5][loopFrequencySelected]}</span>); <span className="text-[9.5px] font-sans opacity-60">// servo response delay</span></p>
@@ -1686,11 +2099,11 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                       </p>
                       <div className="rounded-lg bg-slate-900 p-2.5 border border-slate-800">
                         <span className="font-mono text-[9px] text-slate-555 uppercase font-bold block mb-1">C++ Firmware Equivalent</span>
-                        <pre className="font-mono text-[10px] text-emerald-450 leading-normal overflow-x-auto whitespace-pre">
-{`void setup() {
+                        <pre className="font-mono text-[10px] leading-normal overflow-x-auto whitespace-pre">
+                          {highlightCppCodeText(`void setup() {
   pinMode(13, OUTPUT);
   Serial.begin(9600);
-}`}
+}`)}
                         </pre>
                       </div>
                     </>
@@ -1704,12 +2117,12 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                       </p>
                       <div className="rounded-lg bg-slate-900 p-2.5 border border-slate-800">
                         <span className="font-mono text-[9px] text-slate-555 uppercase font-bold block mb-1">C++ Firmware Equivalent</span>
-                        <pre className="font-mono text-[10px] text-pink-305 leading-normal overflow-x-auto whitespace-pre">
-{`// INPUT
+                        <pre className="font-mono text-[10px] leading-normal overflow-x-auto whitespace-pre">
+                          {highlightCppCodeText(`// INPUT
 int dryRaw = analogRead(A0);
 
 // OUTPUT
-digitalWrite(pistonPin, HIGH);`}
+digitalWrite(pistonPin, HIGH);`)}
                         </pre>
                       </div>
                     </>
@@ -1723,9 +2136,9 @@ digitalWrite(pistonPin, HIGH);`}
                       </p>
                       <div className="rounded-lg bg-slate-900 p-2.5 border border-slate-800">
                         <span className="font-mono text-[9px] text-slate-500 uppercase font-bold block mb-1">C++ Firmware Equivalent</span>
-                        <pre className="font-mono text-[10px] text-purple-305 leading-normal overflow-x-auto whitespace-pre">
-{`float dist = (pulseMs * 0.0343) / 2.0;
-delay(250); // Pause execution`}
+                        <pre className="font-mono text-[10px] leading-normal overflow-x-auto whitespace-pre">
+                          {highlightCppCodeText(`float dist = (pulseMs * 0.0343) / 2.0;
+delay(250); // Pause execution`)}
                         </pre>
                       </div>
                     </>
@@ -1739,8 +2152,8 @@ delay(250); // Pause execution`}
                       </p>
                       <div className="rounded-lg bg-slate-905 p-2.5 border border-slate-800">
                         <span className="font-mono text-[9px] text-slate-500 uppercase font-bold block mb-1">C++ Firmware Equivalent</span>
-                        <pre className="font-mono text-[10px] text-yellow-305 leading-normal overflow-x-auto whitespace-pre">
-{activeCase.id === "obstacle_avoidance" ? `if (distance < 15) {
+                        <pre className="font-mono text-[10px] leading-normal overflow-x-auto whitespace-pre">
+                          {highlightCppCodeText(activeCase.id === "obstacle_avoidance" ? `if (distance < 15) {
   // Take YES (Blocked) branch
   steerLeft(); // Turn wheels left
 } else {
@@ -1764,7 +2177,7 @@ delay(250); // Pause execution`}
 } else {
   // Take NO (Safe) branch
   sweepServoJoint(); // Speed servo angle
-}`}
+}`)}
                         </pre>
                       </div>
                     </>
@@ -1830,11 +2243,11 @@ delay(250); // Pause execution`}
                           </p>
                           <div className="rounded-xl bg-[#030712] p-3.5 border border-slate-800/80">
                             <span className="font-mono text-[9px] text-emerald-400 uppercase font-semibold block mb-1">C++ Firmware Equivalent</span>
-                            <pre className="font-mono text-xs text-slate-350 leading-relaxed overflow-x-auto whitespace-pre">
-{`void setup() {
+                            <pre className="font-mono text-xs leading-relaxed overflow-x-auto whitespace-pre">
+                              {highlightCppCodeText(`void setup() {
   pinMode(13, OUTPUT);
   Serial.begin(9600);
-}`}
+}`)}
                             </pre>
                           </div>
                         </>
@@ -1851,12 +2264,12 @@ delay(250); // Pause execution`}
                           </p>
                           <div className="rounded-xl bg-[#030712] p-3.5 border border-slate-800/80">
                             <span className="font-mono text-[9px] text-pink-400 uppercase font-semibold block mb-1">C++ Firmware Equivalent</span>
-                            <pre className="font-mono text-xs text-slate-350 leading-relaxed overflow-x-auto whitespace-pre">
-{`// INPUT
+                            <pre className="font-mono text-xs leading-relaxed overflow-x-auto whitespace-pre">
+                              {highlightCppCodeText(`// INPUT
 int dryRaw = analogRead(A0);
 
 // OUTPUT
-digitalWrite(pistonPin, HIGH);`}
+digitalWrite(pistonPin, HIGH);`)}
                             </pre>
                           </div>
                         </>
@@ -1873,9 +2286,9 @@ digitalWrite(pistonPin, HIGH);`}
                           </p>
                           <div className="rounded-xl bg-[#030712] p-3.5 border border-slate-800/80">
                             <span className="font-mono text-[9px] text-purple-400 uppercase font-semibold block mb-1">C++ Firmware Equivalent</span>
-                            <pre className="font-mono text-xs text-slate-350 leading-relaxed overflow-x-auto whitespace-pre">
-{`float dist = (pulseMs * 0.0343) / 2.0;
-delay(250); // Pause execution`}
+                            <pre className="font-mono text-xs leading-relaxed overflow-x-auto whitespace-pre">
+                              {highlightCppCodeText(`float dist = (pulseMs * 0.0343) / 2.0;
+delay(250); // Pause execution`)}
                             </pre>
                           </div>
                         </>
@@ -1883,7 +2296,7 @@ delay(250); // Pause execution`}
 
                       {selectedShape === "diamond" && (
                         <>
-                          <h4 className="font-sans font-extrabold text-sm text-yellow-500 uppercase tracking-wider flex items-center gap-2">
+                          <h4 className="font-sans font-extrabold text-sm text-yellow-505 uppercase tracking-wider flex items-center gap-2">
                             <div className="w-2.5 h-2.5 border border-yellow-500 bg-yellow-500/10 rotate-45 shrink-0" />
                             Decision Forks Guide
                           </h4>
@@ -1892,8 +2305,8 @@ delay(250); // Pause execution`}
                           </p>
                           <div className="rounded-xl bg-[#030712] p-3.5 border border-slate-800/80">
                             <span className="font-mono text-[9px] text-yellow-550 uppercase font-semibold block mb-1">C++ Firmware Equivalent</span>
-                            <pre className="font-mono text-xs text-slate-350 leading-relaxed overflow-x-auto whitespace-pre">
-{activeCase.id === "obstacle_avoidance" ? `if (distance < 15) {
+                            <pre className="font-mono text-xs leading-relaxed overflow-x-auto whitespace-pre">
+                              {highlightCppCodeText(activeCase.id === "obstacle_avoidance" ? `if (distance < 15) {
   // Take YES (Blocked) branch
   steerLeft(); // Turn wheels left
 } else {
@@ -1917,7 +2330,7 @@ delay(250); // Pause execution`}
 } else {
   // Take NO (Safe) branch
   sweepServoJoint(); // Speed servo angle
-}`}
+}`) || ""}
                             </pre>
                           </div>
                         </>
@@ -1948,6 +2361,7 @@ delay(250); // Pause execution`}
                 </div>
               )}
             </AnimatePresence>
+
           </div>
 
           {/* Flowchart Control Loop Showcase Viewer */}
@@ -2472,7 +2886,7 @@ delay(250); // Pause execution`}
                             
                             <div className="relative p-3 bg-slate-950/90 rounded-lg border border-slate-900/80 font-mono text-[10.5px] text-slate-300 leading-relaxed overflow-x-auto max-h-[140px] select-text">
                               <pre className="m-0 font-mono leading-normal whitespace-pre">
-                                {detail.code}
+                                {highlightCppCodeText(detail.code)}
                               </pre>
                             </div>
                           </div>
@@ -2527,7 +2941,9 @@ delay(250); // Pause execution`}
               <div className="space-y-3 pt-2 border-t border-slate-900">
                 {([
                   { id: "ohms", label: "Ohm's Law (V = I * R)", desc: "Interact with Voltage, Resistance, and Amperage limits", icon: Sliders },
-                  { id: "circuits", label: "Circuits (Series vs Parallel)", desc: "Build connections and break wire routes to see behaviors", icon: Layers }
+                  { id: "circuits", label: "Circuits (Series vs Parallel)", desc: "Build connections and break wire routes to see behaviors", icon: Layers },
+                  { id: "signals", label: "Signals (Analog vs Digital)", desc: "Compare smooth voltage waves with high/low step functions", icon: Activity },
+                  { id: "binary", label: "Binary & Logic Gates", desc: "Toggle bits to count in binary & trigger logical gates", icon: Cpu }
                 ] as const).map((sub) => {
                   const isCur = activeElectSubTab === sub.id;
                   return (
@@ -2604,68 +3020,102 @@ delay(250); // Pause execution`}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {/* Left sliders */}
-                      <div className="space-y-4 bg-slate-900/10 p-4 rounded-xl border border-slate-900">
-                        {/* 1. Voltage slider */}
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between text-xs font-sans">
-                            <span className="text-slate-300 font-bold">1. Input Voltage (Volts):</span>
-                            <span className="font-mono text-indigo-400 font-extrabold">{ohmsVoltage.toFixed(1)} V</span>
-                          </div>
-                          <input 
-                            type="range" 
-                            min="1.0" 
-                            max="12.0" 
-                            step="0.5"
-                            value={ohmsVoltage}
-                            onChange={(e) => setOhmsVoltage(parseFloat(e.target.value))}
-                            className="w-full accent-indigo-500 cursor-pointer"
-                          />
-                        </div>
-
-                        {/* 2. Resistance slider */}
-                        <div className="space-y-1.5 pt-3 border-t border-slate-900/60">
-                          <div className="flex justify-between text-xs font-sans">
-                            <span className="text-slate-300 font-bold">2. Pathway Resistance (Ohms):</span>
-                            <span className="font-mono text-emerald-450 font-extrabold">{ohmsResistance} Ω</span>
-                          </div>
-                          <input 
-                            type="range" 
-                            min="100" 
-                            max="1000" 
-                            step="20"
-                            value={ohmsResistance}
-                            onChange={(e) => setOhmsResistance(parseInt(e.target.value))}
-                            className="w-full accent-emerald-500 cursor-pointer"
-                          />
-                        </div>
-
-                        {/* Output visual calculations results */}
-                        <div className="p-3 rounded-lg bg-[#030712] border border-slate-90ad flex justify-between items-center text-xs">
-                          <div className="space-y-0.5 pl-1.5">
-                            <span className="font-mono text-[8px] text-slate-500 tracking-wider block uppercase">Current formulation:</span>
-                            <div className="text-slate-100 font-sans">
-                              I = {ohmsVoltage}V / {ohmsResistance}Ω
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 text-left font-sans items-stretch">
+                      {/* Left: Input Controls columns (ordered 2nd on mobile) */}
+                      <div className="lg:col-span-5 flex flex-col gap-4 order-2 lg:order-1 lg:justify-between">
+                        {/* 1. Input Controls */}
+                        <div className="space-y-4 bg-slate-900/25 p-4 rounded-xl border border-slate-900 flex flex-col justify-center">
+                          {/* 1. Voltage slider */}
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-xs font-sans">
+                              <span className="text-slate-300 font-bold">1. Input Voltage (Battery Strength):</span>
+                              <span className="font-mono text-indigo-400 font-extrabold">{ohmsVoltage.toFixed(1)} V</span>
+                            </div>
+                            <input 
+                              type="range" 
+                              min="1.0" 
+                              max="12.0" 
+                              step="0.5"
+                              value={ohmsVoltage}
+                              onChange={(e) => setOhmsVoltage(parseFloat(e.target.value))}
+                              className="w-full accent-indigo-500 cursor-pointer h-2 bg-slate-950 rounded-lg"
+                            />
+                            <div className="flex justify-between font-mono text-[8px] text-slate-500">
+                              <span>1.0 V (Weak)</span>
+                              <span>6.0 V</span>
+                              <span>12.0 V (Strong)</span>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <span className="font-mono text-[8px] text-slate-500 tracking-wider block uppercase">Resultant Current:</span>
-                            <span className={`font-mono text-sm font-black transition-all ${isPinBlown ? "text-rose-400" : "text-[#10b981]"}`}>
-                              {currentMilliamps.toFixed(1)} mA
-                            </span>
+
+                          {/* 2. Resistance slider */}
+                          <div className="space-y-1.5 pt-3 border-t border-slate-900/40">
+                            <div className="flex justify-between text-xs font-sans">
+                              <span className="text-slate-300 font-bold">2. Pathway Resistance (Ohm barrier):</span>
+                              <span className="font-mono text-emerald-400 font-extrabold">{ohmsResistance} Ω</span>
+                            </div>
+                            <input 
+                              type="range" 
+                              min="100" 
+                              max="1000" 
+                              step="20"
+                              value={ohmsResistance}
+                              onChange={(e) => setOhmsResistance(parseInt(e.target.value))}
+                              className="w-full accent-emerald-500 cursor-pointer h-2 bg-slate-950 rounded-lg"
+                            />
+                            <div className="flex justify-between font-mono text-[8px] text-slate-500">
+                              <span>100 Ω (Wide Open)</span>
+                              <span>500 Ω</span>
+                              <span>1000 Ω (Squeezed-Dense)</span>
+                            </div>
                           </div>
+                        </div>
+
+                        {/* 2. Decoded Mathematical HUD */}
+                        <div className="bg-[#030712] p-4 rounded-xl border border-slate-900 flex flex-col justify-between space-y-2">
+                          <div className="flex justify-between items-center text-xs border-b border-slate-900/60 pb-1.5">
+                            <span className="font-mono text-[9px] text-slate-400 font-black uppercase">Ohmic Physics (V = I * R)</span>
+                            <span className="font-mono text-[8px] text-indigo-400 bg-indigo-950/40 border border-indigo-900/25 px-1.5 py-0.5 rounded font-bold">I = V / R</span>
+                          </div>
+
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-1.5">
+                            <div className="space-y-0.5">
+                              <span className="font-mono text-[8px] text-slate-500 tracking-wider block uppercase">Current formulation:</span>
+                              <div className="text-slate-100 font-sans text-xs font-semibold">
+                                I = <span className="text-indigo-400 font-bold">{ohmsVoltage.toFixed(1)}V</span> / <span className="text-emerald-400 font-bold">{ohmsResistance}Ω</span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-start md:items-end">
+                              <span className="font-mono text-[8px] text-slate-500 tracking-wider block uppercase">Resultant Current:</span>
+                              <span className={`font-mono text-base md:text-lg font-black transition-all ${isPinBlown ? "text-rose-455 text-rose-450 text-rose-400 animate-pulse" : "text-[#10b981]"}`}>
+                                {currentMilliamps.toFixed(1)} mA
+                              </span>
+                            </div>
+                          </div>
+
+                          <p className="font-sans text-[10px] leading-tight text-slate-400 border-t border-slate-900 pt-2">
+                            {isPinBlown 
+                              ? "Excessive flow! The current exceeds standard continuous pin logic-ports. Increase resistance to choke electron overload." 
+                              : "Operational! The current is safely under the maximum continuous Arduino GPIO pin parameter of 40 mA."}
+                          </p>
                         </div>
                       </div>
 
-                      {/* Right: Electron loop flow path animation */}
-                      <div className="space-y-2 flex flex-col justify-between">
-                        <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 block font-bold">Flowing Electron Particles Simulation:</span>
+                      {/* Right: Live Animation Loop View (ordered 1st on mobile so it is visible immediately while adjusting) */}
+                      <div className="lg:col-span-7 space-y-2 order-1 lg:order-2 flex flex-col justify-between">
+                        <div className="flex justify-between items-center">
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold">Tightening/Loosening Resistor Clamp Simulation:</span>
+                          <span className={`font-mono text-[9px] px-2 py-0.5 rounded border uppercase transition-all ${
+                            isPinBlown 
+                              ? "bg-rose-950/20 border-rose-500/30 text-rose-400 animate-pulse font-bold" 
+                              : "bg-emerald-950/20 border-emerald-500/20 text-emerald-400 font-bold"
+                          }`}>
+                            {isPinBlown ? "WARNING: PIN BLOWN!" : "STATUS: STEADY & SAFE"}
+                          </span>
+                        </div>
                         
-                        {/* Dynamic Wire Animation Container */}
-                        <div className="rounded-xl border border-slate-900 bg-[#030712] p-4 flex flex-col items-center justify-center space-y-3 min-h-[160px] relative overflow-hidden">
-                             {/* Animated particle wire line loop */}
-                          <svg viewBox="0 0 220 120" className="w-full h-28 overflow-visible">
+                        <div className="rounded-2xl border border-slate-900 bg-[#020614] p-3 md:p-6 flex flex-col items-center justify-center space-y-2 select-none h-44 sm:h-52 md:h-64 lg:h-72 relative overflow-hidden shadow-[inset_0_0_30px_rgba(15,23,42,0.8)]">
+                          {/* Animated particle wire line loop (scaled wide and high) */}
+                          <svg viewBox="0 0 220 120" className="w-full h-full overflow-visible select-none">
                             <rect 
                               x="10" 
                               y="10" 
@@ -2673,13 +3123,12 @@ delay(250); // Pause execution`}
                               height="80" 
                               rx="10" 
                               fill="none" 
-                              stroke={isPinBlown ? "#f43f5e" : "#334155"} 
+                              stroke={isPinBlown ? "#f43f5e" : "#1e293b"} 
                               strokeWidth={isPinBlown ? "3.5" : "2.5"} 
                               className={`transition-colors duration-200 ${isPinBlown ? "animate-pulse" : ""}`}
                             />
 
                             {/* Solid flowing path with dynamic solid particles (no broken lines) */}
-                            {/* The current coming from the battery is stable and only thins/narrows after passing through the resistor at x=90 */}
                             {/* Pre-resistor segment: battery positive terminal (x=10, y=31) up to resistor entrance (x=90) */}
                             <path
                               d="M 10 31 V 20 A 10 10 0 0 1 20 10 H 90"
@@ -2693,7 +3142,7 @@ delay(250); // Pause execution`}
                               }}
                             />
 
-                            {/* Post-resistor segment: starting from inside resistor all the way back to battery negative (x=10, y=66) */}
+                            {/* Post-resistor segment: starting from inside resistor all the way back to battery negative */}
                             <path
                               d="M 90 10 H 200 A 10 10 0 0 1 210 20 V 80 A 10 10 0 0 1 200 90 H 20 A 10 10 0 0 1 10 80 V 66"
                               fill="none"
@@ -2732,80 +3181,71 @@ delay(250); // Pause execution`}
                               <rect x="3.5" y="34.5" width="13" height="12" fill="#ef4444" rx="1.5" />
                               <text x="10" y="43" textAnchor="middle" className="fill-white font-sans text-[8px] font-black">+</text>
                               <text x="10" y="60" textAnchor="middle" className="fill-slate-400 font-sans text-[9px] font-black">-</text>
-                              {/* Text description nestled inside circuit loop */}
-                              <text x="24" y="52" textAnchor="start" className="fill-indigo-400 font-mono text-[8px] font-extrabold">{ohmsVoltage.toFixed(1)}V Battery</text>
                             </g>
 
-                            {/* Transparent Resistor Tube on top side centered at x=110, y=10 */}
+                            {/* Improved Tightening & Loosening Resistor Clamp device */}
                             <g>
-                              {/* Outer transparent capsule shell */}
-                              <rect x="90" y="2" width="40" height="16" rx="3.5" fill="rgba(30, 41, 59, 0.4)" stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="1.5 1.5" />
-                              
-                              {/* Active dual-squeezing mechanical restrictor jaws that widen/narrow dynamically to block the channel */}
-                              {/* Top squeezing restrictor plate */}
-                              <path 
-                                d={`M 90,2 Q 110,${10 - ohmsNeckSpacing/2} 130,2 L 130,1 L 90,1 Z`} 
-                                fill="rgba(239, 68, 68, 0.35)"
-                                stroke="#ef4444" 
-                                strokeWidth="0.65" 
-                                style={{
-                                  animation: `throatThrobTop ${ohmsVibeDuration} ease-in-out infinite alternate`,
-                                  transformOrigin: "center top",
-                                  transition: "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
-                                  opacity: 0.3 + ohmsConstrictionFactor * 0.7,
-                                  "--ohms-vibe-y": ohmsVibeY
-                                } as React.CSSProperties}
-                              />
-                              
-                              {/* Bottom squeezing restrictor plate */}
-                              <path 
-                                d={`M 90,18 Q 110,${10 + ohmsNeckSpacing/2} 130,18 L 130,19 L 90,19 Z`} 
-                                fill="rgba(239, 68, 68, 0.35)"
-                                stroke="#ef4444" 
-                                strokeWidth="0.65" 
-                                style={{
-                                  animation: `throatThrobBottom ${ohmsVibeDuration} ease-in-out infinite alternate`,
-                                  transformOrigin: "center bottom",
-                                  transition: "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
-                                  opacity: 0.3 + ohmsConstrictionFactor * 0.7,
-                                  "--ohms-vibe-y": ohmsVibeY
-                                } as React.CSSProperties}
+                              {/* Left and Right connector metal lines */}
+                              <line x1="82" y1="10" x2="90" y2="10" stroke="#94a3b8" strokeWidth="1.5" />
+                              <line x1="130" y1="10" x2="138" y2="10" stroke="#94a3b8" strokeWidth="1.5" />
+
+                              {/* Outer rigid support guide frame */}
+                              <rect x="88" y="0" width="44" height="20" rx="3.5" fill="none" stroke="#475569" strokeWidth="1.0" strokeDasharray="3 2" opacity="0.6" />
+
+                              {/* Flexible conductive channel (crimped by the clamps) */}
+                              <path
+                                d={`M 90,3 
+                                    Q 110,${3 + 5.5 * ohmsConstrictionFactor} 130,3 
+                                    L 130,17 
+                                    Q 110,${17 - 5.5 * ohmsConstrictionFactor} 90,17 
+                                    Z`}
+                                fill="rgba(34, 197, 94, 0.08)"
+                                stroke="#10b981"
+                                strokeWidth="0.8"
+                                className="transition-all duration-300"
                               />
 
-                              {/* Inside wall indicators of resistance channel width inside the tube */}
-                              <line x1="90" y1={4 + (ohmsResistance / 250)} x2="130" y2={4 + (ohmsResistance / 250)} stroke="rgba(56, 189, 248, 0.15)" strokeWidth="0.5" />
-                              <line x1="90" y1={16 - (ohmsResistance / 250)} x2="130" y2={16 - (ohmsResistance / 250)} stroke="rgba(56, 189, 248, 0.15)" strokeWidth="0.5" />
+                              {/* Active Mechanical Clamp Jaws: Tighten (move in) for high resistance, loosen (retract) for low resistance */}
+                              {/* Top Squeeze Jaw block */}
+                              <g style={{ transform: `translateY(${5.5 * ohmsConstrictionFactor}px)`, transition: "transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)" }}>
+                                <rect x="100" y="-1" width="20" height="4.5" rx="1" fill="#f59e0b" stroke="#b45309" strokeWidth="0.8" />
+                                {/* Clamp teeth/grooves */}
+                                <line x1="104" y1="3" x2="104" y2="4.5" stroke="#78350f" strokeWidth="0.5" />
+                                <line x1="110" y1="3" x2="110" y2="4.5" stroke="#78350f" strokeWidth="0.5" />
+                                <line x1="116" y1="3" x2="116" y2="4.5" stroke="#78350f" strokeWidth="0.5" />
+                                {/* Force direction down arrow */}
+                                <path d="M 108,-3 L 110,-1 L 112,-3" fill="none" stroke="#f59e0b" strokeWidth="0.6" opacity={ohmsConstrictionFactor > 0.1 ? 0.9 : 0.2} />
+                              </g>
 
-                              {/* Physical resistance obstacles (atoms/particles) inside the transparent capsule */}
-                              {Array.from({ length: Math.round(ohmsResistance / 45) }).map((_, idx) => {
-                                // Deterministic coordinates based on index so they don't jump around
-                                const factorX = Math.abs(Math.sin((idx + 1) * 451.7));
-                                const factorY = Math.abs(Math.cos((idx + 1) * 883.3));
-                                const ox = 93 + factorX * 34; // fits inside [93, 127]
-                                const oy = 5.5 + factorY * 9;  // fits inside [5.5, 14.5]
-                                return (
-                                  <circle 
-                                    key={idx} 
-                                    cx={ox} 
-                                    cy={oy} 
-                                    r="1.2" 
-                                    fill="#ef4444" 
-                                    stroke="#7f1d1d" 
-                                    strokeWidth="0.3" 
-                                    className={ohmsResistance > 500 ? "animate-pulse" : ""}
-                                  />
-                                );
-                              })}
+                              {/* Bottom Squeeze Jaw block */}
+                              <g style={{ transform: `translateY(${-5.5 * ohmsConstrictionFactor}px)`, transition: "transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)" }}>
+                                <rect x="100" y="16.5" width="20" height="4.5" rx="1" fill="#f59e0b" stroke="#b45309" strokeWidth="0.8" />
+                                {/* Clamp teeth/grooves */}
+                                <line x1="104" y1="16.5" x2="104" y2="17" stroke="#78350f" strokeWidth="0.5" />
+                                <line x1="110" y1="16.5" x2="110" y2="17" stroke="#78350f" strokeWidth="0.5" />
+                                <line x1="116" y1="16.5" x2="116" y2="17" stroke="#78350f" strokeWidth="0.5" />
+                                {/* Force direction up arrow */}
+                                <path d="M 108,23 L 110,21 L 112,23" fill="none" stroke="#f59e0b" strokeWidth="0.6" opacity={ohmsConstrictionFactor > 0.1 ? 0.9 : 0.2} />
+                              </g>
+                            </g>
 
-                              {/* Text label coordinates placed neatly inside the circuit loop at y=33 */}
-                              <text x="110" y="32" textAnchor="middle" className="fill-emerald-400 font-mono text-[8.5px] font-extrabold">{ohmsResistance}Ω</text>
-                              <text x="110" y="40" textAnchor="middle" className="fill-slate-500 font-mono text-[6.5px]">
-                                {ohmsResistance > 700 
-                                  ? "DENSE ATOMS: Jaws squeeze tight to resist current!" 
-                                  : ohmsResistance < 300 
-                                    ? "WIDE OPEN: Jaws widen, letting current pass easily!" 
-                                    : "MODERATE SQUEEZE: Jaws throttle balanced current!"}
-                              </text>
+                            {/* Live floating label indicators for Voltage, Resistance, and Current */}
+                            <g>
+                              {/* 1. Voltage indicator near Battery on left */}
+                              <line x1="17" y1="50" x2="28" y2="50" stroke="#818cf8" strokeWidth="0.8" strokeOpacity="0.7" />
+                              <rect x="28" y="38" width="48" height="24" rx="3" fill="#030712" fillOpacity="0.95" stroke="#4f46e5" strokeOpacity="0.5" strokeWidth="0.5" />
+                              <text x="32" y="47" className="fill-indigo-400 font-mono text-[5.5px] font-extrabold uppercase">VOLTAGE (V)</text>
+                              <text x="32" y="56" className="fill-white font-mono text-[8px] font-black">{ohmsVoltage.toFixed(1)}V</text>
+
+                              {/* 2. Resistance indicator below clamp */}
+                              <rect x="86" y="27" width="48" height="24" rx="3" fill="#030712" fillOpacity="0.95" stroke="#f59e0b" strokeOpacity="0.5" strokeWidth="0.5" />
+                              <text x="110" y="36" textAnchor="middle" className="fill-amber-400 font-mono text-[5.5px] font-extrabold uppercase">RESISTANCE (R)</text>
+                              <text x="110" y="45" textAnchor="middle" className="fill-white font-mono text-[8px] font-black">{ohmsResistance} Ω</text>
+
+                              {/* 3. Current indicator at the bottom flow wire segment */}
+                              <rect x="83" y="96" width="54" height="22" rx="3" fill="#030712" fillOpacity="0.95" stroke="#10b981" strokeOpacity="0.5" strokeWidth="0.5" />
+                              <text x="110" y="104" textAnchor="middle" className="fill-emerald-400 font-mono text-[5.5px] font-extrabold uppercase">CURRENT (I)</text>
+                              <text x="110" y="113" textAnchor="middle" className="fill-white font-mono text-[7.5px] font-black">{currentMilliamps.toFixed(1)} mA</text>
                             </g>
                           </svg>
 
@@ -2814,32 +3254,7 @@ delay(250); // Pause execution`}
                               0% { opacity: 0.55; }
                               100% { opacity: 0.95; }
                             }
-                            @keyframes dash {
-                              to {
-                                stroke-dashoffset: -46;
-                              }
-                            }
-                            @keyframes throatThrobTop {
-                              0% { transform: translateY(0); }
-                              100% { transform: translateY(var(--ohms-vibe-y, 0px)); }
-                            }
-                            @keyframes throatThrobBottom {
-                              0% { transform: translateY(0); }
-                              100% { transform: translateY(calc(-1 * var(--ohms-vibe-y, 0px))); }
-                            }
                           `}</style>
-
-                          <div className="text-center font-mono text-[9px]">
-                            {isPinBlown ? (
-                              <div className="text-rose-400 font-extrabold animate-bounce bg-rose-955/20 border border-rose-900/50 p-1.5 rounded-lg">
-                                BURNOUT WARNING! Continuous pin margin exceeded (40.0 mA). Add path resistance!
-                              </div>
-                            ) : (
-                              <div className="text-slate-400">
-                                Electron flow index: <span className="text-[#10b981] font-bold">Stable & Operational [OK]</span>
-                              </div>
-                            )}
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -2861,9 +3276,18 @@ delay(250); // Pause execution`}
                         </h4>
                         <p className="font-sans text-[11px] text-slate-500 leading-tight">Click on the switch nodes to cut (break) the cables and compare current behaviors:</p>
                       </div>
-                      <span className="font-mono text-[9px] bg-sky-505/10 text-sky-400 border border-sky-505/25 px-2 py-0.5 rounded font-extrabold uppercase">
-                        CIRCUIT TOPOLOGY
-                      </span>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <button
+                          onClick={() => setIsCombinedCircuitModalOpen(true)}
+                          className="px-3 py-1.5 text-[10px] font-mono border border-indigo-500 bg-indigo-950/40 text-indigo-300 rounded-lg hover:bg-indigo-500/15 hover:border-indigo-400 hover:text-indigo-100 hover:scale-[1.03] active:scale-95 duration-150 transition-all font-black uppercase cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Zap className="w-3.5 h-3.5" />
+                          Explore Combined Circuit Sandbox
+                        </button>
+                        <span className="font-mono text-[9px] bg-sky-505/10 text-sky-400 border border-sky-505/25 px-2 py-0.5 rounded font-extrabold uppercase">
+                          CIRCUIT TOPOLOGY
+                        </span>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2983,7 +3407,7 @@ delay(250); // Pause execution`}
                                   : "bg-emerald-950/20 border-emerald-900 text-emerald-400"
                               }`}
                             >
-                              {isSeriesCut ? "🔓 ATTACH WIRE LINK" : "🔒 DISCONNECT WIRE"}
+                              {isSeriesCut ? "ATTACH WIRE LINK" : "DISCONNECT WIRE"}
                             </button>
                           </div>
 
@@ -3167,12 +3591,2523 @@ delay(250); // Pause execution`}
                     </div>
                   </motion.div>
                 )}
+
+                {activeElectSubTab === "signals" && (
+                  <motion.div
+                    key="signals"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-4 text-left font-sans"
+                  >
+                    <div className="border-b border-slate-900 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-sans font-extrabold text-[#f1f5f9] text-sm uppercase tracking-wider">
+                          Signals Subsystem Workshop
+                        </h4>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <button
+                            onClick={() => setSignalMode("oscilloscope")}
+                            type="button"
+                            className="px-2.5 py-1 text-[10px] font-mono border border-indigo-500/50 bg-[#110f2c] text-[#818cf8] rounded transition-all font-black uppercase cursor-pointer flex items-center gap-1.5"
+                          >
+                            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+                            • Oscilloscope Monitor
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <button
+                          onClick={() => setIsAdcSandboxModalOpen(true)}
+                          type="button"
+                          className="px-3 py-1.5 text-[10px] font-mono border border-purple-500/50 bg-[#120624] text-[#d8b4fe] hover:text-white hover:bg-purple-950/60 rounded-lg transition-all font-bold cursor-pointer uppercase flex items-center gap-1.5 shadow-[0_0_15px_rgba(168,85,247,0.25)] hover:scale-[1.03]"
+                        >
+                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" />
+                          Analog to Digital Sandbox
+                        </button>
+                        <span className="font-mono text-[9px] bg-purple-500/10 text-[#c084fc] border border-purple-500/25 px-2 py-0.5 rounded font-extrabold uppercase animate-pulse self-start sm:self-center">
+                          WAVEFORM ANALYZER
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Classic Oscilloscope Wave View */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {/* Left Workspace Controllers */}
+                        <div className="space-y-4 bg-slate-900/10 p-4 rounded-xl border border-slate-900">
+                          {/* Signal Type Selector Buttons */}
+                          <div className="space-y-2">
+                            <span className="font-mono text-[8px] text-slate-500 tracking-wider block uppercase font-bold">Choose Signal Waveform:</span>
+                            <div className="grid grid-cols-2 gap-2">
+                              {(["sine", "square"] as const).map((t) => {
+                                const active = signalType === t;
+                                return (
+                                  <button
+                                    key={t}
+                                    onClick={() => setSignalType(t)}
+                                    type="button"
+                                    className={`px-2 py-2 font-mono text-[9px] border transition-all rounded-lg font-bold cursor-pointer uppercase text-center ${
+                                      active
+                                        ? "bg-purple-950/20 border-purple-500 text-purple-400"
+                                        : "bg-slate-950 border-slate-900 text-slate-400 hover:text-slate-200"
+                                    }`}
+                                  >
+                                    {t === "sine" ? "Sine (Analog)" : "Square (Digital)"}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Amplitude Slider */}
+                          <div className="space-y-1.5 pt-3 border-t border-slate-900/60">
+                            <div className="flex justify-between text-xs font-sans">
+                              <span className="text-slate-300 font-bold">Signal Amplitude (Voltage Height):</span>
+                              <span className="font-mono text-[#a855f7] font-extrabold">{signalAmplitude.toFixed(1)} V</span>
+                            </div>
+                            <input 
+                              type="range" 
+                              min="1.0" 
+                              max="5.0" 
+                              step="0.5"
+                              value={signalAmplitude}
+                              onChange={(e) => setSignalAmplitude(parseFloat(e.target.value))}
+                              className="w-full accent-purple-500 cursor-pointer"
+                            />
+                          </div>
+
+                          {/* Frequency Slider */}
+                          <div className="space-y-1.5 pt-3 border-t border-slate-900/60">
+                            <div className="flex justify-between text-xs font-sans">
+                              <span className="text-slate-300 font-bold">Signal Frequency (Hz Cycle rate):</span>
+                              <span className="font-mono text-[#a855f7] font-extrabold">{signalFrequency} Hz</span>
+                            </div>
+                            <input 
+                              type="range" 
+                              min="1" 
+                              max="5" 
+                              step="1"
+                              value={signalFrequency}
+                              onChange={(e) => setSignalFrequency(parseInt(e.target.value))}
+                              className="w-full accent-purple-500 cursor-pointer"
+                            />
+                          </div>
+
+                          {/* Noise Toggle Switch */}
+                          <div className="flex justify-between items-center bg-[#070b13] p-2 rounded-lg border border-slate-900">
+                            <div>
+                              <span className="font-sans text-xs text-slate-300 font-bold block">Inject Thermal/RF Interference:</span>
+                              <span className="font-sans text-[10px] text-slate-500">Adds background environmental noise ripples.</span>
+                            </div>
+                            <button
+                              onClick={() => setSignalNoise(!signalNoise)}
+                              className={`px-3 py-1 rounded font-mono text-[8.5px] font-bold border cursor-pointer transition-all ${
+                                signalNoise 
+                                  ? "bg-red-950/20 border-red-900 text-red-100" 
+                                  : "bg-slate-900 border-slate-800 text-slate-500"
+                              }`}
+                            >
+                              {signalNoise ? "NOISE ACTIVE" : "CLEAN SIGNAL"}
+                            </button>
+                          </div>
+
+                           {/* Educational Note */}
+                           <div className="p-3 bg-purple-950/5 border border-purple-900/10 rounded-lg text-[10.5px] leading-relaxed text-slate-400 font-sans">
+                             {signalType === "square" ? (
+                               <p>
+                                 <strong className="text-purple-400">Digital high/low states:</strong> Microcontrollers operate on 1s and 0s. A 5V signal registers as index 1 (HIGH) and 0V registers as 0 (LOW). This binary limit makes communication extremely resilient against background RF noise!
+                               </p>
+                             ) : (
+                               <div className="space-y-2.5">
+                                 <p>
+                                   <strong className="text-purple-400">Analog continuous measurements:</strong> Sensors like microphones or temperature probes scale voltages smoothly. Microcontrollers use an internal <strong>ADC (Analog to Digital Converter)</strong>, cutting the voltage range into 1024 distinct staircase levels (10-bit resolution).
+                                 </p>
+                               </div>
+                             )}
+                           </div>
+                        </div>
+
+                        {/* Right Oscilloscope Visualization Panel */}
+                        <div className="rounded-xl border border-slate-900 bg-[#030712] p-4 flex flex-col justify-between space-y-3 relative overflow-hidden">
+                          <div className="flex justify-between items-center border-b border-slate-900 pb-2">
+                            <span className="font-mono text-[9px] text-[#c084fc] font-extrabold tracking-widest uppercase">OSCILLOSCOPE CH-A VIEW</span>
+                            <span className="text-[9.5px] bg-[#1e293b]/50 text-slate-300 px-2.5 py-0.5 rounded font-mono">
+                              LEVEL: {signalType === "square" ? "5.0V Logic" : "Smooth Wave"}
+                            </span>
+                          </div>
+
+                          {/* Graphic Wave Canvas */}
+                          <div className="h-44 bg-slate-950 border border-slate-900/80 rounded-xl relative p-2 overflow-hidden flex flex-col justify-end">
+                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#0c1a30_1px,transparent_1px),linear-gradient(to_bottom,#0c1a30_1px,transparent_1px)] bg-[size:16px_16px] opacity-20 pointer-events-none" />
+
+                            <svg className="w-full h-full" viewBox="0 0 400 160" preserveAspectRatio="none">
+                              {/* Reference Gridlines */}
+                              <line x1="0" y1="80" x2="400" y2="80" stroke="#334155" strokeWidth="0.8" strokeDasharray="3,3" />
+                              <line x1="0" y1="20" x2="400" y2="20" stroke="#1e293b" strokeWidth="0.5" />
+                              <line x1="0" y1="140" x2="400" y2="140" stroke="#1e293b" strokeWidth="0.5" />
+
+                              {/* Live Wave Line */}
+                              {(() => {
+                                let pathD = "";
+                                const width = 400;
+                                const pointsCount = 100;
+                                const phase = (simTick * 0.12);
+                                
+                                for (let i = 0; i <= pointsCount; i++) {
+                                  const x = (i / pointsCount) * width;
+                                  let rawY = 0;
+                                  
+                                  const angle = (i / pointsCount) * Math.PI * 2 * signalFrequency - phase;
+                                  if (signalType === "sine") {
+                                    rawY = Math.sin(angle);
+                                  } else {
+                                    rawY = Math.sin(angle) >= 0 ? 1 : -1;
+                                  }
+                                  
+                                  const ampScale = (signalAmplitude / 5.0) * 55;
+                                  let computedY = 80 - rawY * ampScale;
+                                  
+                                  if (signalNoise) {
+                                    const noiseRipple = Math.sin(i * 1.5 + phase * 4) * 4 + (Math.random() - 0.5) * 3;
+                                    computedY += noiseRipple;
+                                  }
+                                  
+                                  const y = Math.max(5, Math.min(155, computedY));
+                                  
+                                  if (i === 0) pathD += `M ${x},${y}`;
+                                  else pathD += ` L ${x},${y}`;
+                                }
+                                
+                                return (
+                                  <path 
+                                    d={pathD} 
+                                    fill="none" 
+                                    stroke={signalType === "square" ? "#a855f7" : "#c084fc"} 
+                                    strokeWidth="2.2" 
+                                    className="transition-colors duration-200" 
+                                  />
+                                );
+                              })()}
+                            </svg>
+
+                            <div className="absolute top-2 left-2 text-[7px] font-mono text-purple-400 select-none bg-black/60 px-1 py-0.5 rounded">
+                              CH-A: {signalAmplitude.toFixed(1)}V peak-to-peak
+                            </div>
+                            
+                            <div className="absolute bottom-2 left-2 right-2 flex justify-between font-mono text-[7px] text-slate-500 uppercase select-none">
+                              <span>Time buffer -1.2s</span>
+                              <span>LIVE FEEDBACK</span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1 text-center font-mono text-[9px]">
+                            <span className="text-slate-400 font-extrabold block uppercase tracking-wider">MEASUREMENT REGISTER</span>
+                            <div className="grid grid-cols-2 gap-2 text-white">
+                              <div className="p-1.5 bg-[#070b13] border border-slate-900 rounded-lg">
+                                <span className="text-slate-500 text-[7px] block">VOLTS HIGH TRACE</span>
+                                <span className="text-[#34d399] font-black">{(signalAmplitude).toFixed(1)} V</span>
+                              </div>
+                              <div className="p-1.5 bg-[#070b13] border border-slate-900 rounded-lg">
+                                <span className="text-slate-500 text-[7px] block">VOLTS LOW TRACE</span>
+                                <span className="text-rose-400 font-black">{signalType === "square" ? "0.0 V" : `-${(signalAmplitude).toFixed(1)} V`}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                )}
+
+                {activeElectSubTab === "binary" && (
+                  <motion.div
+                    key="binary"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-4 text-left font-sans"
+                  >
+                    <div className="border-b border-slate-900 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-sans font-extrabold text-[#f1f5f9] text-sm uppercase tracking-wider">
+                          Binary & Logic Circuits
+                        </h4>
+                        <p className="font-sans text-[11px] text-slate-550 text-slate-400 leading-tight">Interact with elementary boolean inputs to construct truth gates and calculate nibble numbers:</p>
+                      </div>
+                      <span className="font-mono text-[9px] bg-[#3b82f6]/10 text-[#60a5fa] border border-[#3b82f6]/25 px-2 py-0.5 rounded font-extrabold uppercase">
+                        DIGITAL ARCHITECTURE
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {/* Left column: 4-Bit counting register (Now Station A) */}
+                      <div className="rounded-xl border border-slate-900 bg-[#030712] p-4 flex flex-col justify-between space-y-3 relative">
+                        <div className="flex justify-between items-center border-b border-slate-900 pb-2">
+                          <span className="font-mono text-[9px] text-[#22d3ee] font-extrabold tracking-widest uppercase">STATION A: 4-BIT BINARY REGISTER</span>
+                          <div className="flex gap-1.5 font-mono">
+                            <button
+                              onClick={() => {
+                                let count = 0;
+                                const timerRef = setInterval(() => {
+                                  setBinaryBits([
+                                    (count & 8) !== 0,
+                                    (count & 4) !== 0,
+                                    (count & 2) !== 0,
+                                    (count & 1) !== 0,
+                                  ]);
+                                  count++;
+                                  if (count > 15) {
+                                    clearInterval(timerRef);
+                                  }
+                                }, 400);
+                              }}
+                              className="font-mono text-[7px] uppercase font-black text-sky-400 bg-sky-950/20 px-2 py-0.5 border border-sky-900/50 rounded hover:border-sky-500 hover:bg-sky-550/20 transition-all hover:scale-105 active:scale-95 duration-150 cursor-pointer font-bold"
+                            >
+                              AUTO-COUNT
+                            </button>
+                            <button
+                              onClick={() => {
+                                setBinaryBits([false, false, false, false]);
+                              }}
+                              className="font-mono text-[7px] uppercase font-black text-rose-400 bg-rose-950/20 px-2 py-0.5 border border-rose-900/50 rounded hover:border-rose-500 hover:bg-rose-550/20 transition-all hover:scale-105 active:scale-95 duration-150 cursor-pointer font-bold"
+                            >
+                              RESET
+                            </button>
+                          </div>
+                        </div>
+                        {/* Glowing Pure Binary Word Display (Syncs with toggled bits below) */}
+                        <div className="bg-[#02050b] border border-cyan-500/20 rounded-xl p-3.5 my-1.5 flex flex-col items-center justify-center select-none shadow-[inset_0_0_20px_rgba(34,211,238,0.03),0_0_15px_rgba(0,0,0,0.5)]">
+                          <span className="font-mono text-[7px] text-cyan-500 font-extrabold uppercase tracking-widest mb-2">
+                            ACTIVE BINARY REGISTER WORD (BASE-2)
+                          </span>
+                          
+                          <div className="flex items-center justify-center gap-3">
+                            {binaryBits.map((bVal, idx) => {
+                              const bitChar = bVal ? "1" : "0";
+                              return (
+                                <div
+                                  key={idx}
+                                  className={`font-mono text-3xl sm:text-4xl font-extrabold w-11 h-14 sm:w-12 sm:h-16 flex items-center justify-center rounded-lg border transition-all duration-300 ${
+                                    bVal
+                                      ? "bg-[#092936] border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.4),inset_0_0_8px_rgba(34,211,238,0.2)]"
+                                      : "bg-[#04070d] border-slate-900 text-slate-800 shadow-[inset_0_0_6px_rgba(0,0,0,0.5)]"
+                                  }`}
+                                  style={{
+                                    textShadow: bVal ? "0 0 10px #22d3ee, 0 0 20px rgba(34, 211, 238, 0.45)" : "none",
+                                  }}
+                                >
+                                  {bitChar}
+                                </div>
+                              );
+                            })}
+                          </div>
+                      
+                          <div className="mt-3 flex flex-wrap items-center justify-center gap-3 md:gap-4 font-mono text-[9px] bg-slate-950/80 px-4 py-2.5 rounded-lg border border-slate-900/60 select-none shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-full">
+                            <div className="flex items-center gap-1">
+                              <span className="text-slate-500 font-extrabold uppercase">DECIMAL:</span>
+                              <span className="text-cyan-400 font-black text-xs font-mono">{binaryBits.reduce((acc, currentVal, bIdx) => acc + (currentVal ? Math.pow(2, 3 - bIdx) : 0), 0)}₁₀</span>
+                            </div>
+                            <span className="text-slate-800 font-bold">|</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-slate-500 font-extrabold uppercase">OCTAL:</span>
+                              <span className="text-amber-400 font-black text-xs font-mono">{binaryBits.reduce((acc, currentVal, bIdx) => acc + (currentVal ? Math.pow(2, 3 - bIdx) : 0), 0).toString(8)}₈</span>
+                            </div>
+                            <span className="text-slate-800 font-bold">|</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-slate-500 font-extrabold uppercase">HEXADECIMAL:</span>
+                              <span className="text-purple-400 font-black text-xs font-mono">0x{binaryBits.reduce((acc, currentVal, bIdx) => acc + (currentVal ? Math.pow(2, 3 - bIdx) : 0), 0).toString(16).toUpperCase()}₁₆</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-2 pt-2 text-center">
+                          {binaryBits.map((bVal, bIdx) => {
+                            const bitExponent = 3 - bIdx;
+                            const placeVal = Math.pow(2, bitExponent);
+                            return (
+                              <div key={bIdx} className="bg-slate-950 p-2 border border-slate-900 rounded-xl relative overflow-hidden flex flex-col justify-between items-center h-28">
+                                <span className="font-mono text-[7px] text-slate-500 font-extrabold uppercase font-bold">BIT {bitExponent}</span>
+                                <span className="font-mono text-[8px] text-cyan-400 font-black">x{placeVal}</span>
+
+                                {/* Switch button styled nice */}
+                                <button
+                                  onClick={() => {
+                                    const updatedBits = [...binaryBits];
+                                    updatedBits[bIdx] = !updatedBits[bIdx];
+                                    setBinaryBits(updatedBits);
+                                  }}
+                                  type="button"
+                                  className={`w-9 h-11 border rounded-lg flex flex-col justify-between items-center py-1.5 transition-all shadow-inner select-none cursor-pointer hover:scale-110 active:scale-90 duration-150 ${
+                                    bVal
+                                      ? "bg-sky-500/15 border-sky-450 hover:bg-sky-500/25 shadow-[0_0_15px_rgba(56,189,248,0.3)] font-bold"
+                                      : "bg-[#0b0f19] border-slate-900 hover:bg-[#121829] hover:border-slate-800"
+                                  }`}
+                                >
+                                  <div className={`w-3.5 h-3.5 rounded-full ${bVal ? "bg-sky-400" : "bg-slate-800"}`} />
+                                  <span className="font-mono text-[8.5px] font-black font-extrabold text-[#f1f5f9]">{bVal ? "1" : "0"}</span>
+                                </button>
+
+                                <span className={`font-mono text-[6.5px] uppercase font-extrabold ${bVal ? "text-sky-400" : "text-slate-500"}`}>
+                                  {bVal ? `+${placeVal}` : "0"}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Sum value panel */}
+                        <div className="bg-[#031c26]/20 border border-cyan-900/30 rounded-xl p-3 flex justify-between items-center text-left select-none">
+                          <div>
+                            <span className="font-mono text-[7px] text-cyan-400/80 font-bold uppercase tracking-wider block">COMPUTED DIGITAL VALUE:</span>
+                            <div className="font-mono text-[11.5px] text-slate-300 leading-tight mt-0.5">
+                              {binaryBits.map((b, i) => b ? Math.pow(2, 3 - i) : "0").join(" + ")}
+                            </div>
+                          </div>
+                          <div className="text-right pr-1">
+                            <span className="font-mono text-[8px] text-slate-500 block font-bold uppercase">DECIMAL SUM</span>
+                            <span className="font-sans font-black text-xl text-cyan-400 leading-none">
+                              {binaryBits.reduce((acc, currentVal, bIdx) => acc + (currentVal ? Math.pow(2, 3 - bIdx) : 0), 0)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 7-Segment Displays Visualizers */}
+                        <div className="bg-slate-950/40 border border-slate-900 rounded-xl p-3 space-y-3">
+                          <span className="font-mono text-[8.5px] text-[#22d3ee] font-black uppercase tracking-wider block font-bold">REAL-TIME HARDWARE DISPLAYS DECODERS:</span>
+                          
+                          <div className="grid grid-cols-2 gap-3 font-sans">
+                            {/* 1-Digit Display (Hex Decoder) */}
+                            <div 
+                              onClick={() => {
+                                setIsSevenSegModalOpen(true);
+                              }}
+                              className="bg-slate-950 p-2.5 rounded-lg border border-slate-900 hover:border-cyan-500/50 hover:bg-slate-900/60 transition-all duration-200 cursor-pointer text-center flex flex-col items-center justify-center group relative overflow-hidden select-none"
+                              title="Click to explore interactive logic circuit and decoders"
+                            >
+                              <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                              <span className="font-mono text-[7.5px] text-slate-500 group-hover:text-cyan-400 uppercase font-black block mb-2 font-bold transition-colors flex items-center gap-1">
+                                1-DIGIT DISPLAY (HEX) <Sparkles className="w-2.5 h-2.5 animate-pulse text-cyan-400" />
+                              </span>
+                              <div className="bg-black/60 border border-cyan-500/10 group-hover:border-cyan-500/30 px-4 py-2 rounded-md flex items-center justify-center gap-1.5 min-w-[70px] min-h-[50px] transition-all shadow-inner group-hover:scale-105 duration-200">
+                                {(() => {
+                                  const sum = binaryBits.reduce((acc, currentVal, bIdx) => acc + (currentVal ? Math.pow(2, 3 - bIdx) : 0), 0);
+                                  const hexDigit = sum.toString(16).toUpperCase();
+                                  return (
+                                    <>
+                                      <SevenSegmentDigit value={hexDigit} glowingColor="fill-cyan-400 stroke-cyan-400 animate-pulse" />
+                                      <span className="font-mono text-xs text-cyan-400 font-bold ml-1.5">{hexDigit}</span>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                              <p className="font-sans text-[8px] text-slate-500 mt-1.5 leading-none font-medium">Pipes 4 bits directly to show 0-F</p>
+                              <span className="font-mono text-[6.5px] text-cyan-400 font-bold tracking-wider uppercase block mt-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
+                                CLICK TO EXPLORE HARDWARE INTERNALS
+                              </span>
+                            </div>
+
+                            {/* 4-Digit Display (Decimal Decoder) */}
+                            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-900 text-center flex flex-col items-center justify-center">
+                              <span className="font-mono text-[7.5px] text-slate-500 uppercase font-black block mb-2 font-bold">4-DIGIT DISPLAY (DECIMAL)</span>
+                              <div className="bg-black/60 border border-sky-500/10 px-3 py-2 rounded-md flex items-center justify-center gap-1 min-h-[50px]">
+                                {(() => {
+                                  const sum = binaryBits.reduce((acc, currentVal, bIdx) => acc + (currentVal ? Math.pow(2, 3 - bIdx) : 0), 0);
+                                  const paddedStr = String(sum).padStart(4, "0");
+                                  return (
+                                    <>
+                                      {paddedStr.split("").map((digit, index) => (
+                                        <SevenSegmentDigit key={index} value={digit} glowingColor="fill-sky-400 stroke-sky-400" />
+                                      ))}
+                                      <span className="font-mono text-xs text-sky-400 font-bold ml-1">{sum}</span>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                              <p className="font-sans text-[8px] text-slate-500 mt-1.5 leading-none font-medium">Multiplexes sum to digits 0000-0015</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right column: Logic Gate Workshop (Now Station B) */}
+                      <div className="rounded-xl border border-slate-900 bg-[#030712] p-4 flex flex-col justify-between space-y-3 relative">
+                        <div className="flex justify-between items-center border-b border-slate-900 pb-2">
+                          <span className="font-mono text-[9px] text-sky-400 font-extrabold tracking-widest uppercase font-mono">STATION B: BOOLEAN GATES</span>
+                          <span className="text-[9.5px] text-slate-400 font-mono">Gate Output Math</span>
+                        </div>
+
+                        <div className="bg-[#050b16] border border-cyan-500/15 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-4 text-left select-none shadow-[inset_0_0_15px_rgba(56,189,248,0.05)]">
+                          <div className="flex-1 space-y-1">
+                            <span className="font-mono text-[8px] text-sky-400 font-black tracking-widest block uppercase">Transfer Function Formula</span>
+                            <h5 className="font-sans font-extrabold text-[#f1f5f9] text-base">
+                              {logicGate === "AND" ? "Boolean Operator: Y = A • B" :
+                               logicGate === "OR" ? "Boolean Operator: Y = A + B" :
+                               logicGate === "XOR" ? "Boolean Operator: Y = A ⊕ B" :
+                               logicGate === "NAND" ? "Boolean Operator: Y = A • B" :
+                               "Boolean Operator: Y = A"}
+                            </h5>
+                            <p className="font-sans text-[10.5px] text-slate-400 leading-normal">
+                              {logicGate === "AND" ? "The output is active ONLY if both input signals A and B are energized (1)." :
+                               logicGate === "OR" ? "The output is active if input signal A OR input signal B (or both) are energized." :
+                               logicGate === "XOR" ? "The output is active ONLY if the input signals are different from one another." :
+                               logicGate === "NAND" ? "The inverse of the AND gate. The output is active unless both inputs A and B are active." :
+                               "The inverter gate. Reverses the logic signal: high becomes low, and low becomes high."}
+                            </p>
+                          </div>
+                          
+                          {/* Compact schematic symbol drawing for PC users */}
+                          <div className="flex flex-col items-center p-2 bg-slate-950 rounded-lg border border-slate-900/60 shrink-0 w-32 h-18 justify-center scale-115 md:scale-120 transition-transform">
+                            {renderGateSymbol(logicGate, true, true, logicGate !== "NAND" && logicGate !== "NOT")}
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {/* Operator Buttons */}
+                          <div className="grid grid-cols-5 gap-1 pt-1.5">
+                            {(["AND", "OR", "XOR", "NAND", "NOT"] as const).map((g) => {
+                              const isCur = logicGate === g;
+                              return (
+                                <button
+                                  key={g}
+                                  onClick={() => setLogicGate(g)}
+                                  type="button"
+                                  className={`px-1 py-1.5 rounded font-mono text-[8.5px] font-black uppercase text-center cursor-pointer border transition-all hover:scale-110 active:scale-95 duration-150 ${
+                                    isCur
+                                      ? "bg-sky-950 border-sky-450 text-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.35)] font-black animate-pulse"
+                                      : "bg-slate-950 border-slate-900 text-slate-400 hover:text-slate-200 hover:border-slate-700 hover:bg-slate-900"
+                                  }`}
+                                >
+                                  {g}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Inputs & Outputs Grid with Minimized Schematic scale for PC users */}
+                          <div className="grid grid-cols-3 gap-4 bg-slate-950 p-4.5 rounded-xl border-2 border-slate-900 items-center shadow-inner font-sans">
+                            {/* Left Column: inputs A & B Toggles */}
+                            <div className="space-y-4">
+                              <div className="space-y-1.5 text-left">
+                                <span className="font-mono text-[8px] text-slate-400 uppercase font-black block tracking-wider font-extrabold">Source PIN A</span>
+                                <button
+                                  onClick={() => setLogicInputA(!logicInputA)}
+                                  type="button"
+                                  className={`w-full py-2 text-center font-mono text-[10px] font-extrabold rounded-lg border-2 cursor-pointer select-none transition-all hover:scale-105 active:scale-95 duration-150 ${
+                                    logicInputA
+                                      ? "bg-emerald-950/40 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:bg-emerald-950/60"
+                                      : "bg-slate-900/60 border-slate-800 text-slate-500 hover:text-slate-300 hover:border-slate-700 hover:bg-slate-900"
+                                  }`}
+                                >
+                                  {logicInputA ? "HIGH (1)" : "LOW (0)"}
+                                </button>
+                              </div>
+
+                              <div className="space-y-1.5 text-left">
+                                <span className="font-mono text-[8px] text-slate-400 uppercase font-black block tracking-wider font-extrabold">Source PIN B</span>
+                                <button
+                                  disabled={logicGate === "NOT"}
+                                  onClick={() => setLogicInputB(!logicInputB)}
+                                  type="button"
+                                  className={`w-full py-2 text-center font-mono text-[10px] font-extrabold rounded-lg border-2 cursor-pointer select-none transition-all duration-150 ${
+                                    logicGate === "NOT"
+                                      ? "opacity-20 cursor-not-allowed bg-slate-950 border-transparent text-slate-700"
+                                      : logicInputB
+                                      ? "bg-emerald-950/40 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:scale-105 active:scale-95 hover:bg-emerald-950/60"
+                                      : "bg-slate-900/60 border-slate-800 text-slate-500 hover:text-slate-300 hover:border-slate-700 hover:bg-slate-900 hover:scale-105 active:scale-95"
+                                  }`}
+                                >
+                                  {logicGate === "NOT" ? "UNUSED" : logicInputB ? "HIGH (1)" : "LOW (0)"}
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Middle Column: Visual Gate Symbol block - Minimized for PC users */}
+                            {(() => {
+                              const outVal = 
+                                logicGate === "AND" ? (logicInputA && logicInputB) :
+                                logicGate === "OR" ? (logicInputA || logicInputB) :
+                                logicGate === "XOR" ? (logicInputA !== logicInputB) :
+                                logicGate === "NAND" ? !(logicInputA && logicInputB) :
+                                !logicInputA; // NOT gate
+
+                              return (
+                                <>
+                                  <div className="flex flex-col items-center justify-center border-l border-r border-[#1e293b]/50 h-24 select-none px-2">
+                                    <span className="font-mono text-[8px] text-slate-500 tracking-wider uppercase font-black block mb-1">Gate Schematic</span>
+                                    <div className="scale-65 md:scale-70 transition-transform duration-300">
+                                      {renderGateSymbol(logicGate, logicInputA, logicInputB, outVal)}
+                                    </div>
+                                    <span className="font-mono font-black text-[9px] text-sky-400 uppercase mt-2 tracking-wider">
+                                      {logicGate} GATE
+                                    </span>
+                                  </div>
+
+                                  {/* Right Column: Dynamic Output Indicator LED */}
+                                  <div className="flex flex-col items-center justify-center">
+                                    <span className="font-mono text-[8px] text-slate-400 uppercase font-black block mb-2 tracking-wider">Gate Output</span>
+                                    <div className="flex flex-col items-center">
+                                      <div className={`w-11 h-11 rounded-full border-2 flex items-center justify-center font-sans font-black text-xs shadow-lg transition-all duration-300 ${
+                                        outVal
+                                          ? "bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.4)] animate-pulse"
+                                          : "bg-slate-900 border-slate-800 text-slate-600"
+                                      }`}>
+                                        {outVal ? "1" : "0"}
+                                      </div>
+                                      <span className={`font-mono text-[8px] tracking-widest mt-1.5 uppercase font-black ${outVal ? "text-emerald-400" : "text-slate-500"}`}>
+                                        {outVal ? "LED GLOWING" : "LED DARK"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </>
+                              );
+                            })()}
+                          </div>
+
+                          {/* Micro Truth Table visualizer */}
+                          <div className="bg-slate-950 p-2 rounded border border-slate-900 select-none text-[8px] font-mono leading-relaxed text-slate-400 space-y-0.5">
+                            <span className="text-slate-500 font-extrabold block text-[7.5px] mb-1 uppercase text-left">Truth Table Highlight Filter:</span>
+                            <div className="flex justify-between border-b border-slate-900/60 pb-1 text-slate-500 font-bold uppercase text-[7px]">
+                              <span>PIN A</span>
+                              {logicGate !== "NOT" && <span>PIN B</span>}
+                              <span>GATE {logicGate} OUTPUT</span>
+                            </div>
+                            {/* Generate standard truth rows */}
+                            {(logicGate === "NOT" ? [true, false] : [[true, true], [true, false], [false, true], [false, false]]).map((row, rIdx) => {
+                              let a: boolean, b: boolean = false;
+                              if (logicGate === "NOT") {
+                                a = row as boolean;
+                              } else {
+                                [a, b] = row as [boolean, boolean];
+                              }
+
+                              const outVal = 
+                                logicGate === "AND" ? (a && b) :
+                                logicGate === "OR" ? (a || b) :
+                                logicGate === "XOR" ? (a !== b) :
+                                logicGate === "NAND" ? !(a && b) :
+                                !a;
+
+                              const isHighlight = logicGate === "NOT"
+                                ? (logicInputA === a)
+                                : (logicInputA === a && logicInputB === b);
+
+                              return (
+                                <div key={rIdx} className={`flex justify-between px-1.5 py-0.5 rounded font-mono ${isHighlight ? "bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold animate-pulse" : "opacity-45"}`}>
+                                  <span>{a ? "1" : "0"}</span>
+                                  {logicGate !== "NOT" && <span>{b ? "1" : "0"}</span>}
+                                  <span className={outVal ? "text-emerald-400" : "text-slate-500"}>{outVal ? "1 HIGH" : "0 LOW"}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {false && (
+                  <motion.div
+                    key="controls"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-5 text-left font-sans"
+                  >
+                    {/* Header */}
+                    <div className="border-b border-slate-900 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-sans font-extrabold text-[#f1f5f9] text-sm uppercase tracking-wider">
+                          Control Systems & PID Feedback Lab
+                        </h4>
+                        <p className="font-sans text-[11px] text-slate-400 leading-tight">
+                          Explore open-loop speed actions, closed-loop error matching, and real-time PID dynamic stabilization:
+                        </p>
+                      </div>
+                      <span className="font-mono text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded font-extrabold uppercase shrink-0">
+                        FEEDBACK CONTROL THEORY
+                      </span>
+                    </div>
+
+                    {/* Section 1: Theory of Control Systems */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-slate-900/15 border border-slate-900/60 p-4 rounded-xl space-y-2">
+                        <div className="flex items-center gap-1.5 text-indigo-400 font-extrabold text-xs uppercase tracking-wide">
+                          <Info className="w-3.5 h-3.5 shrink-0" />
+                          What is a Control System?
+                        </div>
+                        <p className="text-[11px] text-slate-300 leading-relaxed">
+                          A <strong>Control System</strong> manages, commands, or regulates the behavior of physical joints, heating units, or motors. Its task is to drive a measured physical variable (called the <strong>Process Variable, PV</strong>) to match a desired target level (called the <strong>Setpoint, SP</strong>).
+                        </p>
+                      </div>
+
+                      <div className="bg-slate-900/15 border border-slate-900/60 p-4 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-amber-500 font-extrabold text-xs uppercase tracking-wide block">• Open-Loop Control</span>
+                          <span className="text-[7.5px] bg-amber-950/30 text-amber-500 border border-amber-900/30 px-1 py-0.2 rounded font-mono font-bold">SPIN-AND-PRAY</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                          Operates blindly with <strong>no output sensors/feedback</strong>. It sends a fixed actuation force, assuming everything works. 
+                          <em className="block mt-1.5 text-[10px] text-slate-500">❌ Distortions (load, friction) are ignored, leading to massive raw deviation. (Example: Standard kitchen toaster)</em>
+                        </p>
+                      </div>
+
+                      <div className="bg-slate-900/15 border border-slate-900/60 p-4 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-emerald-400 font-extrabold text-xs uppercase tracking-wide block">• Closed-Loop Control</span>
+                          <span className="text-[7.5px] bg-emerald-950/30 text-emerald-400 border border-emerald-900/30 px-1 py-0.2 rounded font-mono font-bold">SENSE-CORRECT</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                          Uses <strong>continuous sensor feedback</strong> to subtract measured output from setpoint. This creates an <strong>Error (e = SP - PV)</strong>, which is continuously corrected.
+                          <em className="block mt-1.5 text-[10px] text-emerald-400/80">✓ Self-adjusts instantly. Resilient against outside forces. (Example: Self-steering system)</em>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Section 2: PID Parameter explanation and feedback loops */}
+                    <div className="p-4 bg-purple-950/5 border border-purple-900/10 rounded-xl space-y-3">
+                      <h5 className="font-sans font-extrabold text-white text-xs uppercase tracking-wider flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                        Unpacking PID: The Mathematical Stabilization Triple-Engine
+                      </h5>
+                      <p className="text-[11.5px] text-slate-300">
+                        A PID controller calculates a continuous corrective output u(t) combining three distinct temporal lenses:
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                        <div className="p-3 bg-slate-950/60 border border-slate-900 rounded-lg">
+                          <div className="font-mono text-[10.5px] font-black text-rose-400 mb-1 flex justify-between">
+                            <span>[P] PROPORTIONAL (Present)</span>
+                            <span className="text-[8px] bg-rose-950/40 text-rose-400 px-1 border border-rose-900/30 rounded uppercase font-black">Gain Kp</span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 leading-relaxed">
+                            Corresponds directly to the current amplitude of raw Error.
+                            <strong className="block text-rose-400/95 mt-1">High Kp: Rushes fast toward target, but excessive values cause massive overshoot and aggressive oscillations!</strong>
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-slate-950/60 border border-slate-900 rounded-lg">
+                          <div className="font-mono text-[10.5px] font-black text-amber-550 text-amber-500 mb-1 flex justify-between">
+                            <span>[I] INTEGRAL (Past)</span>
+                            <span className="text-[8px] bg-amber-950/40 text-amber-500 px-1 border border-amber-900/30 rounded uppercase font-black">Gain Ki</span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 leading-relaxed">
+                            Accumulates the history of persistent minor offset errors over time.
+                            <strong className="block text-amber-400/95 mt-1">Eliminates steady-state offset errors completely, but builds sluggish "windup" causing extra overshoot.</strong>
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-slate-950/60 border border-slate-900 rounded-lg">
+                          <div className="font-mono text-[10.5px] font-black text-cyan-455 text-cyan-400 mb-1 flex justify-between">
+                            <span>[D] DERIVATIVE (Future)</span>
+                            <span className="text-[8px] bg-cyan-950/40 text-cyan-400 px-1 border border-cyan-900/30 rounded uppercase font-black">Gain Kd</span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 leading-relaxed">
+                            Measures the speed/slope of the changing error to project where the signal is headed.
+                            <strong className="block text-cyan-400/95 mt-1">Acts like a shock absorber/damper. Cushions overshoot and kills aggressive oscillations, but amplifies HF sensor noise.</strong>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 3: Interactive Playground & Simulator */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                      {/* Left panel of Playground: Controls */}
+                      <div className="lg:col-span-5 bg-[#030712] p-4 rounded-xl border border-slate-900 flex flex-col justify-between space-y-4">
+                        <div className="space-y-4.5">
+                          <div>
+                            <span className="font-mono text-[8px] text-slate-500 tracking-wider block uppercase font-black mb-1">Active Loop Strategy:</span>
+                            <div className="grid grid-cols-2 gap-2 mt-1">
+                              <button
+                                onClick={() => setIsPidClosedLoop(true)}
+                                type="button"
+                                className={`px-2 py-2 font-mono text-[9px] border transition-all rounded-lg font-bold cursor-pointer uppercase text-center ${
+                                  isPidClosedLoop
+                                    ? "bg-emerald-950/40 border-emerald-500 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.15)]"
+                                    : "bg-slate-950 border-slate-900 text-slate-400 hover:text-slate-200"
+                                }`}
+                              >
+                                Closed-Loop Feedback (PID)
+                              </button>
+                              <button
+                                onClick={() => setIsPidClosedLoop(false)}
+                                type="button"
+                                className={`px-2 py-2 font-mono text-[9px] border transition-all rounded-lg font-bold cursor-pointer uppercase text-center ${
+                                  !isPidClosedLoop
+                                    ? "bg-amber-950/40 border-amber-500 text-amber-505 text-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.15)]"
+                                    : "bg-slate-950 border-slate-900 text-slate-400 hover:text-slate-200"
+                                }`}
+                              >
+                                Open-Loop Command
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Sliders container */}
+                          <div className="space-y-3.5">
+                            <div className="space-y-1">
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-slate-300 font-bold block">Target Position Setpoint:</span>
+                                <span className="font-mono text-emerald-405 text-emerald-400 font-extrabold">{pidSetpoint.toFixed(1)} Volts</span>
+                              </div>
+                              <input 
+                                type="range" 
+                                min="0.5" 
+                                max="1.5" 
+                                step="0.1"
+                                value={pidSetpoint}
+                                onChange={(e) => setPidSetpoint(parseFloat(e.target.value))}
+                                className="w-full accent-emerald-500 cursor-pointer"
+                              />
+                            </div>
+
+                            {isPidClosedLoop ? (
+                              <div className="space-y-3.5 pt-3.5 border-t border-slate-900/60">
+                                {/* Kp Slider */}
+                                <div className="space-y-1">
+                                  <div className="flex justify-between items-center text-xs">
+                                    <span className="text-rose-300 font-bold font-mono text-[9.5px]">Proportional Gain (Kp):</span>
+                                    <span className="font-mono text-rose-400 font-bold text-[10px]">{pidKp.toFixed(1)}</span>
+                                  </div>
+                                  <input 
+                                    type="range" 
+                                    min="0.0" 
+                                    max="10.0" 
+                                    step="0.1"
+                                    value={pidKp}
+                                    onChange={(e) => setPidKp(parseFloat(e.target.value))}
+                                    className="w-full accent-rose-500 cursor-pointer"
+                                  />
+                                </div>
+
+                                {/* Ki Slider */}
+                                <div className="space-y-1">
+                                  <div className="flex justify-between items-center text-xs">
+                                    <span className="text-amber-350 text-amber-400 font-bold font-mono text-[9.5px]">Integral Gain (Ki):</span>
+                                    <span className="font-mono text-amber-400 font-bold text-[10px]">{pidKi.toFixed(1)}</span>
+                                  </div>
+                                  <input 
+                                    type="range" 
+                                    min="0.0" 
+                                    max="5.0" 
+                                    step="0.1"
+                                    value={pidKi}
+                                    onChange={(e) => setPidKi(parseFloat(e.target.value))}
+                                    className="w-full accent-amber-500 cursor-pointer"
+                                  />
+                                </div>
+
+                                {/* Kd Slider */}
+                                <div className="space-y-1">
+                                  <div className="flex justify-between items-center text-xs">
+                                    <span className="text-cyan-300 font-bold font-mono text-[9.5px]">Derivative Gain (Kd):</span>
+                                    <span className="font-mono text-cyan-450 text-cyan-400 font-bold text-[10px]">{pidKd.toFixed(2)}</span>
+                                  </div>
+                                  <input 
+                                    type="range" 
+                                    min="0.0" 
+                                    max="5.0" 
+                                    step="0.05"
+                                    value={pidKd}
+                                    onChange={(e) => setPidKd(parseFloat(e.target.value))}
+                                    className="w-full accent-cyan-500 cursor-pointer"
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="p-3 bg-amber-950/10 border border-amber-900/20 text-slate-400 rounded-lg text-[9.5px] leading-relaxed pt-2.5">
+                                <span className="text-amber-500 font-black block mb-0.5 font-mono uppercase tracking-wide">OPEN LOOP ACTIVE</span>
+                                In open loop mode, PID correction is bypassed. Actuator receives a fixed drive command. The motor rotates but environmental drag & spring stiffness mean it encounters steady-state offset and can never lock onto your Setpoint Voltage. Try matching SP=1.5V vs SP=0.5V.
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Live MCU controller box look */}
+                        <div className="p-3 bg-slate-950 border border-[#0f172a] rounded-lg flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <span className="font-mono text-[7px] text-[#22d3ee] font-black uppercase tracking-widest block">STM32 PID CORE</span>
+                            <span className="font-sans text-[9.5px] text-slate-500 block font-semibold">Sampling Clock Rate:</span>
+                          </div>
+                          <span className="font-mono text-[#06b6d4] font-black text-[10px] uppercase bg-[#090d16] px-2 py-1 rounded border border-slate-900 animate-pulse whitespace-nowrap">
+                            ⟲ 200 Hz Interrupt
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right panel of Playground: Interactive Graph Showcase */}
+                      {(() => {
+                        // Math simulator function inside render block
+                        const kp = pidKp;
+                        const ki = pidKi;
+                        const kd = pidKd;
+                        const closedLoop = isPidClosedLoop;
+                        
+                        const points = [];
+                        const setpoint = pidSetpoint;
+                        
+                        if (!closedLoop) {
+                          // Open loop step response
+                          let y = 0;
+                          const dt = 0.05;
+                          const steps = 140;
+                          const damping = 0.55;
+                          const gain = kp * 0.15 + 0.5; // steady gain
+                          for (let i = 0; i < steps; i++) {
+                            const u = setpoint * gain;
+                            const dy = u - damping * y;
+                            y += dy * dt;
+                            points.push({ t: i * dt, y: Math.max(0, y), u });
+                          }
+                        } else {
+                          // Closed loop PID mass-spring-damper response simulation
+                          let y = 0;
+                          let v = 0;
+                          let errorSum = 0;
+                          let prevError = setpoint - y;
+                          const dt = 0.05;
+                          const steps = 140;
+                          
+                          const mass = 1.0;
+                          const plantDamping = 0.35;
+                          const plantSpring = 0.2;
+                          
+                          for (let i = 0; i < steps; i++) {
+                            const error = setpoint - y;
+                            errorSum = Math.max(-8, Math.min(8, errorSum + error * dt));
+                            const errorDeriv = (error - prevError) / dt;
+                            prevError = error;
+                            
+                            const u = kp * error + ki * errorSum + kd * errorDeriv;
+                            const uSat = Math.max(-12, Math.min(12, u));
+                            
+                            const acc = (uSat - plantDamping * v - plantSpring * y) / mass;
+                            v += acc * dt;
+                            y += v * dt;
+                            
+                            points.push({ t: i * dt, y, error, u: uSat });
+                          }
+                        }
+
+                        // Calculate characteristics
+                        let peakY = 0;
+                        let peakTime = 0;
+                        for (let i = 0; i < points.length; i++) {
+                          if (points[i].y > peakY) {
+                            peakY = points[i].y;
+                            peakTime = points[i].t;
+                          }
+                        }
+                        const overshootVal = peakY - setpoint;
+                        const overshootPercent = (peakY > setpoint && closedLoop) ? (overshootVal / setpoint) * 100 : 0;
+                        const finalY = points[points.length - 1].y;
+                        const steadyStateErr = Math.abs(setpoint - finalY);
+
+                        // Calculate Rise Time (10% to 90% of setpoint)
+                        let t10 = -1;
+                        let t90 = -1;
+                        for (let i = 0; i < points.length; i++) {
+                          if (t10 === -1 && points[i].y >= 0.1 * setpoint) {
+                            t10 = points[i].t;
+                          }
+                          if (t90 === -1 && points[i].y >= 0.9 * setpoint) {
+                            t90 = points[i].t;
+                          }
+                        }
+                        const riseTime = (t10 !== -1 && t90 !== -1 && t90 > t10) ? (t90 - t10) : null;
+
+                        // Core SVG configuration
+                        // width=440 height=185
+                        const mapX = (t: number) => {
+                          const maxT = points[points.length - 1].t;
+                          return 40 + (t / maxT) * 370;
+                        };
+                        const mapY = (val: number) => {
+                          // range 0.0 to 2.2 Volts
+                          return 155 - (val / 2.2) * 130;
+                        };
+
+                        let responsePath = "";
+                        for (let i = 0; i < points.length; i++) {
+                          const x = mapX(points[i].t);
+                          const y = mapY(points[i].y);
+                          if (i === 0) responsePath += `M ${x},${y}`;
+                          else responsePath += ` L ${x},${y}`;
+                        }
+
+                        const spY = mapY(setpoint);
+                        const peakX = mapX(peakTime);
+                        const peakY_coord = mapY(peakY);
+                        const finalX = mapX(points[points.length - 1].t);
+                        const finalY_coord = mapY(finalY);
+
+                        // Classification string
+                        let classification = "Overdamped / Slow";
+                        let classColor = "text-amber-400";
+                        if (closedLoop) {
+                          if (overshootPercent > 22) {
+                            classification = "Highly Underdamped / Oscillatory";
+                            classColor = "text-[#f43f5e] animate-pulse";
+                          } else if (steadyStateErr > 0.12) {
+                            classification = "Severe Steady-State Offset";
+                            classColor = "text-[#fbbf24]";
+                          } else if (overshootPercent > 0.5 && steadyStateErr < 0.04) {
+                            classification = "Optimally Settled (Stable Response)";
+                            classColor = "text-[#10b981] font-black";
+                          } else {
+                            classification = "Stiff Sluggish / Overdamped";
+                            classColor = "text-indigo-400";
+                          }
+                        } else {
+                          classification = "Open-Loop Steady Distortion";
+                          classColor = "text-amber-500 font-extrabold uppercase";
+                        }
+
+                        return (
+                          <div className="lg:col-span-7 rounded-xl border border-slate-900 bg-[#030712] p-4 flex flex-col justify-between space-y-4.5 relative overflow-hidden">
+                            <div className="flex justify-between items-center border-b border-slate-900 pb-2">
+                              <span className="font-mono text-[9px] text-[#10b981] font-extrabold tracking-widest uppercase">REAL-TIME STEP RESPONSE SCOPE</span>
+                              <span className={`text-[9.5px] bg-[#1e293b]/50 px-2.5 py-0.5 rounded font-mono font-bold ${classColor}`}>
+                                {classification}
+                              </span>
+                            </div>
+
+                            {/* Response graphics */}
+                            <div className="relative h-44 bg-slate-950 border border-slate-900/80 rounded-xl p-2 select-none">
+                              <div className="absolute inset-0 bg-[linear-gradient(to_right,#0c1a30_1px,transparent_1px),linear-gradient(to_bottom,#0c1a30_1px,transparent_1px)] bg-[size:16px_16px] opacity-15 pointer-events-none" />
+
+                              <svg className="w-full h-full" viewBox="0 0 440 180" preserveAspectRatio="none">
+                                {/* Grid reference lines */}
+                                <line x1="40" y1={mapY(0)} x2="420" y2={mapY(0)} stroke="#111827" strokeWidth="1" />
+                                <line x1="40" y1={mapY(0.5)} x2="420" y2={mapY(0.5)} stroke="#1e293b" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.4" />
+                                <line x1="40" y1={mapY(1.0)} x2="420" y2={mapY(1.0)} stroke="#1e293b" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.4" />
+                                <line x1="40" y1={mapY(1.5)} x2="420" y2={mapY(1.5)} stroke="#1e293b" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.4" />
+                                <line x1="40" y1={mapY(2.0)} x2="420" y2={mapY(2.0)} stroke="#1e293b" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.4" />
+
+                                {/* Left Y voltage axis labels */}
+                                <text x="32" y={mapY(0) + 3} textAnchor="end" fill="#64748b" fontSize="7px" fontFamily="monospace">0.0V</text>
+                                <text x="32" y={mapY(0.5) + 3} textAnchor="end" fill="#64748b" fontSize="7px" fontFamily="monospace">0.5V</text>
+                                <text x="32" y={mapY(1.0) + 3} textAnchor="end" fill="#64748b" fontSize="7px" fontFamily="monospace">1.0V</text>
+                                <text x="32" y={mapY(1.5) + 3} textAnchor="end" fill="#64748b" fontSize="7px" fontFamily="monospace">1.5V</text>
+                                <text x="32" y={mapY(2.0) + 3} textAnchor="end" fill="#64748b" fontSize="7px" fontFamily="monospace">2.0V</text>
+
+                                {/* Target Setpoint Line in dashed Yellow */}
+                                <line 
+                                  x1="40" 
+                                  y1={spY} 
+                                  x2="410" 
+                                  y2={spY} 
+                                  stroke="#fbbf24" 
+                                  strokeWidth="1.2" 
+                                  strokeDasharray="4,3" 
+                                  opacity="0.85" 
+                                />
+                                
+                                {/* Simulated Process Variable Curve output */}
+                                <path 
+                                  d={responsePath} 
+                                  fill="none" 
+                                  stroke={closedLoop ? "#10b981" : "#f59e0b"} 
+                                  strokeWidth="2.5" 
+                                />
+
+                                {/* Visual Indicators of PID metrics directly on the step graph */}
+                                {closedLoop && (
+                                  <>
+                                    {/* Overshoot Annotation Dot */}
+                                    {overshootPercent > 0.1 && (
+                                      <g>
+                                        <circle cx={peakX} cy={peakY_coord} r="4.5" fill="#f43f5e" fillOpacity="0.4" />
+                                        <circle cx={peakX} cy={peakY_coord} r="2" fill="#f43f5e" />
+                                        <line x1={peakX} y1={peakY_coord} x2={peakX} y2={spY} stroke="#f43f5e" strokeWidth="0.8" strokeDasharray="1,1" />
+                                        <text x={peakX + 6} y={peakY_coord - 2} fill="#f43f5e" fontSize="7px" fontFamily="monospace" fontWeight="bold">
+                                          Overshoot (+{(overshootPercent).toFixed(1)}%)
+                                        </text>
+                                      </g>
+                                    )}
+
+                                    {/* Steady State Error Dimension Bracket */}
+                                    {steadyStateErr > 0.015 && (
+                                      <g>
+                                        <line x1="412" y1={finalY_coord} x2="412" y2={spY} stroke="#fbbf24" strokeWidth="1" />
+                                        <line x1="409" y1={finalY_coord} x2="415" y2={finalY_coord} stroke="#fbbf24" strokeWidth="1" />
+                                        <line x1="409" y1={spY} x2="415" y2={spY} stroke="#fbbf24" strokeWidth="1" />
+                                        <text x="404" y={(finalY_coord + spY) / 2 + 3} textAnchor="end" fill="#fbbf24" fontSize="7px" fontFamily="monospace" fontWeight="bold">
+                                          e_ss: {steadyStateErr.toFixed(2)}V
+                                        </text>
+                                      </g>
+                                    )}
+
+                                    {/* Rise Time shaded column representing 10% to 90% */}
+                                    {riseTime && (
+                                      <g>
+                                        <rect x={mapX(t10)} y="20" width={Math.max(2, mapX(t90) - mapX(t10))} height="130" fill="#10b981" fillOpacity="0.04" pointerEvents="none" />
+                                        <line x1={mapX(t10)} y1="20" y2="150" stroke="#10b981" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.32" />
+                                        <line x1={mapX(t90)} y1="20" y2="150" stroke="#10b981" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.32" />
+                                        <text x={(mapX(t10) + mapX(t90)) / 2} y="145" textAnchor="middle" fill="#10b981" fontSize="6px" fontFamily="monospace" opacity="0.8">
+                                          RISE COLUMN
+                                        </text>
+                                      </g>
+                                    )}
+                                  </>
+                                )}
+                              </svg>
+
+                              <div className="absolute top-2 left-11 text-[7.5px] font-mono text-[#fbbf24] select-none bg-black/80 px-1 py-0.5 border border-slate-900 rounded">
+                                Target Setpoint (SP) = {pidSetpoint.toFixed(1)}V
+                              </div>
+                              <div className="absolute top-2 right-2 text-[7.5px] font-mono text-[#10b981] select-none bg-black/80 px-1 py-0.5 border border-slate-900 rounded">
+                                Measured Output (PV)
+                              </div>
+                              <div className="absolute bottom-1.5 left-11 right-2 flex justify-between font-mono text-[7px] text-slate-550 uppercase select-none">
+                                <span>t = 0.0s</span>
+                                <span className="opacity-60 text-slate-500">Step Input Applied</span>
+                                <span>Steady range t = 7.0s</span>
+                              </div>
+                            </div>
+
+                            {/* Dynamic Numeric Characteristics Cards */}
+                            <div className="grid grid-cols-4 gap-2 text-white text-center font-mono text-[9px] pt-1">
+                              <div className="p-1.5 bg-[#070b13] border border-slate-900 rounded-lg">
+                                <span className="text-slate-500 text-[6.5px] block font-bold">SETPOINT (SP)</span>
+                                <span className="text-amber-400 font-extrabold">{pidSetpoint.toFixed(2)} Volts</span>
+                              </div>
+                              <div className="p-1.5 bg-[#070b13] border border-slate-900 rounded-lg">
+                                <span className="text-slate-500 text-[6.5px] block font-bold">RISE TIME (Tr)</span>
+                                <span className="text-emerald-400 font-extrabold">
+                                  {closedLoop && riseTime ? `${riseTime.toFixed(2)}s` : "N/A (Blind)"}
+                                </span>
+                              </div>
+                              <div className="p-1.5 bg-[#070b13] border border-slate-900 rounded-lg">
+                                <span className="text-slate-500 text-[6.5px] block font-bold">OVERSHOOT (Mp)</span>
+                                <span className="text-rose-450 text-rose-400 font-extrabold">
+                                  {closedLoop ? `${(overshootPercent).toFixed(1)}%` : "N/A (0)"}
+                                </span>
+                              </div>
+                              <div className="p-1.5 bg-[#070b13] border border-slate-900 rounded-lg">
+                                <span className="text-slate-500 text-[6.5px] block font-bold">STEADY ERR (ess)</span>
+                                <span className={`font-extrabold ${steadyStateErr > 0.1 ? "text-amber-500 animate-pulse" : "text-emerald-400"}`}>
+                                  {steadyStateErr.toFixed(3)} Volts
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Micro Explainer footer */}
+                            <div className="bg-[#1e1b4b]/20 p-2.5 rounded-lg border border-purple-950/25 text-sans text-[10px] text-slate-400 leading-tight">
+                              <strong className="text-[#a855f7] uppercase text-[9px] font-mono block mb-0.5 tracking-wider">Dynamic Controller Tuning Rule:</strong>
+                              {closedLoop ? (
+                                <span>
+                                  Note: Raising proportional gain <strong className="text-rose-400">Kp</strong> boosts acceleration speed but yields momentum overshoot. Adding derivative damping <strong className="text-cyan-300">Kd</strong> counters acceleration as the error shrinks, acting as an optimal shock absorber to neutralize oscillation!
+                                </span>
+                              ) : (
+                                <span>
+                                  Notice that without closed feedback correction to recalculate dynamic error, the raw plant settles permanently at <strong className="text-amber-500">{(finalY).toFixed(3)}V</strong>, suffering a steady displacement error of <strong className="text-amber-400">{steadyStateErr.toFixed(3)}V</strong> from mechanical load resistance.
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </motion.div>
+                )}
+
+                {false && (
+                  <motion.div
+                    key="protocols"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-4 text-left font-sans"
+                  >
+                    <div className="border-b border-slate-900 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3 font-sans">
+                      <div>
+                        <h4 className="font-sans font-extrabold text-[#f1f5f9] text-sm uppercase tracking-wider">
+                          Serial Communication Protocols
+                        </h4>
+                        <p className="font-sans text-[11px] text-slate-550 text-slate-400 leading-tight">Learn and animate how microcontrollers send bytes of data across hardware pins:</p>
+                      </div>
+                      <span className="font-mono text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded font-extrabold uppercase">
+                        HARDWARE SERIAL BUSES
+                      </span>
+                    </div>
+
+                    {/* Protocol selector mini tabs */}
+                    <div className="flex gap-2">
+                      {(["uart", "i2c", "spi"] as const).map((p) => {
+                        const isAct = protocolType === p;
+                        return (
+                          <button
+                            key={p}
+                            onClick={() => {
+                              setProtocolType(p);
+                              setIsUartTransmitting(false);
+                              setUartTxStep(-1);
+                              setIsI2cTransmitting(false);
+                              setI2cTxStep(-1);
+                              setIsSpiTransmitting(false);
+                              setSpiTxStep(-1);
+                            }}
+                            type="button"
+                            className={`px-3 py-1.5 font-mono text-[9px] font-black uppercase rounded-lg border transition-all cursor-pointer ${
+                              isAct
+                                ? "bg-slate-950 border-emerald-500 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
+                                : "bg-slate-900/30 border-slate-900 text-slate-500 hover:text-slate-350"
+                            }`}
+                          >
+                            {p === "uart" 
+                              ? "UART Protocol (Async 1-on-1)" 
+                              : p === "i2c" 
+                              ? "I2C Protocol (Shared 2-Wire)" 
+                              : "SPI Protocol (Full-Duplex 4-Wire)"}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Timing Playback Mode Configurator */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-900/10 border border-slate-900/60 p-3.5 rounded-xl text-xs gap-3">
+                      <div className="flex flex-col text-left">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="font-mono text-[8px] bg-sky-950/40 text-sky-400 border border-sky-850/30 px-1.5 py-0.5 rounded font-black uppercase">INTERACTION MODE</span>
+                          <span className="text-slate-200 font-sans font-extrabold text-xs">Choose Exploration Mode:</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 font-sans leading-tight">Switch to Step-by-Step mode to manually drive clock pulses and inspect wire transients at your own pace!</p>
+                      </div>
+                      <div className="flex gap-2 font-sans self-start sm:self-center">
+                        <button
+                          onClick={() => {
+                            setIsManualStepMode(false);
+                            setIsUartTransmitting(false);
+                            setUartTxStep(-1);
+                            setIsI2cTransmitting(false);
+                            setI2cTxStep(-1);
+                            setIsSpiTransmitting(false);
+                            setSpiTxStep(-1);
+                          }}
+                          type="button"
+                          className={`px-3 py-1.5 text-[10px] uppercase font-mono rounded-lg cursor-pointer font-bold transition-all border ${
+                            !isManualStepMode
+                              ? "bg-[#10b981]/15 border-[#10b981]/50 text-[#34d399] shadow-[0_0_10px_rgba(16,185,129,0.1)]"
+                              : "bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300"
+                          }`}
+                        >
+                          Auto-Play Waveform
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsManualStepMode(true);
+                            setIsUartTransmitting(false);
+                            setUartTxStep(-1);
+                            setIsI2cTransmitting(false);
+                            setI2cTxStep(-1);
+                            setIsSpiTransmitting(false);
+                            setSpiTxStep(-1);
+                          }}
+                          type="button"
+                          className={`px-3 py-1.5 text-[10px] uppercase font-mono rounded-lg cursor-pointer font-bold transition-all border ${
+                            isManualStepMode
+                              ? "bg-sky-950/40 border-sky-500 text-sky-400 shadow-[0_0_10px_rgba(14,165,233,0.1)]"
+                              : "bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300"
+                          }`}
+                        >
+                          Manual Step Mode
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {/* Left half controllers/explanations */}
+                      <div className="space-y-4 bg-slate-900/10 p-4 rounded-xl border border-slate-900 flex flex-col justify-between">
+                        <div>
+                          {protocolType === "uart" ? (
+                            <div className="space-y-3">
+                              <span className="font-mono text-[8px] text-slate-500 tracking-wider block uppercase font-bold">UART Setup Panel:</span>
+                              <p className="font-sans text-xs text-slate-400 leading-relaxed font-semibold">
+                                <strong className="text-white">UART (Universal Asynchronous Receiver-Transmitter)</strong> uses 2 cross-linked wires (<span className="text-emerald-400 font-mono font-bold">TX</span> and <span className="text-amber-400 font-mono font-bold font-bold">RX</span>) without a common clock line. Clock timings (Baud Rate) must be configured identically on both ends prior to communicating.
+                              </p>
+
+                              <div className="grid grid-cols-2 gap-3 bg-[#030712] p-3 rounded-lg border border-slate-900">
+                                <div className="space-y-1">
+                                  <span className="font-mono text-[7px] text-slate-505 text-slate-500 uppercase font-black block font-bold">Character Tx package:</span>
+                                  <select
+                                    value={uartChar}
+                                    onChange={(e) => setUartChar(e.target.value)}
+                                    disabled={isUartTransmitting}
+                                    className="w-full bg-slate-950 border border-slate-900 text-slate-200 font-mono text-[10.5px] py-1 px-1.5 rounded outline-none cursor-pointer"
+                                  >
+                                    <option value="A">Char 'A' (01000001)</option>
+                                    <option value="B">Char 'B' (01000010)</option>
+                                    <option value="C">Char 'C' (01000011)</option>
+                                    <option value="X">Char 'X' (01011000)</option>
+                                  </select>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <span className="font-mono text-[7px] text-slate-505 text-slate-500 uppercase font-black block font-bold">Standard Baud rate:</span>
+                                  <div className="font-mono text-[10px] text-emerald-400 bg-slate-950/80 border border-slate-900 py-1.5 px-2 rounded font-black font-extrabold text-center">
+                                    9600 bps (Bits/s)
+                                  </div>
+                                </div>
+                              </div>
+
+                              {isManualStepMode ? (
+                                <div className="space-y-2">
+                                  {!isUartTransmitting ? (
+                                    <button
+                                      onClick={() => {
+                                        setIsUartTransmitting(true);
+                                        setUartTxStep(0);
+                                      }}
+                                      type="button"
+                                      className="w-full py-2.5 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/35 text-sky-450 text-[#38bdf8] font-bold font-mono text-[10px] uppercase rounded-xl transition-all cursor-pointer"
+                                    >
+                                      START MANUAL UART STEPPER
+                                    </button>
+                                  ) : (
+                                    <div className="space-y-2 bg-[#02050f] p-3 rounded-lg border border-slate-900">
+                                      <div className="flex items-center justify-between text-xs font-mono mb-2">
+                                        <span className="text-slate-500">Step: {uartTxStep} / 9</span>
+                                        <span className="text-sky-400 font-bold uppercase text-[9px]">Stepping Active</span>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() => {
+                                            setUartTxStep((prev) => Math.max(0, prev - 1));
+                                          }}
+                                          disabled={uartTxStep <= 0}
+                                          type="button"
+                                          className="flex-1 py-1.5 font-mono text-[9.5px] uppercase border cursor-pointer rounded-lg bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                                        >
+                                          ◄ PREV STEP
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            if (uartTxStep >= 9) {
+                                              setIsUartTransmitting(false);
+                                              setUartTxStep(-1);
+                                            } else {
+                                              setUartTxStep((prev) => prev + 1);
+                                            }
+                                          }}
+                                          type="button"
+                                          className="flex-1 py-1.5 font-mono text-[9.5px] uppercase border cursor-pointer rounded-lg bg-sky-550/15 bg-sky-500/15 border-sky-500/30 text-sky-400 font-extrabold hover:bg-sky-500/25"
+                                        >
+                                          {uartTxStep >= 9 ? "FINISH ⏹" : "NEXT STEP ►"}
+                                        </button>
+                                      </div>
+                                      <button
+                                        onClick={() => {
+                                          setIsUartTransmitting(false);
+                                          setUartTxStep(-1);
+                                        }}
+                                        type="button"
+                                        className="w-full mt-1 py-1 bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 text-rose-400 font-bold font-mono text-[9px] uppercase rounded cursor-pointer"
+                                      >
+                                        RESET SIMULATOR
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    setIsUartTransmitting(true);
+                                    setUartTxStep(0);
+                                  }}
+                                  disabled={isUartTransmitting}
+                                  type="button"
+                                  className={`w-full py-2.5 font-mono text-[10px] font-black uppercase tracking-wider rounded-xl border select-none transition-all duration-300 ${
+                                    isUartTransmitting
+                                      ? "bg-slate-950 border-[#10b981]/25 text-[#10b981]/50 cursor-not-allowed animate-pulse"
+                                      : "bg-[#10b981]/10 hover:bg-[#10b981]/20 border-[#10b981]/30 hover:border-[#10b981]/60 text-[#34d399] cursor-pointer font-bold"
+                                    }`}
+                                >
+                                  {isUartTransmitting ? `SENDING PACKET [STEP ${uartTxStep}/9]` : "FIRE UART TRANSMISSION"}
+                                </button>
+                              )}
+                            </div>
+                          ) : protocolType === "i2c" ? (
+                            <div className="space-y-3">
+                              <span className="font-mono text-[8px] text-slate-505 text-slate-500 tracking-wider block uppercase font-bold">I2C Setup Panel:</span>
+                              <p className="font-sans text-xs text-slate-400 leading-relaxed font-semibold">
+                                <strong className="text-white">I2C (Inter-Integrated Circuit)</strong> uses exactly 2 wires: <span className="text-[#22d3ee] font-mono font-bold font-bold">SDA</span> (Serial Data) and <span className="text-[#f59e0b] font-mono font-bold">SCL</span> (Serial Clock). This is a shared bus line: each peripheral chip has a unique hardware address.
+                              </p>
+
+                              <div className="grid grid-cols-2 gap-3 bg-[#030712] p-3 rounded-lg border border-slate-900">
+                                <div className="space-y-1">
+                                  <span className="font-mono text-[7px] text-slate-505 text-slate-500 uppercase font-black block font-bold">Target Hex Address:</span>
+                                  <div className="grid grid-cols-2 gap-1.5 font-sans">
+                                    {(["0x2A", "0x3F"] as const).map((addr) => {
+                                      const isCur = i2cAddress === addr;
+                                      return (
+                                        <button
+                                          key={addr}
+                                          onClick={() => setI2cAddress(addr)}
+                                          disabled={isI2cTransmitting}
+                                          type="button"
+                                          className={`py-1 rounded font-mono text-[9px] font-semibold transition-all border cursor-pointer ${
+                                            isCur
+                                              ? "bg-emerald-950 border-emerald-500 text-emerald-400 font-extrabold"
+                                              : "bg-slate-950 border-slate-900 text-slate-500 hover:text-slate-350"
+                                          }`}
+                                        >
+                                          {addr === "0x2A" ? "0x2A" : "0x3F"}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <span className="font-mono text-[7px] text-slate-505 text-slate-500 uppercase font-black block font-bold">Command byte:</span>
+                                  <input
+                                    type="text"
+                                    value={i2cData}
+                                    onChange={(e) => setI2cData(e.target.value.substring(0, 6))}
+                                    disabled={isI2cTransmitting}
+                                    className="w-full bg-slate-950 border border-slate-900 text-slate-200 font-mono text-[10.5px] py-1 px-2 rounded outline-none"
+                                  />
+                                </div>
+                              </div>
+
+                              {isManualStepMode ? (
+                                <div className="space-y-2">
+                                  {!isI2cTransmitting ? (
+                                    <button
+                                      onClick={() => {
+                                        setIsI2cTransmitting(true);
+                                        setI2cTxStep(0);
+                                      }}
+                                      type="button"
+                                      className="font-bold py-2.5 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/35 text-[#38bdf8] text-[10px] w-full font-mono uppercase rounded-xl transition-all cursor-pointer"
+                                    >
+                                      START MANUAL I2C STEPPER
+                                    </button>
+                                  ) : (
+                                    <div className="space-y-2 bg-[#02050f] p-3 rounded-lg border border-slate-900">
+                                      <div className="flex items-center justify-between text-xs font-mono mb-2">
+                                        <span className="text-slate-500">Step: {i2cTxStep} / 5</span>
+                                        <span className="text-sky-450 text-[#38bdf8] font-bold uppercase text-[9px]">Stepping Active</span>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() => {
+                                            setI2cTxStep((prev) => Math.max(0, prev - 1));
+                                          }}
+                                          disabled={i2cTxStep <= 0}
+                                          type="button"
+                                          className="flex-1 py-1.5 font-mono text-[9.5px] uppercase border cursor-pointer rounded-lg bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                                        >
+                                          ◄ PREV STEP
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            if (i2cTxStep >= 5) {
+                                              setIsI2cTransmitting(false);
+                                              setI2cTxStep(-1);
+                                            } else {
+                                              setI2cTxStep((prev) => prev + 1);
+                                            }
+                                          }}
+                                          type="button"
+                                          className="flex-1 py-1.5 font-mono text-[9.5px] uppercase border cursor-pointer rounded-lg bg-sky-500/15 border-sky-500/30 text-sky-400 font-extrabold hover:bg-sky-500/25"
+                                        >
+                                          {i2cTxStep >= 5 ? "FINISH ⏹" : "NEXT STEP ►"}
+                                        </button>
+                                      </div>
+                                      <button
+                                        onClick={() => {
+                                          setIsI2cTransmitting(false);
+                                          setI2cTxStep(-1);
+                                        }}
+                                        type="button"
+                                        className="w-full mt-1 py-1 bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 text-rose-400 font-bold font-mono text-[9px] uppercase rounded cursor-pointer"
+                                      >
+                                        RESET SIMULATOR
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    setIsI2cTransmitting(true);
+                                    setI2cTxStep(0);
+                                  }}
+                                  disabled={isI2cTransmitting}
+                                  type="button"
+                                  className={`w-full py-2.5 font-mono text-[10px] font-black uppercase tracking-wider rounded-xl border select-none transition-all duration-300 ${
+                                    isI2cTransmitting
+                                      ? "bg-slate-950 border-cyan-800/20 text-cyan-500/40 cursor-not-allowed animate-pulse"
+                                      : "bg-[#06b6d4]/10 hover:bg-[#06b6d4]/20 border-[#06b6d4]/30 hover:border-[#06b6d4]/60 text-cyan-400 cursor-pointer font-bold"
+                                  }`}
+                                >
+                                  {isI2cTransmitting ? `SENDING MASTER FRAME [STEP ${i2cTxStep}/5]` : "FIRE I2C BUS COMMAND"}
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              <span className="font-mono text-[8px] text-indigo-400 tracking-wider block uppercase font-bold">SPI Setup Panel:</span>
+                              <p className="font-sans text-xs text-slate-400 leading-relaxed font-semibold">
+                                <strong className="text-white">SPI (Serial Peripheral Interface)</strong> uses 4 wires: 
+                                <span className="text-emerald-400 font-mono font-bold ml-1">SCLK</span> (Clock), 
+                                <span className="text-rose-400 font-mono font-bold ml-1">MOSI</span> (Master Out), 
+                                <span className="text-sky-400 font-mono font-bold ml-1">MISO</span> (Master In), and 
+                                <span className="text-purple-400 font-mono font-bold ml-1">CS</span> (Chip Select). 
+                                It is a synchronous full-duplex protocol where data is driven continuously in lockstep on SCLK edges.
+                              </p>
+
+                              <div className="grid grid-cols-2 gap-3 bg-[#030712] p-3 rounded-lg border border-slate-900">
+                                <div className="space-y-1">
+                                  <span className="font-mono text-[7px] text-slate-500 uppercase font-black block font-bold">Data Byte to Send:</span>
+                                  <select
+                                    value={spiData}
+                                    onChange={(e) => setSpiData(e.target.value)}
+                                    disabled={isSpiTransmitting}
+                                    className="w-full bg-slate-950 border border-slate-900 text-slate-200 font-mono text-[10.5px] py-1 px-1.5 rounded outline-none cursor-pointer"
+                                  >
+                                    <option value="0xD4">0xD4 (11010100)</option>
+                                    <option value="0xAA">0xAA (10101010)</option>
+                                    <option value="0x55">0x55 (01010101)</option>
+                                    <option value="0xBF">0xBF (10111111)</option>
+                                  </select>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <span className="font-mono text-[7px] text-slate-500 uppercase font-black block font-bold">SPI Clock Speed:</span>
+                                  <div className="font-mono text-[10px] text-indigo-400 bg-slate-950 border border-slate-900 py-1.5 px-2 rounded font-black font-extrabold text-center">
+                                    8.0 MHz (Clock SCLK)
+                                  </div>
+                                </div>
+                              </div>
+
+                              {isManualStepMode ? (
+                                <div className="space-y-2">
+                                  {!isSpiTransmitting ? (
+                                    <button
+                                      onClick={() => {
+                                        setIsSpiTransmitting(true);
+                                        setSpiTxStep(0);
+                                      }}
+                                      type="button"
+                                      className="font-bold py-2.5 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/35 text-[#38bdf8] text-[10px] w-full font-mono uppercase rounded-xl transition-all cursor-pointer"
+                                    >
+                                      START MANUAL SPI STEPPER
+                                    </button>
+                                  ) : (
+                                    <div className="space-y-2 bg-[#02050f] p-3 rounded-lg border border-slate-900">
+                                      <div className="flex items-center justify-between text-xs font-mono mb-2">
+                                        <span className="text-slate-500">Step: {spiTxStep} / 9</span>
+                                        <span className="text-sky-450 text-[#38bdf8] font-bold uppercase text-[9px]">Stepping Active</span>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() => {
+                                            setSpiTxStep((prev) => Math.max(0, prev - 1));
+                                          }}
+                                          disabled={spiTxStep <= 0}
+                                          type="button"
+                                          className="flex-1 py-1.5 font-mono text-[9.5px] uppercase border cursor-pointer rounded-lg bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                                        >
+                                          ◄ PREV STEP
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            if (spiTxStep >= 9) {
+                                              setIsSpiTransmitting(false);
+                                              setSpiTxStep(-1);
+                                            } else {
+                                              setSpiTxStep((prev) => prev + 1);
+                                            }
+                                          }}
+                                          type="button"
+                                          className="flex-1 py-1.5 font-mono text-[9.5px] uppercase border cursor-pointer rounded-lg bg-sky-500/15 border-sky-500/30 text-sky-400 font-extrabold hover:bg-sky-500/25"
+                                        >
+                                          {spiTxStep >= 9 ? "FINISH ⏹" : "NEXT STEP ►"}
+                                        </button>
+                                      </div>
+                                      <button
+                                        onClick={() => {
+                                          setIsSpiTransmitting(false);
+                                          setSpiTxStep(-1);
+                                        }}
+                                        type="button"
+                                        className="w-full mt-1 py-1 bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 text-rose-400 font-bold font-mono text-[9px] uppercase rounded cursor-pointer"
+                                      >
+                                        RESET SIMULATOR
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    setIsSpiTransmitting(true);
+                                    setSpiTxStep(0);
+                                  }}
+                                  disabled={isSpiTransmitting}
+                                  type="button"
+                                  className={`w-full py-2.5 font-mono text-[10px] font-black uppercase tracking-wider rounded-xl border select-none transition-all duration-300 ${
+                                    isSpiTransmitting
+                                      ? "bg-slate-950 border-indigo-900/40 text-indigo-500/40 cursor-not-allowed animate-pulse"
+                                      : "bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/30 hover:border-indigo-500/60 text-indigo-400 cursor-pointer font-bold"
+                                  }`}
+                                >
+                                  {isSpiTransmitting ? `EXCHANGING SPI BYTE [STEP ${spiTxStep}/9]` : "FIRE SPI TRANSMISSION"}
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-3 bg-[#030712] border border-slate-905 rounded-lg text-[10.5px] leading-relaxed text-slate-400 font-sans">
+                          {protocolType === "uart" ? (
+                            <p>
+                              <strong className="text-emerald-400">UART Frame Framing:</strong> To signal transmission, TX pulls low representing a <span className="text-white font-bold">Start Bit</span>. Then, 8 bits of data are driven LSB-first. A <span className="text-white font-bold">Stop Bit</span> returns the line High to idle at 5V.
+                            </p>
+                          ) : protocolType === "i2c" ? (
+                            <p>
+                              <strong className="text-cyan-400 font-bold">I2C Master Clock Sync:</strong> SCL forces a clock square pulse. For each tick, SDA toggles. The Master broadcasts address. If target Slave matches, it responds back by pulling SDA Low (<span className="text-white font-bold">ACK</span>).
+                            </p>
+                          ) : (
+                            <p>
+                              <strong className="text-indigo-400 font-bold">SPI Sync Exchanger:</strong> CS (Chip Select) pulls Low to wake target Slave. Synchronous clock pulses tick continuously on SCLK wire. At each rising clock edge, MOSI drives Master data bit out, while MISO returns Slave data bit back.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right half animation workspace */}
+                      <div className="rounded-xl border border-slate-800 bg-[#030712] p-4 flex flex-col justify-between space-y-4 relative overflow-hidden">
+                        <div className="flex justify-between items-center border-b border-slate-900 pb-2">
+                          <span className="font-mono text-[9px] text-[#34d399] font-extrabold tracking-widest uppercase">STATION B: PHYSICAL SIGNALS VIEW</span>
+                          <span className="text-[10px] text-slate-400 font-mono select-none font-bold">
+                            {isUartTransmitting || isI2cTransmitting || isSpiTransmitting ? "BUS ACTIVE" : "BUS IDLE"}
+                          </span>
+                        </div>
+
+                        {protocolType === "uart" ? (
+                          /* UART Visualizer */
+                          <div className="space-y-4 flex-1 flex flex-col justify-between select-none">
+                            {/* Wire Schematic Diagram */}
+                            <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-900 relative">
+                              <span className="font-mono text-[7px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">1-to-1 TX-RX Serial Cable</span>
+                              
+                              <div className="flex justify-between items-center px-4 relative">
+                                <div className="w-12 h-12 bg-[#0d1329] border border-sky-500/30 rounded-lg flex flex-col items-center justify-center text-sky-404 text-sky-400">
+                                  <span className="font-mono text-[8.5px] font-bold">MCU_TX</span>
+                                  <span className="font-mono text-[7px] text-slate-500 mt-0.5">Caller</span>
+                                </div>
+
+                                {/* Wire line */}
+                                <div className="flex-1 h-0.5 bg-slate-800 mx-2 relative flex items-center">
+                                  {/* Pulsing signal bullet */}
+                                  {isUartTransmitting && (
+                                    <div 
+                                      className="absolute w-3.5 h-3.5 rounded-full bg-emerald-450 bg-emerald-400 flex items-center justify-center text-[7px] font-mono text-black font-extrabold"
+                                      style={{
+                                        left: `${(uartTxStep / 9) * 90}%`,
+                                        transition: "left 0.8s linear",
+                                      }}
+                                    >
+                                      {uartTxStep === 0 ? "S" : uartTxStep === 9 ? "P" : (uartTxStep - 1)}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="w-12 h-12 bg-[#0d1329] border border-yellow-500/30 rounded-lg flex flex-col items-center justify-center text-amber-500">
+                                  <span className="font-mono text-[8.5px] font-bold font-bold">DEV_RX</span>
+                                  <span className="font-mono text-[7px] text-slate-505 mt-0.5">Listener</span>
+                                </div>
+                              </div>
+
+                              {/* Dynamic Voltmeter Readout */}
+                              <div className="mt-3.5 pt-2 border-t border-slate-900/60 flex items-center justify-between text-[10px] font-mono">
+                                <span className="text-slate-550 text-slate-400 font-bold uppercase text-[8px]">Wire Probe (TX Pin):</span>
+                                {(() => {
+                                  let voltage = "5.0 V";
+                                  let stateStr = "HIGH (IDLE)";
+                                  let colorClass = "text-emerald-400 bg-emerald-950/30 border border-emerald-500/20";
+                                  
+                                  if (isUartTransmitting) {
+                                    if (uartTxStep === 0) {
+                                      voltage = "0.0 V";
+                                      stateStr = "LOW (START BIT)";
+                                      colorClass = "text-[#f43f5e] bg-rose-950/30 border border-rose-500/20 font-extrabold";
+                                    } else if (uartTxStep >= 1 && uartTxStep <= 8) {
+                                      const bitsArr = UART_CHAR_BITS[uartChar] ? [...UART_CHAR_BITS[uartChar]].reverse() : [0,0,0,0,0,0,0,0];
+                                      const bitVal = bitsArr[uartTxStep - 1];
+                                      if (bitVal === 1) {
+                                        voltage = "5.0 V";
+                                        stateStr = "HIGH (BIT value 1)";
+                                        colorClass = "text-emerald-400 bg-emerald-950/30 border border-emerald-500/20 font-extrabold";
+                                      } else {
+                                        voltage = "0.0 V";
+                                        stateStr = "LOW (BIT value 0)";
+                                        colorClass = "text-[#f43f5e] bg-rose-950/30 border border-rose-500/20 font-extrabold";
+                                      }
+                                    } else if (uartTxStep === 9) {
+                                      voltage = "5.0 V";
+                                      stateStr = "HIGH (STOP BIT)";
+                                      colorClass = "text-emerald-400 bg-emerald-950/30 border border-emerald-500/20 font-extrabold";
+                                    }
+                                  }
+                                  return (
+                                    <div className="flex items-center gap-2">
+                                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-black tracking-wider ${colorClass}`}>{stateStr}</span>
+                                      <span className="font-extrabold text-[#f1f5f9] px-1.5 py-0.5 bg-slate-900 border border-slate-900 rounded">{voltage}</span>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            </div>
+
+                            {/* Step indicator readout */}
+                            <div className="bg-[#070b13] p-3 rounded-lg border border-slate-900 font-mono text-[10px] space-y-2">
+                              <span className="text-slate-500 text-[7px] block uppercase font-bold text-center">ACTIVE TIMELINE STATUS</span>
+                              
+                              <div className="grid grid-cols-10 gap-0.5 text-center text-[8.5px] font-sans">
+                                {/* Start, 8 Data, Stop */}
+                                {Array.from({ length: 10 }).map((_, stepIdx) => {
+                                  const isPassed = uartTxStep > stepIdx;
+                                  const isCurrent = uartTxStep === stepIdx;
+                                  
+                                  // Binary ASCII bits lookup (LSB first for classical UART transmission)
+                                  const bitsArr = UART_CHAR_BITS[uartChar] ? [...UART_CHAR_BITS[uartChar]].reverse() : [0,0,0,0,0,0,0,0];
+                                  
+                                  return (
+                                    <div 
+                                      key={stepIdx} 
+                                      className={`p-1 border rounded transition-all duration-300 font-mono ${
+                                        isCurrent 
+                                          ? "bg-emerald-950/40 border-emerald-500 text-emerald-450 font-extrabold animate-pulse" 
+                                          : isPassed 
+                                          ? "bg-slate-900 border-slate-805 text-slate-500" 
+                                          : "bg-slate-950 border-slate-900 text-slate-600"
+                                      }`}
+                                    >
+                                      <div className="text-[7.5px] opacity-75">{stepIdx === 0 ? "START" : stepIdx === 9 ? "STOP" : `D${stepIdx - 1}`}</div>
+                                      <div className="font-bold text-[8.5px] mt-1">
+                                        {stepIdx === 0 ? "0" : stepIdx === 9 ? "1" : bitsArr[stepIdx - 1]}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="text-center text-[8.5px] text-slate-400 leading-snug pt-1">
+                                {uartTxStep === -1 && <span className="text-slate-505">Receiver waiting for START bit frame...</span>}
+                                {uartTxStep === 0 && <span className="text-rose-405 text-rose-400 font-semibold font-bold">START BIT: TX pulled LOW (0V) representing data frame start!</span>}
+                                {uartTxStep >= 1 && uartTxStep <= 8 && (
+                                  <span>
+                                    Sending Bit {uartTxStep - 1} of Character '<strong className="text-emerald-450">{uartChar}</strong>': value is <strong className="text-[#34d399]">
+                                      {([...(UART_CHAR_BITS[uartChar] ?? [0,0,0,0,0,0,0,0])].reverse())[uartTxStep - 1]}
+                                    </strong>
+                                  </span>
+                                )}
+                                {uartTxStep === 9 && <span className="text-[#38bdf8] font-bold font-semibold">STOP BIT: TX line raised back to idle HIGH (5V). Capture registered!</span>}
+                              </div>
+                            </div>
+                          </div>
+                        ) : protocolType === "i2c" ? (
+                          /* I2C Visualizer */
+                          <div className="space-y-4 flex-1 flex flex-col justify-between select-none">
+                            {/* Bus network diagram */}
+                            <div className="bg-slate-950 p-3 rounded-xl border border-slate-900 relative space-y-2.5">
+                              <span className="font-mono text-[7px] text-slate-500 uppercase tracking-widest block font-bold mb-1">Dual Cable Multi-Drop Bus</span>
+                              
+                              {/* Master Node */}
+                              <div className="flex flex-col items-center">
+                                <div className="px-2.5 py-1 bg-[#0b1229] border border-cyan-500/20 rounded font-mono text-[8px] text-cyan-400 font-bold mb-1.5">
+                                  Master Controller
+                                </div>
+                              </div>
+
+                              {/* Shared buses details */}
+                              <div className="space-y-1.5 px-6 relative">
+                                {/* SCL Wires */}
+                                <div className="flex items-center">
+                                  <span className="font-mono text-[6.5px] text-[#f59e0b] w-6 uppercase font-black">Scl:</span>
+                                  <div className="flex-1 h-0.5 bg-[#f59e0b]/20 relative">
+                                    {isI2cTransmitting && (
+                                      <div className="absolute inset-x-0 h-full bg-[#f59e0b] animate-pulse" />
+                                    )}
+                                  </div>
+                                </div>
+                                {/* SDA Wires */}
+                                <div className="flex items-center">
+                                  <span className="font-mono text-[6.5px] text-cyan-400 w-6 uppercase font-black font-bold">Sda:</span>
+                                  <div className="flex-1 h-0.5 bg-cyan-500/20 relative">
+                                    {isI2cTransmitting && (
+                                      <div className="absolute inset-x-0 h-full bg-cyan-400 animate-pulse" />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Two Slaves */}
+                              <div className="grid grid-cols-2 gap-4 mt-3 font-sans">
+                                {/* Slave 0x2A */}
+                                <div className={`p-2 border rounded-xl flex flex-col items-center justify-center transition-all text-center ${
+                                  i2cAddress === "0x2A" && i2cTxStep >= 2
+                                    ? "bg-emerald-950/20 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.15)] text-emerald-400"
+                                    : "bg-[#0b0f19] border-slate-900 text-slate-505"
+                                }`}>
+                                  <span className="font-mono text-[8px] font-black uppercase">SLAVE [0x2A]</span>
+                                  <span className="font-mono text-[6.5px] text-slate-500">I2C Photo-Sensor</span>
+                                  {i2cAddress === "0x2A" && i2cTxStep === 2 && (
+                                    <span className="font-sans text-[7px] text-emerald-400 animate-pulse mt-0.5 font-bold">ACK REGISTERED!!</span>
+                                  )}
+                                </div>
+
+                                {/* Slave 0x3F */}
+                                <div className={`p-2 border rounded-xl flex flex-col items-center justify-center transition-all text-center ${
+                                  i2cAddress === "0x3F" && i2cTxStep >= 2
+                                    ? "bg-emerald-950/30 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.15)] text-emerald-400"
+                                    : "bg-[#0b0f19] border-slate-900 text-slate-505"
+                                }`}>
+                                  <span className="font-mono text-[8px] font-black uppercase">SLAVE [0x3F]</span>
+                                  <span className="font-mono text-[6.5px] text-slate-500">I2C OLED Screen</span>
+                                  {i2cAddress === "0x3F" && i2cTxStep === 2 && (
+                                    <span className="font-sans text-[7px] text-emerald-400 animate-pulse mt-0.5 font-bold font-bold">ACK REGISTERED!!</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Dynamic Dual-Probe Voltmeter Readout */}
+                              <div className="mt-3 pt-2 border-t border-slate-900/60 grid grid-cols-2 gap-4 text-[9.5px] font-mono">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[#f59e0b] font-bold text-[8px] uppercase">SCL Clock:</span>
+                                  {(() => {
+                                    let volt = "5.0 V";
+                                    let clkState = "HIGH";
+                                    if (isI2cTransmitting) {
+                                      if (i2cTxStep === 0) {
+                                        volt = "5.0 V";
+                                      } else if (i2cTxStep === 4) {
+                                        volt = "5.0 V";
+                                      } else {
+                                        volt = "PULSING";
+                                        clkState = "0 <-> 5V";
+                                      }
+                                    }
+                                    return (
+                                      <span className="font-extrabold text-[#f1f5f9] px-1 bg-[#22d3ee]/5 rounded text-[8.5px]">{volt} {volt !== "PULSING" && `(${clkState})`}</span>
+                                    );
+                                  })()}
+                                </div>
+                                <div className="flex items-center justify-between border-l border-slate-900/40 pl-4">
+                                  <span className="text-cyan-400 font-bold text-[8px] uppercase">SDA Data:</span>
+                                  {(() => {
+                                    let volt = "5.0 V";
+                                    let stateStr = "HIGH";
+                                    if (isI2cTransmitting) {
+                                      if (i2cTxStep === 0) {
+                                        volt = "0.0 V";
+                                        stateStr = "LOW";
+                                      } else if (i2cTxStep === 1) {
+                                        volt = "PULSING";
+                                        stateStr = "DATA";
+                                      } else if (i2cTxStep === 2) {
+                                        volt = "0.0 V";
+                                        stateStr = "LOW";
+                                      } else if (i2cTxStep === 3) {
+                                        volt = "PULSING";
+                                        stateStr = "DATA";
+                                      } else if (i2cTxStep === 4) {
+                                        volt = "5.0 V";
+                                        stateStr = "HIGH";
+                                      }
+                                    }
+                                    return (
+                                      <span className="font-extrabold text-[#f1f5f9] px-1 bg-[#22d3ee]/5 rounded text-[8.5px]">{volt} {volt !== "PULSING" && `(${stateStr})`}</span>
+                                    );
+                                  })()}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Step Status detail */}
+                            <div className="bg-[#070b13] p-2 rounded-lg border border-slate-900 font-mono text-[9px] space-y-1 text-center font-sans pr-1">
+                              <span className="text-slate-500 text-[7px] uppercase font-bold block mb-1 font-mono">I2C BUS SEQUENCE STAGES</span>
+                              
+                              <div className="grid grid-cols-5 gap-0.5 text-[8.5px] text-center text-white">
+                                {["START", "ADDR", "ACK", "WRITE", "STOP"].map((stage, idx) => {
+                                  const isPassed = i2cTxStep > idx;
+                                  const isCurrent = i2cTxStep === idx;
+                                  return (
+                                    <div
+                                      key={idx}
+                                      className={`p-1 border rounded transition-all duration-300 font-mono ${
+                                        isCurrent
+                                          ? "bg-cyan-950 border-cyan-500 text-cyan-400 font-extrabold animate-pulse"
+                                          : isPassed
+                                          ? "bg-slate-900 border-slate-805 text-slate-500"
+                                          : "bg-slate-950 border-slate-900 text-slate-600"
+                                      }`}
+                                    >
+                                      {stage}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="text-slate-400 text-[8.5px] leading-snug pt-1 font-mono">
+                                {i2cTxStep === -1 && <span className="text-slate-500">Bus line free. SDA and SCL stay idle HIGH (Pull-up resistors bound).</span>}
+                                {i2cTxStep === 0 && <span className="text-cyan-400 font-bold font-semibold">START: Master pulls SDA LOW while SCL stays HIGH. Bus claimed!</span>}
+                                {i2cTxStep === 1 && <span>Frame: Master broadcasts addressing frame byte <strong className="text-amber-400 font-bold">{i2cAddress}</strong></span>}
+                                {i2cTxStep === 2 && <span className="text-emerald-400 font-bold font-semibold">ACKNOWLEDGE: Target Slave pulled digital SDA LOW to verify connection match!</span>}
+                                {i2cTxStep === 3 && <span>Writing data payload byte packet <strong className="text-cyan-400 font-bold">{i2cData}</strong> down the bus line</span>}
+                                {i2cTxStep === 4 && <span className="text-indigo-400 font-bold font-semibold">STOP SEQUENCE: Master releases SDA back to high while SCL is high. Bus free!</span>}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          /* SPI Visualizer */
+                          <div className="space-y-4 flex-1 flex flex-col justify-between select-none">
+                            {/* Bus network diagram */}
+                            <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-900 relative space-y-2">
+                              <span className="font-mono text-[7px] text-slate-500 uppercase tracking-widest block font-bold mb-1">Standard SPI 4-Wire Circuit</span>
+                              
+                              <div className="flex justify-between items-center px-2">
+                                {/* Controller block */}
+                                <div className="p-2 bg-indigo-950/40 border border-indigo-500/30 rounded text-center min-w-[70px]">
+                                  <span className="font-mono text-[8px] font-black text-indigo-400 block font-bold">SPI MASTER</span>
+                                  <span className="font-mono text-[6.5px] text-slate-505 text-slate-500">Controller</span>
+                                </div>
+
+                                {/* Slave block */}
+                                <div className="p-2 bg-purple-950/40 border border-purple-500/30 rounded text-center min-w-[70px]">
+                                  <span className="font-mono text-[8px] font-black text-purple-400 block font-bold">SPI SLAVE</span>
+                                  <span className="font-mono text-[6.5px] text-slate-505 text-slate-500">Peripheral</span>
+                                </div>
+                              </div>
+
+                              {/* Wires container */}
+                              <div className="space-y-1.5 px-6 pt-1 font-mono text-[7px]">
+                                {/* CS Select line */}
+                                <div className="flex items-center font-bold">
+                                  <span className="text-purple-400 w-8 text-left">CS:</span>
+                                  <div className="flex-1 h-0.5 bg-purple-500/20 relative">
+                                    <div className={`absolute inset-x-0 h-full ${spiTxStep >= 0 && spiTxStep < 9 ? "bg-purple-500 animate-pulse" : "bg-slate-800"}`} />
+                                  </div>
+                                  <span className="text-[6.5px] text-slate-500 ml-2">
+                                    {spiTxStep >= 0 && spiTxStep < 9 ? "LOW (ACTIVE)" : "HIGH (IDLE)"}
+                                  </span>
+                                </div>
+
+                                {/* SCLK Clock line */}
+                                <div className="flex items-center font-bold">
+                                  <span className="text-emerald-400 w-8 text-left">SCLK:</span>
+                                  <div className="flex-1 h-0.5 bg-emerald-500/20 relative">
+                                    <div className={`absolute inset-x-0 h-full ${spiTxStep >= 1 && spiTxStep <= 8 ? "bg-emerald-400 animate-pulse" : "bg-slate-800"}`} />
+                                  </div>
+                                  <span className="text-[6.5px] text-slate-500 ml-2">
+                                    {spiTxStep >= 1 && spiTxStep <= 8 ? "PULSING" : "IDLE"}
+                                  </span>
+                                </div>
+
+                                {/* MOSI Output line */}
+                                <div className="flex items-center font-bold">
+                                  <span className="text-rose-400 w-8 text-left">MOSI:</span>
+                                  <div className="flex-1 h-0.5 bg-rose-500/20 relative flex items-center">
+                                    <div className={`absolute inset-x-0 h-full ${spiTxStep >= 1 && spiTxStep <= 8 ? "bg-rose-500/50" : "bg-slate-800"}`} />
+                                    {isSpiTransmitting && spiTxStep >= 1 && spiTxStep <= 8 && (
+                                      <div 
+                                        className="absolute w-2.5 h-2.5 rounded-full bg-rose-400"
+                                        style={{
+                                          left: `${((spiTxStep - 1) / 7) * 90}%`,
+                                          transition: "left 0.7s linear"
+                                        }}
+                                      />
+                                    )}
+                                  </div>
+                                  <span className="text-[6.5px] text-slate-500 ml-2 font-normal animate-pulse">OUT</span>
+                                </div>
+
+                                {/* MISO Input line */}
+                                <div className="flex items-center font-bold">
+                                  <span className="text-sky-400 w-8 text-left">MISO:</span>
+                                  <div className="flex-1 h-0.5 bg-sky-500/20 relative flex items-center">
+                                    <div className={`absolute inset-x-0 h-full ${spiTxStep >= 1 && spiTxStep <= 8 ? "bg-sky-500/50" : "bg-slate-800"}`} />
+                                    {isSpiTransmitting && spiTxStep >= 1 && spiTxStep <= 8 && (
+                                      <div 
+                                        className="absolute w-2.5 h-2.5 rounded-full bg-sky-400"
+                                        style={{
+                                          right: `${((spiTxStep - 1) / 7) * 90}%`,
+                                          transition: "right 0.7s linear"
+                                        }}
+                                      />
+                                    )}
+                                  </div>
+                                  <span className="text-[6.5px] text-slate-500 ml-2 font-normal animate-pulse">IN</span>
+                                </div>
+                              </div>
+
+                              {/* Dynamic Quad-Probe Voltmeter Readout */}
+                              <div className="mt-3 pt-2 border-t border-slate-900/60 grid grid-cols-2 gap-x-4 gap-y-1 text-[9px] font-mono">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-purple-400 font-bold text-[8px] uppercase">CS Pin:</span>
+                                  <span className="font-extrabold text-[#f1f5f9] px-1 bg-slate-900 border border-slate-800 rounded">
+                                    {spiTxStep >= 0 && spiTxStep < 9 ? "0.0 V" : "5.0 V"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between border-l border-slate-900/40 pl-4">
+                                  <span className="text-emerald-400 font-bold text-[8px] uppercase">SCLK pin:</span>
+                                  <span className="font-extrabold text-[#f1f5f9] px-1 bg-slate-900 border border-slate-800 rounded">
+                                    {spiTxStep >= 1 && spiTxStep <= 8 ? "PULSING" : "0.0 V"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-rose-455 text-[#f43f5e] font-bold text-[8px] uppercase">MOSI Node:</span>
+                                  <span className="font-extrabold text-[#f1f5f9] px-1 bg-slate-900 border border-slate-800 rounded">
+                                    {(() => {
+                                      if (spiTxStep >= 1 && spiTxStep <= 8) {
+                                        const bitVal = spiData === "0xD4" ? [1,1,0,1,0,1,0,0][spiTxStep - 1] : spiData === "0xAA" ? ((8 - spiTxStep) % 2 === 0 ? 0 : 1) : 1;
+                                        return bitVal === 1 ? "5.0 V" : "0.0 V";
+                                      }
+                                      return "0.0 V";
+                                    })()}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between border-l border-slate-900/40 pl-4">
+                                  <span className="text-sky-400 font-bold text-[8px] uppercase">MISO Node:</span>
+                                  <span className="font-extrabold text-slate-500 px-1 bg-slate-900 border border-slate-800 rounded">0.0 V</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* SPI Timeline */}
+                            <div className="bg-[#070b13] p-2.5 rounded-lg border border-slate-900 font-mono text-[9px] space-y-1.5 text-center">
+                              <span className="text-slate-500 text-[7px] uppercase font-bold block mb-1">SPI BUS TRANSMISSION TIMELINE</span>
+                              
+                              <div className="grid grid-cols-10 gap-0.5 text-[8px] text-center text-white">
+                                {["CS_L", "D7", "D6", "D5", "D4", "D3", "D2", "D1", "D0", "CS_H"].map((stage, idx) => {
+                                  const isCurrent = spiTxStep === idx;
+                                  const isPassed = spiTxStep > idx;
+                                  return (
+                                    <div
+                                      key={idx}
+                                      className={`p-1.5 border rounded transition-all duration-300 font-mono leading-none ${
+                                        isCurrent
+                                          ? "bg-indigo-950 border-indigo-500 text-indigo-400 font-extrabold animate-pulse"
+                                          : isPassed
+                                          ? "bg-slate-900 border-slate-805 text-slate-500 font-medium"
+                                          : "bg-slate-950 border-slate-900 text-slate-600"
+                                      }`}
+                                    >
+                                      {stage}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="text-slate-400 text-[8px] leading-snug pt-1 font-mono text-center">
+                                {spiTxStep === -1 && <span className="text-slate-500">SPI Mode 0. Clock stays LOW. CS is HIGH (Slave disabled).</span>}
+                                {spiTxStep === 0 && <span className="text-purple-400 font-bold">CS DETECTED: Chip Select pulled LOW. Slave registers woke up!</span>}
+                                {spiTxStep >= 1 && spiTxStep <= 8 && (
+                                  <span>
+                                    Exchanging Bit {8 - spiTxStep} ({spiTxStep === 1 ? "MSB" : spiTxStep === 8 ? "LSB" : "Data"}): MOSI drives <strong className="text-rose-400 font-bold font-bold">{spiData === "0xAA" ? ((8 - spiTxStep) % 2 === 0 ? "0" : "1") : spiData === "0x55" ? ((8 - spiTxStep) % 2 === 0 ? "1" : "0") : spiData === "0xD4" ? ([1,1,0,1,0,1,0,0][spiTxStep - 1]) : "1"}</strong> while MISO returns <strong className="text-sky-400 font-bold font-bold">0</strong>.
+                                  </span>
+                                )}
+                                {spiTxStep === 9 && <span className="text-indigo-400 font-bold">CS RELEASED: Chip Select raised back HIGH. SPI transaction completes!</span>}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </AnimatePresence>
 
             </div>
           </div>
         </div>
       )}
+
+      {/* 7-Segment Interactive Modal Render */}
+      <SevenSegInteractiveModal
+        isOpen={isSevenSegModalOpen}
+        onClose={() => {
+          setIsSevenSegModalOpen(false);
+          setSevenSegAutoCount(false);
+        }}
+        sevenSegModalTab={sevenSegModalTab}
+        setSevenSegModalTab={setSevenSegModalTab}
+        sevenSegSelectedSegment={sevenSegSelectedSegment}
+        setSevenSegSelectedSegment={setSevenSegSelectedSegment}
+        sevenSegAutoCount={sevenSegAutoCount}
+        setSevenSegAutoCount={setSevenSegAutoCount}
+        binaryBits={binaryBits}
+        setBinaryBits={setBinaryBits}
+        shiftRegisterBits={shiftRegisterBits}
+        setShiftRegisterBits={setShiftRegisterBits}
+        shiftRegisterOutputBits={shiftRegisterOutputBits}
+        setShiftRegisterOutputBits={setShiftRegisterOutputBits}
+        shiftRegisterSerPin={shiftRegisterSerPin}
+        setShiftRegisterSerPin={setShiftRegisterSerPin}
+        shiftRegAnimStep={shiftRegAnimStep}
+        setShiftRegAnimStep={setShiftRegAnimStep}
+        pushShiftClock={pushShiftClock}
+        pushLatchClock={pushLatchClock}
+        startAutoShift={startAutoShift}
+      />
+
+      {/* Combined Series & Parallel Circuit Sandbox Modal */}
+      <AnimatePresence>
+        {isCombinedCircuitModalOpen && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md overflow-y-auto animate-fadeIn" id="combined-circuit-sandbox-modal">
+            <div className="absolute inset-0 cursor-pointer" onClick={() => setIsCombinedCircuitModalOpen(false)} />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="relative w-full max-w-4xl rounded-2xl border border-slate-800 bg-[#090e1f] p-5 md:p-6 shadow-2xl space-y-6 text-left z-10 my-4"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-900 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
+                    <Zap className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="font-sans font-black text-sm md:text-base text-white uppercase tracking-wider">
+                      Combined Series &amp; Parallel Circuit Sandbox
+                    </h3>
+                    <p className="font-sans text-[11px] text-slate-405 text-slate-400">
+                      Observe complex hardware branch dependencies, live node voltage attenuation, and current splitting physics
+                    </p>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => setIsCombinedCircuitModalOpen(false)}
+                  className="p-1 px-3 text-xs font-mono border border-slate-800 rounded bg-slate-900 hover:bg-slate-800 hover:text-white text-slate-400 transition-colors cursor-pointer select-none"
+                >
+                  Close (ESC)
+                </button>
+              </div>
+
+              {/* Informational guide */}
+              <div className="p-3.5 bg-slate-950 border border-slate-900 rounded-xl">
+                <p className="font-sans text-xs text-slate-400 leading-relaxed">
+                  <span className="text-indigo-400 font-bold uppercase font-mono mr-1.5">[TOPOLOGY BLUEPRINT]</span>
+                  This circuit has multiple dependent components: <strong>BULB-1 sits in Series</strong> with the power source, while <strong>BULB-A and BULB-B sit in Parallel</strong> branches. Click any slide-switch in the interactive diagram or use the toggle buttons below to study the resulting flow mechanics.
+                </p>
+              </div>
+
+              {/* Grid content */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                {/* Visual circuit canvas left */}
+                <div className="lg:col-span-7 flex flex-col space-y-4">
+                  <div className="text-xs font-mono text-slate-500 font-extrabold uppercase tracking-wider block">
+                    Interactive Dynamic Circuit Schematic
+                  </div>
+
+                  <div className="relative py-4 px-2 bg-slate-950 border border-slate-900 rounded-2xl flex items-center justify-center">
+                    {/* SVG Diagram */}
+                    {(() => {
+                      const seriesLit = !isCombinedMainCut && (!isCombinedBranchACut || !isCombinedBranchBCut);
+                      const branchALit = !isCombinedMainCut && !isCombinedBranchACut;
+                      const branchBLit = !isCombinedMainCut && !isCombinedBranchBCut;
+
+                      return (
+                        <svg viewBox="0 0 380 230" className="w-full h-auto select-none overflow-visible">
+                          {/* Main background wiring */}
+                          {/* Battery output up and over */}
+                          <path d="M 35 110 V 45 H 105" fill="none" stroke={isCombinedMainCut ? "#1e293b" : "#10b981"} strokeWidth="2.5" className="transition-all duration-300" />
+                          {/* Between switches and Series LED */}
+                          <path d="M 135 45 H 170" fill="none" stroke={isCombinedMainCut ? "#1e293b" : "#10b981"} strokeWidth="2.5" className="transition-all duration-300" />
+                          <path d="M 210 45 H 240" fill="none" stroke={seriesLit ? "#10b981" : "#1e293b"} strokeWidth="2.5" className="transition-all duration-300" />
+                          
+                          {/* Top Branch A wire */}
+                          <path d="M 240 45 V 95 H 255" fill="none" stroke={branchALit ? "#34d399" : "#1e293b"} strokeWidth="2.5" className="transition-all duration-300" />
+                          <path d="M 285 95 H 300" fill="none" stroke={branchALit ? "#34d399" : "#1e293b"} strokeWidth="2.5" className="transition-all duration-300" />
+                          <path d="M 335 95 H 350 L 350 115" fill="none" stroke={branchALit ? "#34d399" : "#1e293b"} strokeWidth="2.5" className="transition-all duration-300" />
+
+                          {/* Bottom Branch B wire */}
+                          <path d="M 240 45 V 155 H 255" fill="none" stroke={branchBLit ? "#34d399" : "#1e293b"} strokeWidth="2.5" className="transition-all duration-300" />
+                          <path d="M 285 155 H 300" fill="none" stroke={branchBLit ? "#34d399" : "#1e293b"} strokeWidth="2.5" className="transition-all duration-300" />
+                          <path d="M 335 155 H 350 L 350 115" fill="none" stroke={branchBLit ? "#34d399" : "#1e293b"} strokeWidth="2.5" className="transition-all duration-300" />
+
+                          {/* Common Return wire to Battery ground */}
+                          <path d="M 350 115 H 355 V 195 H 35 V 135" fill="none" stroke={seriesLit ? "#10b981" : "#1e293b"} strokeWidth="2.5" className="transition-all duration-300" />
+
+                          {/* Split/Rejoin Dots */}
+                          <circle cx="240" cy="45" r="3" fill={seriesLit ? "#10b981" : "#334155"} />
+                          <circle cx="350" cy="115" r="3" fill={seriesLit ? "#10b981" : "#334155"} />
+
+                          {/* Solid flow visualizer animations */}
+                          {seriesLit && (
+                            <>
+                              {/* Main Series Loop Electrons */}
+                              {[0, 0.33, 0.67].map((offset, i) => (
+                                <circle key={`main-e-${i}`} r="2" fill="#34d399">
+                                  <animateMotion
+                                    path="M 35 110 V 45 H 105 M 135 45 H 170 M 210 45 H 240"
+                                    dur="2.5s"
+                                    begin={`${offset * 2.5}s`}
+                                    repeatCount="indefinite"
+                                  />
+                                </circle>
+                              ))}
+
+                              {/* Common Ground Return Electrons */}
+                              {[0.12, 0.45, 0.78].map((offset, i) => (
+                                <circle key={`rtn-e-${i}`} r="2" fill="#34d399">
+                                  <animateMotion
+                                    path="M 350 115 H 355 V 195 H 35 V 135"
+                                    dur="3.2s"
+                                    begin={`${offset * 3.2}s`}
+                                    repeatCount="indefinite"
+                                  />
+                                </circle>
+                              ))}
+                            </>
+                          )}
+
+                          {branchALit && (
+                            <>
+                              {/* Branch A Electrons */}
+                              {[0, 0.5].map((offset, i) => (
+                                <circle key={`ba-e-${i}`} r="2" fill="#34d399">
+                                  <animateMotion
+                                    path="M 240 45 V 95 H 255 M 285 95 H 300 M 335 95 H 350"
+                                    dur="1.8s"
+                                    begin={`${offset * 1.8}s`}
+                                    repeatCount="indefinite"
+                                  />
+                                </circle>
+                              ))}
+                            </>
+                          )}
+
+                          {branchBLit && (
+                            <>
+                              {/* Branch B Electrons */}
+                              {[0.25, 0.75].map((offset, i) => (
+                                <circle key={`bb-e-${i}`} r="2" fill="#34d399">
+                                  <animateMotion
+                                    path="M 240 45 V 155 H 255 M 285 155 H 300 M 335 155 H 350"
+                                    dur="1.8s"
+                                    begin={`${offset * 1.8}s`}
+                                    repeatCount="indefinite"
+                                  />
+                                </circle>
+                              ))}
+                            </>
+                          )}
+
+                          {/* Power Battery 9V representation */}
+                          <g>
+                            <rect x="23" y="102" width="14" height="4" fill="#3b82f6" rx="1" />
+                            <rect x="15" y="105" width="30" height="30" rx="3" fill="#172554" stroke="#3b82f6" strokeWidth="1.5" />
+                            <text x="30" y="118" textAnchor="middle" className="fill-white font-sans text-[9px] font-black">+</text>
+                            <text x="30" y="130" textAnchor="middle" className="fill-slate-400 font-sans text-[9px] font-black">-</text>
+                            <text x="56" y="122" textAnchor="start" className="fill-blue-400 font-mono text-[8px] font-black flex items-center gap-1">9V Source</text>
+                          </g>
+
+                          {/* SW-1 MAIN SWITCH at x=105 to 135 */}
+                          <g className="cursor-pointer" onClick={() => setIsCombinedMainCut(!isCombinedMainCut)}>
+                            <circle cx="105" cy="45" r="3.2" fill="#64748b" />
+                            <circle cx="135" cy="45" r="3.2" fill="#64748b" />
+                            {isCombinedMainCut ? (
+                              <line x1="105" y1="45" x2="128" y2="28" stroke="#f43f5e" strokeWidth="3" strokeLinecap="round" />
+                            ) : (
+                              <line x1="105" y1="45" x2="135" y2="45" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
+                            )}
+                            <text x="120" y="22" textAnchor="middle" className={`font-mono text-[8.5px] font-extrabold ${isCombinedMainCut ? "fill-rose-400" : "fill-emerald-400"}`}>
+                              SW-MAIN: {isCombinedMainCut ? "OPEN" : "CLOSED"}
+                            </text>
+                          </g>
+
+                          {/* Bulb-1 Series at x=190, y=45 */}
+                          <g>
+                            {seriesLit && (
+                              <>
+                                <circle cx="190" cy="41" r="22" fill="rgba(234, 179, 8, 0.16)" className="animate-pulse" />
+                                <circle cx="190" cy="41" r="14" fill="rgba(254, 240, 138, 0.28)" />
+                              </>
+                            )}
+                            {/* Screw metallic base with thread details */}
+                            <rect x="186" y="50" width="8" height="4" fill="#64748b" rx="1" />
+                            <rect x="187" y="54" width="6" height="2" fill="#475569" rx="0.5" />
+                            {/* Glass bulb dynamic bulbous shape */}
+                            <path d="M 182 46 C 178 37 180 29 190 29 C 200 29 202 37 198 46 L 194 50 L 186 50 Z" 
+                                  fill={seriesLit ? "rgba(253, 224, 71, 0.35)" : "#131a31"} 
+                                  stroke={seriesLit ? "#facc15" : "#475569"} 
+                                  strokeWidth="1.5" />
+                            {/* Inner filament supports */}
+                            <path d="M 186.5 50 L 188 43 M 193.5 50 L 192 43" stroke={seriesLit ? "#eab308" : "#475569"} strokeWidth="1" />
+                            {/* Glowing filament loop */}
+                            <path d="M 188 43 Q 190 38 192 43" fill="none" stroke={seriesLit ? "#fef08a" : "#475569"} strokeWidth="1.3" strokeLinecap="round" />
+                            <text x="190" y="65" textAnchor="middle" className={`font-mono text-[8.5px] font-extrabold ${seriesLit ? "fill-amber-400" : "fill-slate-500"}`}>BULB-1 [SERIES]</text>
+                          </g>
+
+                          {/* SW-A Branch A at x=255 to 285, y=95 */}
+                          <g className="cursor-pointer" onClick={() => setIsCombinedBranchACut(!isCombinedBranchACut)}>
+                            <circle cx="255" cy="95" r="3" fill="#64748b" />
+                            <circle cx="285" cy="95" r="3" fill="#64748b" />
+                            {isCombinedBranchACut ? (
+                              <line x1="255" y1="95" x2="278" y2="78" stroke="#f43f5e" strokeWidth="2.5" strokeLinecap="round" />
+                            ) : (
+                              <line x1="255" y1="95" x2="285" y2="95" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+                            )}
+                            <text x="270" y="112" textAnchor="middle" className={`font-mono text-[7px] font-bold ${isCombinedBranchACut ? "fill-rose-400" : "fill-emerald-400"}`}>
+                              SW-A
+                            </text>
+                          </g>
+
+                          {/* Bulb-A Parallel 1 at x=318, y=95 */}
+                          <g>
+                            {branchALit && (
+                              <>
+                                <circle cx="318" cy="91" r="18" fill="rgba(234, 179, 8, 0.16)" className="animate-pulse" />
+                                <circle cx="318" cy="91" r="11" fill="rgba(254, 240, 138, 0.28)" />
+                              </>
+                            )}
+                            {/* Base */}
+                            <rect x="314" y="100" width="8" height="4" fill="#64748b" rx="1" />
+                            <rect x="315" y="104" width="6" height="2" fill="#475569" rx="0.5" />
+                            {/* Glass */}
+                            <path d="M 310 96 C 306 87 308 79 318 79 C 328 79 330 87 326 96 L 322 100 L 314 100 Z" 
+                                  fill={branchALit ? "rgba(253, 224, 71, 0.35)" : "#131a31"} 
+                                  stroke={branchALit ? "#facc15" : "#475569"} 
+                                  strokeWidth="1.5" />
+                            {/* Filament supports */}
+                            <path d="M 314.5 100 L 316 93 M 321.5 100 L 320 93" stroke={branchALit ? "#eab308" : "#475569"} strokeWidth="1" />
+                            {/* Filament loop */}
+                            <path d="M 316 93 Q 318 88 320 93" fill="none" stroke={branchALit ? "#fef08a" : "#475569"} strokeWidth="1.3" strokeLinecap="round" />
+                            <text x="318" y="115" textAnchor="middle" className={`font-mono text-[7.5px] font-bold ${branchALit ? "fill-amber-400" : "fill-slate-500"}`}>BULB-A (P1)</text>
+                          </g>
+
+                          {/* SW-B Branch B at x=255 to 285, y=155 */}
+                          <g className="cursor-pointer" onClick={() => setIsCombinedBranchBCut(!isCombinedBranchBCut)}>
+                            <circle cx="255" cy="155" r="3" fill="#64748b" />
+                            <circle cx="285" cy="155" r="3" fill="#64748b" />
+                            {isCombinedBranchBCut ? (
+                              <line x1="255" y1="155" x2="278" y2="138" stroke="#f43f5e" strokeWidth="2.5" strokeLinecap="round" />
+                            ) : (
+                              <line x1="255" y1="155" x2="285" y2="155" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+                            )}
+                            <text x="270" y="172" textAnchor="middle" className={`font-mono text-[7px] font-bold ${isCombinedBranchBCut ? "fill-rose-400" : "fill-emerald-400"}`}>
+                              SW-B
+                            </text>
+                          </g>
+
+                          {/* Bulb-B Parallel 2 at x=318, y=155 */}
+                          <g>
+                            {branchBLit && (
+                              <>
+                                <circle cx="318" cy="151" r="18" fill="rgba(234, 179, 8, 0.16)" className="animate-pulse" />
+                                <circle cx="318" cy="151" r="11" fill="rgba(254, 240, 138, 0.28)" />
+                              </>
+                            )}
+                            {/* Base */}
+                            <rect x="314" y="160" width="8" height="4" fill="#64748b" rx="1" />
+                            <rect x="315" y="164" width="6" height="2" fill="#475569" rx="0.5" />
+                            {/* Glass */}
+                            <path d="M 310 156 C 306 147 308 139 318 139 C 328 139 330 147 326 156 L 322 160 L 314 160 Z" 
+                                  fill={branchBLit ? "rgba(253, 224, 71, 0.35)" : "#131a31"} 
+                                  stroke={branchBLit ? "#facc15" : "#475569"} 
+                                  strokeWidth="1.5" />
+                            {/* Filament supports */}
+                            <path d="M 314.5 160 L 316 153 M 321.5 160 L 320 153" stroke={branchBLit ? "#eab308" : "#475569"} strokeWidth="1" />
+                            {/* Filament loop */}
+                            <path d="M 316 153 Q 318 148 320 153" fill="none" stroke={branchBLit ? "#fef08a" : "#475569"} strokeWidth="1.3" strokeLinecap="round" />
+                            <text x="318" y="175" textAnchor="middle" className={`font-mono text-[7.5px] font-bold ${branchBLit ? "fill-amber-400" : "fill-slate-500"}`}>BULB-B (P2)</text>
+                          </g>
+                        </svg>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                {/* Dashboard / diagnostics control panel right */}
+                <div className="lg:col-span-5 flex flex-col gap-4">
+                  <div className="text-xs font-mono text-slate-500 font-extrabold uppercase tracking-wider block">
+                    Telemetry &amp; Circuit Diagnostics
+                  </div>
+
+                  {(() => {
+                    const isPowerflowing = !isCombinedMainCut;
+                    const bAClosed = !isCombinedBranchACut;
+                    const bBClosed = !isCombinedBranchBCut;
+                    
+                    const isBranchAFlowing = isPowerflowing && bAClosed;
+                    const isBranchBFlowing = isPowerflowing && bBClosed;
+                    const isSeriesGlowing = isBranchAFlowing || isBranchBFlowing;
+
+                    // Compute physical circuit mathematics
+                    let rTotalStr = "Disconnected (∞)";
+                    let iTotal = 0;
+                    let vLed1 = 0;
+                    let vNode = 9.0;
+
+                    if (isPowerflowing) {
+                      if (bAClosed && bBClosed) {
+                        // Parallel 150 & 150 = 75 ohm. Series 100 ohm. Total R = 175 ohm
+                        rTotalStr = "175 Ω (Balanced Parallel/Series)";
+                        iTotal = 51.4;
+                        vLed1 = 5.14;
+                        vNode = 3.86;
+                      } else if (bAClosed) {
+                        // Series 100 + 150 = 250 ohm
+                        rTotalStr = "250 Ω (Series Branch A)";
+                        iTotal = 36.0;
+                        vLed1 = 3.60;
+                        vNode = 5.40;
+                      } else if (bBClosed) {
+                        // Series 100 + 150 = 250 ohm
+                        rTotalStr = "250 Ω (Series Branch B)";
+                        iTotal = 36.0;
+                        vLed1 = 3.60;
+                        vNode = 5.40;
+                      } else {
+                        rTotalStr = "Infinite (Broken Branches)";
+                      }
+                    }
+
+                    return (
+                      <>
+                        <div className="bg-slate-950 p-4 border border-slate-900 rounded-2xl space-y-3.5">
+                          {/* Live parameters */}
+                          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                            <div className="bg-[#050816] p-2.5 rounded-xl border border-slate-900">
+                              <span className="text-[8px] text-slate-500 uppercase font-black block">SYS CURRENT INTENSITY</span>
+                              <span className={`text-sm font-black transition-colors ${iTotal > 0 ? "text-emerald-400" : "text-slate-400"}`}>
+                                {iTotal.toFixed(1)} mA
+                              </span>
+                            </div>
+
+                            <div className="bg-[#050816] p-2.5 rounded-xl border border-slate-900">
+                              <span className="text-[8px] text-slate-505 text-slate-500 uppercase font-black block">BULB-1 DROP VOLTAGE</span>
+                              <span className={`text-sm font-black transition-colors ${vLed1 > 0 ? "text-purple-400" : "text-slate-400"}`}>
+                                {vLed1.toFixed(2)} Volts
+                              </span>
+                            </div>
+
+                            <div className="bg-[#050816] p-2.5 rounded-xl border border-slate-900">
+                              <span className="text-[8px] text-slate-505 text-slate-500 uppercase font-black block">SPLITTER NODE LEVEL</span>
+                              <span className={`text-sm font-black transition-colors ${iTotal > 0 ? "text-amber-400" : "text-slate-400"}`}>
+                                {vNode.toFixed(2)} Volts
+                              </span>
+                            </div>
+
+                            <div className="bg-[#050816] p-2.5 rounded-xl border border-slate-900">
+                              <span className="text-[8px] text-slate-550 text-slate-500 uppercase font-black block">EQUIV ELECTRICAL R</span>
+                              <span className="text-[10px] text-white font-black truncate leading-normal block pt-0.5">
+                                {rTotalStr}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Bulb Status Grid */}
+                          <div className="border-t border-[#0f172a] pt-3 space-y-2 text-xs">
+                            <span className="text-[8px] text-slate-505 text-slate-500 font-extrabold uppercase tracking-wider block font-mono">Component Operating States:</span>
+                            
+                            <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#050816]/60 border border-slate-900 leading-none">
+                              <span className="font-mono text-[9px] text-purple-300 font-bold">BULB-1 (SERIES COMPONENT)</span>
+                              <span className={`font-mono text-[9px] font-black uppercase ${isSeriesGlowing ? "text-purple-400 animate-pulse" : "text-slate-600"}`}>
+                                {isSeriesGlowing ? "ON (GLOWING)" : "OFF (DARK)"}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#050816]/60 border border-slate-900 leading-none">
+                              <span className="font-mono text-[9px] text-rose-300 font-bold">BULB-A (PARALLEL BRANCH A)</span>
+                              <span className={`font-mono text-[9px] font-black uppercase ${isBranchAFlowing ? "text-rose-400 animate-pulse" : "text-slate-600"}`}>
+                                {isBranchAFlowing ? "ON (GLOWING)" : "OFF (DARK)"}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#050816]/60 border border-slate-900 leading-none">
+                              <span className="font-mono text-[9px] text-blue-300 font-bold">BULB-B (PARALLEL BRANCH B)</span>
+                              <span className={`font-mono text-[9px] font-black uppercase ${isBranchBFlowing ? "text-blue-400 animate-pulse" : "text-slate-600"}`}>
+                                {isBranchBFlowing ? "ON (GLOWING)" : "OFF (DARK)"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Interactive Slide Controls */}
+                        <div className="bg-slate-950 p-4 border border-slate-900 rounded-2xl space-y-3">
+                          <span className="text-[8px] text-slate-505 text-slate-550 text-slate-500 font-extrabold uppercase tracking-wider block font-mono">Interactive Swivel Controls</span>
+                          
+                          <div className="space-y-2 text-xs">
+                            {/* Control Master Switch */}
+                            <div className="flex items-center justify-between bg-[#040813] p-2 rounded-xl border border-slate-900">
+                              <div className="text-left font-sans">
+                                <h5 className="font-bold text-[10.5px] text-slate-101 text-slate-200">MAIN SW / SOURCE CABLE</h5>
+                                <p className="text-[8px] text-slate-500 font-mono leading-none">Sits in series; cuts all paths</p>
+                              </div>
+                              <button
+                                onClick={() => setIsCombinedMainCut(!isCombinedMainCut)}
+                                className={`px-2.5 py-1 text-[9px] font-mono font-bold rounded border cursor-pointer select-none transition-all duration-150 ${
+                                  isCombinedMainCut
+                                    ? "bg-rose-950/20 border-rose-900 text-rose-400"
+                                    : "bg-emerald-950/20 border-emerald-900 text-emerald-400"
+                                }`}
+                              >
+                                {isCombinedMainCut ? "BROKEN (OPEN)" : "CONNECTED (CLOSED)"}
+                              </button>
+                            </div>
+
+                            {/* Control Branch A */}
+                            <div className="flex items-center justify-between bg-[#040813] p-2 rounded-xl border border-slate-900">
+                              <div className="text-left font-sans">
+                                <h5 className="font-bold text-[10.5px] text-slate-101 text-slate-200">BRANCH SW-A (TOP)</h5>
+                                <p className="text-[8px] text-slate-500 font-mono leading-none">Controls Branch A parallel node</p>
+                              </div>
+                              <button
+                                onClick={() => setIsCombinedBranchACut(!isCombinedBranchACut)}
+                                className={`px-2.5 py-1 text-[9px] font-mono font-bold rounded border cursor-pointer select-none transition-all duration-150 ${
+                                  isCombinedBranchACut
+                                    ? "bg-rose-950/20 border-rose-900 text-rose-400"
+                                    : "bg-emerald-950/20 border-emerald-900 text-emerald-400"
+                                }`}
+                              >
+                                {isCombinedBranchACut ? "BROKEN (OPEN)" : "CONNECTED (CLOSED)"}
+                              </button>
+                            </div>
+
+                            {/* Control Branch B */}
+                            <div className="flex items-center justify-between bg-[#040813] p-2 rounded-xl border border-slate-900">
+                              <div className="text-left font-sans">
+                                <h5 className="font-bold text-[10.5px] text-slate-101 text-slate-200">BRANCH SW-B (BOTTOM)</h5>
+                                <p className="text-[8px] text-slate-500 font-mono leading-none">Controls Branch B parallel node</p>
+                              </div>
+                              <button
+                                onClick={() => setIsCombinedBranchBCut(!isCombinedBranchBCut)}
+                                className={`px-2.5 py-1 text-[9px] font-mono font-bold rounded border cursor-pointer select-none transition-all duration-150 ${
+                                  isCombinedBranchBCut
+                                    ? "bg-rose-950/20 border-rose-900 text-rose-400"
+                                    : "bg-emerald-950/20 border-emerald-900 text-emerald-400"
+                                }`}
+                              >
+                                {isCombinedBranchBCut ? "BROKEN (OPEN)" : "CONNECTED (CLOSED)"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+
+              </div>
+
+              {/* Note section */}
+              <div className="bg-[#051c26]/25 border border-cyan-500/10 p-3 rounded-xl font-mono text-[10px] text-cyan-400 flex items-center gap-1.5">
+                <Info className="w-4 h-4 shrink-0 text-cyan-400" />
+                <span>Notice how SW-MAIN immediately breaks the entire loop current, while SW-A and SW-B independently manage Branch splitting.</span>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Ohm's Law Highly Interactive Educational Modal Overlay */}
       {isOhmsModalOpen && (
@@ -3535,49 +6470,57 @@ delay(250); // Pause execution`}
                       <text x="24" y="52" textAnchor="start" className={`font-mono text-[7.5px] font-extrabold ${ohmsHighlightItem === "voltage" ? "fill-sky-400 font-black scale-105" : "fill-indigo-400"}`}>{ohmsVoltage.toFixed(1)}V Source</text>
                     </g>
 
-                    {/* Resistor body layout at x=90, y=2 */}
+                    {/* Tightening/Loosening Resistor Clamp device */}
                     <g className="transition-all duration-300" style={{ transformOrigin: "110px 10px" }}>
+                      {/* Left and Right connector metal lines */}
+                      <line x1="82" y1="10" x2="90" y2="10" stroke="#94a3b8" strokeWidth="1.5" />
+                      <line x1="130" y1="10" x2="138" y2="10" stroke="#94a3b8" strokeWidth="1.5" />
+
+                      {/* Outer rigid support guide frame */}
                       <rect 
-                        x="90" 
-                        y="2" 
-                        width="40" 
-                        height="16" 
+                        x="88" 
+                        y="0" 
+                        width="44" 
+                        height="20" 
                         rx="3.5" 
-                        fill={ohmsHighlightItem === "resistance" ? "#064e3b" : "rgba(30, 41, 59, 0.4)"} 
-                        stroke={ohmsHighlightItem === "resistance" ? "#34d399" : "#38bdf8"} 
-                        strokeWidth={ohmsHighlightItem === "resistance" ? "1.5" : "1.2"} 
-                        strokeDasharray="1.5 1.5" 
+                        fill={ohmsHighlightItem === "resistance" ? "rgba(6, 78, 59, 0.2)" : "none"} 
+                        stroke={ohmsHighlightItem === "resistance" ? "#34d399" : "#475569"} 
+                        strokeWidth={ohmsHighlightItem === "resistance" ? "1.5" : "1.0"} 
+                        strokeDasharray="3 2" 
+                        opacity="0.85" 
                       />
-                      
-                      {/* Top restrictor jaws */}
-                      <path 
-                        d={`M 90,2 Q 110,${10 - ohmsNeckSpacing/2} 130,2 L 130,1 L 90,1 Z`} 
-                        fill="rgba(239, 68, 68, 0.35)"
-                        stroke="#ef4444" 
-                        strokeWidth="0.65" 
-                        style={{
-                          animation: `throatThrobTop ${ohmsVibeDuration} ease-in-out infinite alternate`,
-                          transformOrigin: "center top",
-                          transition: "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
-                          opacity: 0.3 + ohmsConstrictionFactor * 0.7,
-                          "--ohms-vibe-y": ohmsVibeY
-                        } as React.CSSProperties}
+
+                      {/* Flexible conductive channel (crimped by the clamps) */}
+                      <path
+                        d={`M 90,3 
+                            Q 110,${3 + 5.5 * ohmsConstrictionFactor} 130,3 
+                            L 130,17 
+                            Q 110,${17 - 5.5 * ohmsConstrictionFactor} 90,17 
+                            Z`}
+                        fill={ohmsHighlightItem === "resistance" ? "rgba(52, 211, 153, 0.12)" : "rgba(34, 197, 94, 0.08)"}
+                        stroke={ohmsHighlightItem === "resistance" ? "#34d399" : "#10b981"}
+                        strokeWidth="0.8"
+                        className="transition-all duration-300"
                       />
-                      
-                      {/* Bottom limit jaws */}
-                      <path 
-                        d={`M 90,18 Q 110,${10 + ohmsNeckSpacing/2} 130,18 L 130,19 L 90,19 Z`} 
-                        fill="rgba(239, 68, 68, 0.35)"
-                        stroke="#ef4444" 
-                        strokeWidth="0.65" 
-                        style={{
-                          animation: `throatThrobBottom ${ohmsVibeDuration} ease-in-out infinite alternate`,
-                          transformOrigin: "center bottom",
-                          transition: "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
-                          opacity: 0.3 + ohmsConstrictionFactor * 0.7,
-                          "--ohms-vibe-y": ohmsVibeY
-                        } as React.CSSProperties}
-                      />
+
+                      {/* Active Mechanical Clamp Jaws: Tighten (move in) for high resistance, loosen (retract) for low resistance */}
+                      {/* Top Squeeze Jaw block */}
+                      <g style={{ transform: `translateY(${5.5 * ohmsConstrictionFactor}px)`, transition: "transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)" }}>
+                        <rect x="100" y="-1" width="20" height="4.5" rx="1" fill="#f59e0b" stroke="#b45309" strokeWidth="0.8" />
+                        {/* Clamp teeth/grooves */}
+                        <line x1="104" y1="3" x2="104" y2="4.5" stroke="#78350f" strokeWidth="0.5" />
+                        <line x1="110" y1="3" x2="110" y2="4.5" stroke="#78350f" strokeWidth="0.5" />
+                        <line x1="116" y1="3" x2="116" y2="4.5" stroke="#78350f" strokeWidth="0.5" />
+                      </g>
+
+                      {/* Bottom Squeeze Jaw block */}
+                      <g style={{ transform: `translateY(${-5.5 * ohmsConstrictionFactor}px)`, transition: "transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)" }}>
+                        <rect x="100" y="16.5" width="20" height="4.5" rx="1" fill="#f59e0b" stroke="#b45309" strokeWidth="0.8" />
+                        {/* Clamp teeth/grooves */}
+                        <line x1="104" y1="16.5" x2="104" y2="17" stroke="#78350f" strokeWidth="0.5" />
+                        <line x1="110" y1="16.5" x2="110" y2="17" stroke="#78350f" strokeWidth="0.5" />
+                        <line x1="116" y1="16.5" x2="116" y2="17" stroke="#78350f" strokeWidth="0.5" />
+                      </g>
 
                       <text x="110" y="31" textAnchor="middle" className={`font-mono text-[8px] font-black ${ohmsHighlightItem === "resistance" ? "fill-emerald-400" : "fill-slate-400"}`}>{ohmsResistance} Ω</text>
                     </g>
@@ -3592,6 +6535,604 @@ delay(250); // Pause execution`}
 
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {isAdcSandboxModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+          <div className="relative w-full max-w-5xl bg-[#090d16] border border-purple-500/35 rounded-2xl shadow-[0_0_50px_rgba(168,85,247,0.25)] overflow-hidden flex flex-col my-8">
+            
+            {/* Modal Header */}
+            <div className="border-b border-purple-550/20 bg-[#120624] px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="font-sans font-black text-white text-base uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 bg-purple-400 rounded-full animate-ping" />
+                  Analog to Digital Sandbox
+                </h3>
+                <p className="font-sans text-[11px] text-slate-400">
+                  Real-time exploration of signal parsing, MCU discrete sampling, and DAC reconstruction.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsAdcSandboxModalOpen(false)}
+                type="button"
+                className="p-1 px-3 bg-red-950/40 border border-red-500/20 text-red-400 font-mono text-xs uppercase font-extrabold hover:bg-red-900/30 hover:border-red-500/50 rounded-xl transition-all cursor-pointer whitespace-nowrap animate-pulse"
+              >
+                CLOSE [ X ]
+              </button>
+            </div>
+
+            {/* Modal Work area */}
+            <div className="p-6 overflow-y-auto max-h-[75vh] space-y-6">
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Control workspace column */}
+                <div className="space-y-4 bg-slate-900/20 p-5 rounded-xl border border-slate-900">
+                  {/* 1. Resolution selection */}
+                  <div className="space-y-2">
+                    <span className="font-mono text-[8px] text-slate-500 tracking-wider block uppercase font-black">ADC Bit Resolution (Quantization density):</span>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[2, 3, 4, 8].map((bits) => {
+                        const active = adcResolutionBits === bits;
+                        const levels = Math.pow(2, bits);
+                        return (
+                          <button
+                            key={bits}
+                            onClick={() => setAdcResolutionBits(bits)}
+                            type="button"
+                            className={`px-2 py-2 font-mono text-[9px] border transition-all rounded-lg font-bold cursor-pointer flex flex-col items-center justify-center ${
+                              active
+                                ? "bg-purple-950/45 border-purple-500/80 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.15)]"
+                                : "bg-slate-950 border-slate-900 text-slate-450 hover:text-slate-200"
+                            }`}
+                          >
+                            <span className="font-black text-[10.5px]">{bits}-Bit</span>
+                            <span className="text-[7.5px] opacity-70 mt-0.5 font-semibold">{levels} Levels</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 2. Wave trigger mode */}
+                  <div className="space-y-2 pt-3 border-t border-slate-900/60">
+                    <span className="font-mono text-[8px] text-slate-500 tracking-wider block uppercase font-black">Analog Input Mode:</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setIsLiveAdc(true)}
+                        type="button"
+                        className={`px-2 py-2 font-mono text-[9px] border transition-all rounded-lg font-bold cursor-pointer uppercase ${
+                          isLiveAdc
+                            ? "bg-purple-950/45 border-purple-500/80 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.15)]"
+                            : "bg-slate-950 border-slate-900 text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        Moving Sine wave
+                      </button>
+                      <button
+                        onClick={() => setIsLiveAdc(false)}
+                        type="button"
+                        className={`px-2 py-2 font-mono text-[9px] border transition-all rounded-lg font-bold cursor-pointer uppercase ${
+                          !isLiveAdc
+                            ? "bg-purple-950/45 border-purple-500/80 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.15)]"
+                            : "bg-slate-950 border-slate-900 text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        Manual DC sweep
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 3. Manual slider OR wave frequency controls */}
+                  {isLiveAdc ? (
+                    <div className="space-y-1.5 pt-3 border-t border-slate-900/60">
+                      <div className="flex justify-between text-xs font-sans">
+                        <span className="text-slate-350 font-bold">Signal Frequency:</span>
+                        <span className="font-mono text-purple-400 font-extrabold">{signalFrequency} Hz</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="5" 
+                        step="1"
+                        value={signalFrequency}
+                        onChange={(e) => setSignalFrequency(parseInt(e.target.value))}
+                        className="w-full accent-purple-500 cursor-pointer"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5 pt-3 border-t border-slate-900/60">
+                      <div className="flex justify-between text-xs font-sans">
+                        <span className="text-slate-350 font-bold">Manual Probe DC Input Voltage:</span>
+                        <span className="font-mono text-purple-400 font-extrabold">{manualSampleValue.toFixed(2)} Volts</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0.0" 
+                        max="5.0" 
+                        step="0.05"
+                        value={manualSampleValue}
+                        onChange={(e) => setManualSampleValue(parseFloat(e.target.value))}
+                        className="w-full accent-purple-500 cursor-pointer"
+                      />
+                    </div>
+                  )}
+
+                  {/* 4. Sampling frequency rate */}
+                  <div className="space-y-1.5 pt-3 border-t border-slate-900/60">
+                    <div className="flex justify-between text-xs font-sans">
+                      <span className="text-slate-350 font-bold">A/D Sampling clock rate:</span>
+                      <span className="font-mono text-purple-400 font-extrabold">{samplingFrequency} Hz</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="1" 
+                      max="10" 
+                      step="1"
+                      value={samplingFrequency}
+                      onChange={(e) => setSamplingFrequency(parseInt(e.target.value))}
+                      className="w-full accent-purple-500 cursor-pointer"
+                    />
+                    <p className="font-mono text-[8px] text-slate-500 uppercase leading-tight pt-0.5">
+                      Samples the analog track is partitioned horizontally to create step staircase points.
+                    </p>
+                  </div>
+
+                  {/* Explanatory description card */}
+                  <div className="p-3.5 bg-purple-950/5 border border-purple-900/15 rounded-lg text-[10.5px] leading-relaxed text-slate-400 font-sans">
+                    <strong className="text-purple-400 uppercase tracking-wide block mb-1">A/D & D/A conversion core:</strong>
+                    An Analog-to-Digital Converter converts a continuous real-world voltage tracking curve into digital integer word indexes. The Digital-to-Analog Converter reconstructs the binary word back into a staircase voltage, demonstrating reconstruction errors.
+                  </div>
+                </div>
+
+                {/* Interactive Scope visualization column */}
+                <div className="rounded-xl border border-slate-900 bg-[#030712] p-5 flex flex-col justify-between space-y-3 relative overflow-hidden">
+                  <div className="flex justify-between items-center border-b border-slate-900 pb-2">
+                    <span className="font-mono text-[9px] text-purple-400 font-extrabold tracking-widest uppercase font-black uppercase">CONVERSIONS LAB OSCOPE</span>
+                    <span className="text-[9.5px] bg-[#1e293b]/50 text-[#818cf8] px-2.5 py-0.5 rounded font-mono font-bold">
+                      {adcResolutionBits}-BIT ARCHITECTURE [Active]
+                    </span>
+                  </div>
+
+                  {/* Graphical double-line staircase canvas */}
+                  <div className="h-44 bg-slate-950 border border-[#1e293b]/40 rounded-xl relative p-2 overflow-hidden flex flex-col justify-end">
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#0c1a30_1px,transparent_1px),linear-gradient(to_bottom,#0c1a30_1px,transparent_1px)] bg-[size:16px_16px] opacity-20 pointer-events-none" />
+
+                    <svg className="w-full h-full" viewBox="0 0 400 160" preserveAspectRatio="none">
+                      {/* Reference voltage lines for the selected bit depth */}
+                      {(() => {
+                        const lines = [];
+                        const levels = Math.pow(2, adcResolutionBits);
+                        const maxLines = levels <= 16 ? levels : 8;
+                        for (let i = 0; i < maxLines; i++) {
+                          const v = (i / (maxLines - 1)) * 5.0;
+                          const y = 140 - (v / 5.0) * 120;
+                          lines.push(
+                            <line 
+                              key={i} 
+                              x1="0" 
+                              y1={y} 
+                              x2="400" 
+                              y2={y} 
+                              stroke="#101b30" 
+                              strokeWidth="0.5" 
+                            />
+                          );
+                        }
+                        return lines;
+                      })()}
+
+                      {/* Center timeline axis */}
+                      <line x1="0" y1="80" x2="400" y2="80" stroke="#334155" strokeWidth="0.8" strokeDasharray="3,3" />
+
+                      {/* Mathematical conversion traces overlay path on oscilloscope screen */}
+                      {(() => {
+                        let analogPath = "";
+                        let quantizedPath = "";
+                        const pointsCount = 100;
+                        const width = 400;
+                        
+                        const numSamples = samplingFrequency * 3;
+                        const stepWidth = width / numSamples;
+
+                        for (let i = 0; i <= pointsCount; i++) {
+                          const x = (i / pointsCount) * width;
+                          let rawV = 2.5;
+
+                          if (isLiveAdc) {
+                            const phase = (simTick * 0.08);
+                            const angle = (x / width) * Math.PI * 2 * 1.5 - phase;
+                            rawV = 2.5 + Math.sin(angle) * 2.0;
+                          } else {
+                            rawV = manualSampleValue;
+                          }
+
+                          const aY = 140 - (rawV / 5.0) * 120;
+                          if (i === 0) analogPath += `M ${x},${aY}`;
+                          else analogPath += ` L ${x},${aY}`;
+
+                          // Calculate Sample-and-Hold step
+                          const sampleIndex = Math.floor(x / stepWidth);
+                          const sampleX = sampleIndex * stepWidth;
+
+                          let sRawV = 2.5;
+                          if (isLiveAdc) {
+                            const phase = (simTick * 0.08);
+                            const angle = (sampleX / width) * Math.PI * 2 * 1.5 - phase;
+                            sRawV = 2.5 + Math.sin(angle) * 2.0;
+                          } else {
+                            sRawV = manualSampleValue;
+                          }
+
+                          const maxIdx = Math.pow(2, adcResolutionBits) - 1;
+                          const level = Math.max(0, Math.min(maxIdx, Math.round((sRawV / 5.0) * maxIdx)));
+                          const qVolt = (level / maxIdx) * 5.0;
+                          const qY = 140 - (qVolt / 5.0) * 120;
+
+                          if (i === 0) quantizedPath += `M ${x},${qY}`;
+                          else {
+                            // Make staircase transition
+                            const prevX = ((i - 1) / pointsCount) * width;
+                            let prevSRawV = 2.5;
+                            if (isLiveAdc) {
+                              const phase = (simTick * 0.08);
+                              const prevSampleX = Math.floor(prevX / stepWidth) * stepWidth;
+                              const angle = (prevSampleX / width) * Math.PI * 2 * 1.5 - phase;
+                              prevSRawV = 2.5 + Math.sin(angle) * 2.0;
+                            } else {
+                              prevSRawV = manualSampleValue;
+                            }
+                            const prevLevel = Math.max(0, Math.min(maxIdx, Math.round((prevSRawV / 5.0) * maxIdx)));
+                            const prevQVolt = (prevLevel / maxIdx) * 5.0;
+                            const prevQY = 140 - (prevQVolt / 5.0) * 120;
+
+                            quantizedPath += ` L ${x},${prevQY} L ${x},${qY}`;
+                          }
+                        }
+
+                        return (
+                          <>
+                            {/* Analog wave (cyan) */}
+                            <path d={analogPath} fill="none" stroke="#06b6d4" strokeWidth="1.2" strokeOpacity="0.75" />
+                            {/* Reconstructed stair dac wave */}
+                            <path d={quantizedPath} fill="none" stroke="#a855f7" strokeWidth="2.2" />
+                          </>
+                        );
+                      })()}
+                    </svg>
+
+                    <div className="absolute top-2 left-2 text-[7.5px] font-mono text-[#06b6d4] select-none bg-black/60 px-1 py-0.5 rounded">
+                      Line Cyan: Analog Wave Input
+                    </div>
+                    <div className="absolute top-2 right-2 text-[7.5px] font-mono text-[#a855f7] select-none bg-black/60 px-1 py-0.5 rounded text-right">
+                      Stair Purple: Quantized DAC Output
+                    </div>
+                    <div className="absolute bottom-2 left-2 right-2 flex justify-between font-mono text-[7px] text-slate-500 uppercase select-none">
+                      <span>0.0V Ground</span>
+                      <span>CLOCK: ACTIVE</span>
+                      <span>5.0V VCC</span>
+                    </div>
+                  </div>
+
+                  {/* Dynamic converter register readouts */}
+                  {(() => {
+                    const currentLevels = Math.pow(2, adcResolutionBits);
+                    const maxLevelIdx = currentLevels - 1;
+                    const sampleRawV = isLiveAdc
+                      ? Math.max(0, Math.min(5, 2.5 + Math.sin(simTick * 0.12) * 2.0))
+                      : manualSampleValue;
+                    const levelIdx = Math.min(maxLevelIdx, Math.max(0, Math.round((sampleRawV / 5.0) * maxLevelIdx)));
+                    const binWord = levelIdx.toString(2).padStart(adcResolutionBits, "0");
+                    const dacVolt = (levelIdx / maxLevelIdx) * 5.0;
+                    const qErr = sampleRawV - dacVolt;
+
+                    return (
+                      <div className="space-y-1.5 text-center font-mono text-[9px]">
+                        <span className="text-slate-400 font-extrabold block uppercase tracking-wider">CONVERTER REGISTER DECODE</span>
+                        <div className="grid grid-cols-4 gap-2 text-white">
+                          <div className="p-1.5 bg-[#070b13] border border-slate-900 rounded-lg">
+                            <span className="text-slate-500 text-[6.5px] block font-bold">ANALOG IN</span>
+                            <span className="text-cyan-400 font-black">{sampleRawV.toFixed(2)}V</span>
+                          </div>
+                          <div className="p-1.5 bg-[#070b13] border border-slate-900 rounded-lg">
+                            <span className="text-slate-500 text-[6.5px] block font-bold">DEC LEVEL</span>
+                            <span className="text-indigo-400 font-black">Lvl {levelIdx}</span>
+                          </div>
+                          <div className="p-1.5 bg-[#070b13] border border-slate-900 rounded-lg">
+                            <span className="text-slate-500 text-[6.5px] block font-bold">BINARY OUT</span>
+                            <span className="text-emerald-400 font-black">{binWord}</span>
+                          </div>
+                          <div className="p-1.5 bg-[#070b13] border border-slate-900 rounded-lg">
+                            <span className="text-slate-500 text-[6.5px] block font-bold">RECON DAC</span>
+                            <span className="text-purple-400 font-black">{dacVolt.toFixed(2)}V</span>
+                          </div>
+                        </div>
+                        <div className="text-[7.5px] text-slate-500 leading-none pt-1">
+                          Quantization error: <span className={Math.abs(qErr) > 0.4 ? "text-amber-400 font-bold" : "text-emerald-400 font-bold"}>{qErr.toFixed(3)} Volts</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Complete real-time animated pipeline */}
+              {(() => {
+                const currentLevels = Math.pow(2, adcResolutionBits);
+                const maxLevelIdx = currentLevels - 1;
+                const sampleRawV = isLiveAdc
+                  ? Math.max(0, Math.min(5, 2.5 + Math.sin(simTick * 0.12) * 2.0))
+                  : manualSampleValue;
+                const levelIdx = Math.min(maxLevelIdx, Math.max(0, Math.round((sampleRawV / 5.0) * maxLevelIdx)));
+                const binWord = levelIdx.toString(2).padStart(adcResolutionBits, "0");
+                const dacVolt = (levelIdx / maxLevelIdx) * 5.0;
+                const qErr = sampleRawV - dacVolt;
+
+                return (
+                  <div className="bg-[#02050c]/50 border border-purple-900/10 rounded-2xl p-5 space-y-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-900/80 pb-2.5 gap-2">
+                      <div>
+                        <h5 className="font-sans font-extrabold text-[#f1f5f9] text-xs uppercase tracking-wider flex items-center gap-1.5 font-bold">
+                          <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
+                          Real-Time Hardware Signal Conversion Pipeline Demo
+                        </h5>
+                        <p className="font-sans text-[10px] text-slate-400 leading-tight">
+                          Trace physical electric waves being digitized (ADC) and reconstructed back to electric currents (DAC):
+                        </p>
+                      </div>
+                      <span className="font-mono text-[8px] bg-purple-950/40 text-[#c084fc] border border-purple-900/30 px-2 py-0.5 rounded font-extrabold uppercase animate-pulse">
+                        COMPANION SCHEMATIC VIEW
+                      </span>
+                    </div>
+
+                    <div className="bg-[#050914] border border-purple-900/30 p-4 rounded-xl space-y-3">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                          <span className="font-mono text-[8.5px] text-[#22d3ee] font-black tracking-widest block uppercase">Interactive System-Level Signal & Actuation Loop</span>
+                        </div>
+                        <span className="font-mono text-[7px] bg-purple-950/60 text-purple-400 px-2 py-0.5 rounded border border-purple-900/30 font-bold uppercase whitespace-nowrap">
+                          LOOP PROCESS VIEW
+                        </span>
+                      </div>
+
+                      <svg className="w-full h-auto select-none overflow-visible" viewBox="0 0 540 100" style={{ minHeight: "100px" }}>
+                        {/* Connection wires */}
+                        <path d="M 75,50 L 210,50" stroke="#090d16" strokeWidth="8" strokeLinecap="round" />
+                        <path d="M 75,50 L 210,50" stroke="#22d3ee" strokeWidth="2" strokeDasharray="3,3" strokeLinecap="round" opacity="0.3" />
+
+                        <path d="M 330,50 L 465,50" stroke="#090d16" strokeWidth="8" strokeLinecap="round" />
+                        <path d="M 330,50 L 465,50" stroke="#a855f7" strokeWidth="2" strokeDasharray="3,3" strokeLinecap="round" opacity="0.3" />
+
+                        {/* Sensor */}
+                        <rect x="5" y="15" width="70" height="70" rx="8" fill="#02050c" stroke="#1e293b" strokeWidth="1.5" />
+                        <circle cx="40" cy="45" r="14" fill="#06d6a0" fillOpacity="0.05" stroke="#06d6a0" strokeWidth="0.8" strokeDasharray="2,2" />
+                        <circle cx="40" cy="45" r="4.5" fill="#06d6a0" className="animate-pulse" />
+                        <text x="40" y="74" textAnchor="middle" className="fill-slate-400 font-mono text-[6.5px] font-bold">RAW SENSOR</text>
+                        <text x="40" y="27" textAnchor="middle" className="fill-[#06d6a0] font-mono text-[8px] font-black">{sampleRawV.toFixed(2)}V</text>
+
+                        {/* Controller MCU */}
+                        <rect x="210" y="5" width="120" height="90" rx="8" fill="#02050c" stroke="#4f46e5" strokeWidth="1.5" />
+                        
+                        {/* ADC */}
+                        <rect x="216" y="25" width="50" height="58" rx="4" fill="#090d16" stroke="#0891b2" strokeWidth="1" />
+                        <text x="241" y="35" textAnchor="middle" className="fill-cyan-400 font-mono text-[7px] font-extrabold">ADC</text>
+                        <text x="241" y="47" textAnchor="middle" className="fill-slate-500 font-mono text-[6px]">DIGITAL OUT</text>
+                        <text x="241" y="60" textAnchor="middle" className="fill-[#34d399] font-mono text-[7.5px] font-black">b{binWord}</text>
+                        <text x="241" y="72" textAnchor="middle" className="fill-slate-400 font-mono text-[6.5px]">Lvl {levelIdx}</text>
+
+                        {/* Internal link */}
+                        <path d="M 266,50 L 274,50" stroke="#4f46e5" strokeWidth="1" strokeDasharray="1,1" />
+
+                        {/* DAC */}
+                        <rect x="274" y="25" width="50" height="58" rx="4" fill="#090d16" stroke="#d97706" strokeWidth="1" />
+                        <text x="299" y="35" textAnchor="middle" className="fill-amber-500 font-mono text-[7px] font-extrabold">DAC</text>
+                        <text x="299" y="47" textAnchor="middle" className="fill-slate-500 font-mono text-[6px]">RECONSTRUCT</text>
+                        <text x="299" y="60" textAnchor="middle" className="fill-[#a855f7] font-mono text-[7.5px] font-black">{dacVolt.toFixed(2)}V</text>
+                        <text x="299" y="72" textAnchor="middle" className="fill-slate-400 font-mono text-[6px]">({((1 - Math.abs(qErr)/5.0)*100).toFixed(0)}% acc)</text>
+
+                        <text x="270" y="15" textAnchor="middle" className="fill-indigo-300 font-mono text-[7.5px] font-black uppercase tracking-wider">MCU CORE</text>
+
+                        {/* Actuator */}
+                        <rect x="465" y="15" width="70" height="70" rx="8" fill="#02050c" stroke="#1e293b" strokeWidth="1.5" />
+                        <text x="500" y="74" textAnchor="middle" className="fill-slate-400 font-mono text-[6.5px] font-bold">DC MOTOR</text>
+                        <text x="500" y="27" textAnchor="middle" className="fill-[#3b82f6] font-mono text-[8px] font-black">{dacVolt.toFixed(2)}V</text>
+
+                        {/* Propeller */}
+                        <g>
+                          <g style={{ transformOrigin: "500px 46px", transform: `rotate(${(simTick * dacVolt * 12) % 360}deg)` }}>
+                            <circle cx="500" cy="46" r="4.5" fill="#475569" stroke="#64748b" strokeWidth="0.5" />
+                            <path d="M 500,46 Q 492,31 500,19 Q 508,31 500,46 Z" fill="#3b82f6" fillOpacity="0.85" stroke="#60a5fa" strokeWidth="0.5" />
+                            <path d="M 500,46 Q 492,61 500,73 Q 508,61 500,46 Z" fill="#3b82f6" fillOpacity="0.85" stroke="#60a5fa" strokeWidth="0.5" />
+                          </g>
+                          <circle cx="500" cy="46" r="1.5" fill="#cbd5e1" />
+                        </g>
+
+                        {/* CONTINUOUS SINE WAVE */}
+                        <path 
+                          d={(() => {
+                            let p = "M 75,50";
+                            for (let ix = 0; ix <= 135; ix++) {
+                              const px = 75 + ix;
+                              const phase = (simTick * 0.12);
+                              const angle = (ix / 135) * Math.PI * 2 * 2.5 - phase;
+                              const py = 50 + Math.sin(angle) * (6 + (sampleRawV * 1));
+                              p += ` L ${px},${py}`;
+                            }
+                            return p;
+                          })()}
+                          fill="none" 
+                          stroke="#22d3ee" 
+                          strokeWidth="1.2" 
+                          opacity="0.8"
+                        />
+
+                        {/* RECONSTRUCTED WAVE */}
+                        <path 
+                          d={(() => {
+                            let p = "M 324,50";
+                            const steps = 6;
+                            const stepWidth = 141 / steps;
+                            for (let s = 1; s <= steps; s++) {
+                              const px_start = 324 + (s-1)*stepWidth;
+                              const px_end = 324 + s*stepWidth;
+                              const phase = (simTick * 0.08);
+                              const angle = (s / steps) * Math.PI * 2 * 2.0 - phase;
+                              const stepY = 50 + Math.sin(angle) * (2 + (dacVolt * 2));
+                              p += ` L ${px_start},${stepY} L ${px_end},${stepY}`;
+                            }
+                            return p;
+                          })()}
+                          fill="none" 
+                          stroke="#a855f7" 
+                          strokeWidth="1.5" 
+                          opacity="0.8"
+                        />
+                      </svg>
+                      
+                      <div className="bg-[#1e1b4b]/20 p-2.5 rounded-lg border border-purple-950/40 text-center font-sans text-[10px] text-slate-400 leading-tight">
+                        Pipeline Process Summary: Since a microcontroller cannot interpret raw voltage directly, the <span className="text-cyan-400 font-extrabold">ADC</span> sample converts it into digital {adcResolutionBits}-bit intervals. These discrete packets are processed inside the MCU and sent straight back to the <span className="text-amber-500 font-extrabold">DAC</span> which outputs a scaled reconstructed voltage to control the mechanical spinning of physical system actuators.
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch text-left">
+                      
+                      {/* STAGE 1: ANALOG INPUT TRANSCEIVER */}
+                      <div className="bg-slate-950/80 border border-slate-900/80 rounded-xl p-3 flex flex-col justify-between relative overflow-hidden h-48">
+                        <div className="absolute top-1 right-2 font-mono text-[7px] text-slate-500 uppercase font-black">STAGE 1</div>
+                        <div className="space-y-1">
+                          <span className="font-mono text-[8.5px] text-cyan-400 font-extrabold uppercase tracking-wide font-black">ANALOG IN (Voltage Wave)</span>
+                          <p className="font-sans text-[9px] text-slate-400 leading-tight">
+                            Continuous voltage wave representing a physical sensor.
+                          </p>
+                        </div>
+
+                        {/* Input tracer preview */}
+                        <div className="h-16 bg-slate-950 border border-slate-900/60 rounded-lg flex items-center justify-center relative overflow-hidden my-2">
+                          <svg className="w-full h-full" viewBox="0 0 120 40" preserveAspectRatio="none">
+                            {isLiveAdc ? (
+                              <path 
+                                d={(() => {
+                                  let p = "M 0,20";
+                                  for (let x = 0; x <= 120; x++) {
+                                    const phase = (simTick * 0.1);
+                                    const angle = (x / 120) * Math.PI * 2 * 1.5 - phase;
+                                    const y = 20 + Math.sin(angle) * 12;
+                                    p += ` L ${x},${y}`;
+                                  }
+                                  return p;
+                                })()}
+                                fill="none" 
+                                stroke="#22d3ee" 
+                                strokeWidth="1" 
+                              />
+                            ) : (
+                              <line x1="0" y1={40 - (manualSampleValue/5.0)*30 - 5} x2="120" y2={40 - (manualSampleValue/5.0)*30 - 5} stroke="#22d3ee" strokeWidth="1.5" />
+                            )}
+                          </svg>
+                          <div className="absolute bottom-1 left-2 font-mono text-[8px] text-cyan-400 font-bold">
+                            V(in) = {sampleRawV.toFixed(2)}V
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center bg-slate-950 px-2 py-1 select-none rounded-md border border-slate-900 font-mono text-[8.5px]">
+                          <span className="text-slate-500 font-bold font-extrabold">SOURCE:</span>
+                          <span className="text-cyan-400 font-extrabold">{isLiveAdc ? "SINE WAVE GENERATOR" : "MANUAL SWEEP"}</span>
+                        </div>
+                      </div>
+
+                      {/* STAGE 2: ADC */}
+                      <div className="bg-slate-950/80 border border-slate-900/80 rounded-xl p-3 flex flex-col justify-between relative overflow-hidden h-48">
+                        <div className="absolute top-1 right-2 font-mono text-[7px] text-slate-500 uppercase font-black">STAGE 2</div>
+                        <div className="space-y-1">
+                          <span className="font-mono text-[8.5px] text-purple-400 font-extrabold uppercase tracking-wide font-black">ANALOG-TO-DIGITAL (ADC)</span>
+                          <p className="font-sans text-[9px] text-slate-400 leading-tight">
+                            Digitizes input voltage into {adcResolutionBits}-bit register binary word.
+                          </p>
+                        </div>
+
+                        {/* Flashing binary bits output */}
+                        <div className="flex flex-col items-center justify-center my-2 space-y-1">
+                          <span className="font-mono text-[7px] text-slate-550 text-slate-500 font-extrabold uppercase">OUTPUT BUS REGISTERS</span>
+                          <div className="flex justify-center items-center gap-1">
+                            {binWord.split("").map((bit, idx) => {
+                              const isHigh = bit === "1";
+                              return (
+                                <div key={idx} className={`p-1 flex flex-col items-center justify-between border rounded-md min-w-[28px] h-[44px] transition-all bg-[#040812] ${isHigh ? "border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.1)]" : "border-slate-900/80"}`}>
+                                  <div className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${isHigh ? "bg-emerald-400 shadow-[0_0_8px_#34d399]" : "bg-slate-800"}`} />
+                                  <span className="font-mono text-[8.5px] font-black text-white mt-0.5">{bit}</span>
+                                  <span className="font-mono text-[6px] text-slate-500 font-black leading-none uppercase mt-0.5">D{adcResolutionBits - 1 - idx}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center bg-slate-950 px-2 py-1 rounded-md border border-slate-900 font-mono text-[8.5px]">
+                          <span className="text-slate-500 font-bold font-extrabold">DIGITAL VALUE:</span>
+                          <span className="text-emerald-400 font-black">b{binWord} (Lvl {levelIdx})</span>
+                        </div>
+                      </div>
+
+                      {/* STAGE 3: DAC */}
+                      <div className="bg-slate-950/80 border border-slate-900/80 rounded-xl p-3 flex flex-col justify-between relative overflow-hidden h-48">
+                        <div className="absolute top-1 right-2 font-mono text-[7px] text-slate-500 uppercase font-black">STAGE 3</div>
+                        <div className="space-y-1">
+                          <span className="font-mono text-[8.5px] text-amber-500 font-extrabold uppercase tracking-wide font-black">DIGITAL-TO-ANALOG (DAC)</span>
+                          <p className="font-sans text-[9px] text-slate-400 leading-tight">
+                            Resistor R-2R ladder sums weighted bits back into analog staircase voltage.
+                          </p>
+                        </div>
+
+                        {/* R-2R networking schematic */}
+                        <div className="h-16 bg-slate-950 border border-slate-900/60 rounded-lg flex flex-col items-center justify-center relative overflow-hidden my-2 py-1 space-y-0.5">
+                          <div className="flex items-center gap-1 text-[#fbbf24] font-mono text-[8px] tracking-tight">
+                            <span>REG BUS</span>
+                            <span>➔</span>
+                            <span className="bg-amber-950/20 px-1 border border-amber-900/40 rounded text-[7px]">R-2R NET</span>
+                            <span>➔</span>
+                            <span className="text-purple-400 font-bold">DAC V(out)</span>
+                          </div>
+                          <svg className="w-full h-7 mb-0.5" viewBox="0 0 120 30">
+                            <line x1="10" y1="5" x2="110" y2="5" stroke="#1e293b" strokeWidth="1" />
+                            <text x="10" y="27" fill="#fbbf24" fontSize="6px" fontFamily="monospace">LSB</text>
+                            <text x="100" y="27" fill="#fbbf24" fontSize="6px" fontFamily="monospace">MSB</text>
+
+                            {[20, 45, 70, 95].map((x, i) => {
+                              const bitIdx = adcResolutionBits - 1 - i;
+                              const isBitHigh = bitIdx >= 0 ? binWord[bitIdx] === "1" : false;
+                              return (
+                                <g key={i}>
+                                  <line x1={x} y1="5" x2={x} y2="15" stroke={isBitHigh ? "#fbbf24" : "#1e293b"} strokeWidth={isBitHigh ? "1.2" : "1"} />
+                                  <rect x={x-2} y="11" width="4" height="6" fill="#1e293b" stroke={isBitHigh ? "#fbbf24" : "#475569"} strokeWidth="0.8" rx="1" />
+                                </g>
+                              );
+                            })}
+                            <line x1="20" y1="18" x2="110" y2="18" stroke="#f59e0b" strokeWidth="1" strokeDasharray="1,1" />
+                          </svg>
+                          <div className="absolute bottom-0.5 right-2 font-mono text-[7px] text-amber-500 font-bold">
+                            Recon V = {dacVolt.toFixed(2)}V
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center bg-slate-950 px-2 py-1 rounded-md border border-slate-900 font-mono text-[8.5px]">
+                          <span className="text-slate-500 font-extrabold uppercase flex items-center justify-between">DAC ACCURACY:</span>
+                          <span className="text-amber-400 font-extrabold">{dacVolt.toFixed(2)}V ({((1 - Math.abs(qErr)/5.0)*100).toFixed(0)}%)</span>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                );
+              })()}
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t border-slate-900 bg-[#060a12] p-4 text-center text-xs text-slate-500 select-none">
+              Interactive Hardware Emulation Module • Change ADC/DAC parameters or modes to observe live digital quantization effects.
+            </div>
+
           </div>
         </div>
       )}
