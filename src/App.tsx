@@ -15,7 +15,7 @@ import AIOutputRenderer from "./components/AIOutputRenderer";
 import HomePage from "./components/HomePage";
 import PremiumLogo from "./components/PremiumLogo";
 import { CreatorProfileModal } from "./components/CreatorProfileCard";
-import { Cpu, Zap, Eye, HelpCircle, HardDrive, Compass, BookOpen, Clock, Activity, Settings, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Terminal, Radio, Layers, Info, Sliders, Database, Code2, Network, X, Brain, RefreshCw } from "lucide-react";
+import { Cpu, Zap, Eye, HelpCircle, HardDrive, Compass, BookOpen, Clock, Activity, Settings, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Terminal, Radio, Layers, Info, Sliders, Database, Code2, Network, X, Brain, Check, RefreshCw } from "lucide-react";
 import { motion } from "motion/react";
 
 interface SignalDetails {
@@ -1138,12 +1138,12 @@ export default function App() {
 
       {/* Control Loop Decoder Modal Overlay - Top Level to ignore any panel spacing/framing constraints */}
       {controlLoopModalType && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-md">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center pt-20 pb-20 px-4 sm:p-6 bg-slate-950/95 backdrop-blur-md overflow-hidden">
           <div className="absolute inset-0 cursor-pointer" onClick={() => setControlLoopModalType(null)} />
           <motion.div 
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-3xl bg-[#030922] border-2 border-slate-700 rounded-2xl p-4 sm:p-6 md:p-8 relative overflow-hidden shadow-2xl z-10 text-left cursor-default max-h-[96vh] sm:max-h-[90vh] flex flex-col justify-between"
+            className="w-full max-w-3xl bg-[#030922] border-2 border-slate-700 rounded-2xl p-4 sm:p-6 md:p-8 relative overflow-hidden shadow-2xl z-10 text-left cursor-default max-h-[75vh] md:max-h-[85vh] flex flex-col justify-between"
           >
             {/* Ambient indicator lights */}
             <div className={`absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r ${controlLoopModalType === "closed" ? "from-transparent via-cyan-500 to-transparent" : "from-transparent via-amber-500 to-transparent"}`} />
@@ -1302,6 +1302,21 @@ export default function App() {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Locked Footer Action row to ensure Close/Acknowledge command is always visible without scrolling up */}
+            <div className="pt-4 border-t border-slate-900/80 mt-4 shrink-0 flex items-center justify-end w-full">
+              <button
+                onClick={() => setControlLoopModalType(null)}
+                className={`w-full sm:w-auto px-6 py-3 font-mono text-[11px] font-black tracking-widest rounded-xl transition-all duration-200 active:scale-95 cursor-pointer uppercase flex items-center justify-center gap-2 border shadow-lg ${
+                  controlLoopModalType === "closed"
+                    ? "bg-cyan-500 hover:bg-cyan-400 text-slate-950 border-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                    : "bg-amber-500 hover:bg-amber-400 text-slate-950 border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.4)]"
+                }`}
+              >
+                <Check className="w-4 h-4 text-slate-950" />
+                <span>Acknowledged &amp; Close</span>
+              </button>
             </div>
           </motion.div>
         </div>
