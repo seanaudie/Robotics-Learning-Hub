@@ -696,8 +696,8 @@ export default function App() {
 
                         <div className="flex items-center justify-between border-b border-slate-800/60 pb-3 mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping" />
-                            <span className="font-mono text-[9px] text-sky-400 font-extrabold tracking-widest uppercase">Component Diagnostics</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-ping" />
+                            <span className="font-mono text-[9px] text-fuchsia-400 font-extrabold tracking-widest uppercase drop-shadow-[0_0_5px_rgba(217,70,239,0.5)] animate-pulse">Component Diagnostics</span>
                           </div>
                           <span className="font-mono text-[8.5px] text-slate-500">REF: 2026-X4</span>
                         </div>
@@ -1138,12 +1138,12 @@ export default function App() {
 
       {/* Control Loop Decoder Modal Overlay - Top Level to ignore any panel spacing/framing constraints */}
       {controlLoopModalType && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-md">
           <div className="absolute inset-0 cursor-pointer" onClick={() => setControlLoopModalType(null)} />
           <motion.div 
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-3xl bg-[#03091e] border-2 border-slate-850 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-2xl z-10 text-left cursor-default max-h-[90vh] flex flex-col justify-between"
+            className="w-full max-w-3xl bg-[#030922] border-2 border-slate-700 rounded-2xl p-4 sm:p-6 md:p-8 relative overflow-hidden shadow-2xl z-10 text-left cursor-default max-h-[96vh] sm:max-h-[90vh] flex flex-col justify-between"
           >
             {/* Ambient indicator lights */}
             <div className={`absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r ${controlLoopModalType === "closed" ? "from-transparent via-cyan-500 to-transparent" : "from-transparent via-amber-500 to-transparent"}`} />
@@ -1881,6 +1881,7 @@ const RabbitLogo = () => (
 
 const RoboticsAiCore = () => {
   const [activeParadigm, setActiveParadigm] = useState<"supervised" | "unsupervised" | "reinforcement" | null>(null);
+  const [showMdpModal, setShowMdpModal] = useState(false);
 
   const handleSelectParadigm = (paradigm: "supervised" | "unsupervised" | "reinforcement") => {
     setActiveParadigm(prev => {
@@ -3132,7 +3133,17 @@ const RoboticsAiCore = () => {
             <div>
               <div className="flex items-center justify-between border-b border-slate-900 pb-3 mb-4 select-none">
                 <span className="font-mono text-[8px] text-purple-400 font-extrabold tracking-wider uppercase block">REINFORCEMENT BALANCING: INVERTED PENDULUM</span>
-                <span className="font-mono text-[7px] px-1.5 py-0.5 rounded border border-purple-950 text-purple-450 bg-purple-950/10 uppercase">AGENT STRATEGY CORE</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowMdpModal(true)}
+                    className="font-mono text-[7px] px-2 py-0.5 rounded border border-purple-500/30 text-purple-300 bg-purple-500/10 hover:bg-purple-500 hover:text-slate-950 transition-all font-extrabold uppercase cursor-pointer flex items-center gap-1 shadow-sm hover:shadow-purple-500/25 active:scale-95"
+                    title="Open Markov Decision Process (MDP) Interactive Guide"
+                  >
+                    <BookOpen className="w-2.5 h-2.5" /> MDP Guide
+                  </button>
+                  <span className="font-mono text-[7px] px-1.5 py-0.5 rounded border border-purple-950 text-purple-450 bg-purple-950/10 uppercase">AGENT STRATEGY CORE</span>
+                </div>
               </div>
 
               {/* Selector for Episode Stages */}
@@ -3309,6 +3320,228 @@ const RoboticsAiCore = () => {
             >
               {isRlRunning ? "STOP BALANCE LOGGING TRIAL" : "ENGAGE PENDULUM BALANCING TRIAL"}
             </button>
+          </div>
+        )}
+
+        {/* MDP Guide Modal Overlay - rendered conditionally inside component scope */}
+        {showMdpModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-md">
+            <div className="absolute inset-0 cursor-pointer" onClick={() => setShowMdpModal(false)} />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="w-full max-w-4xl bg-[#090518] border-2 border-purple-900/60 rounded-2xl p-4 sm:p-6 md:p-8 relative overflow-hidden shadow-2xl z-10 text-left cursor-default max-h-[94vh] sm:max-h-[90vh] flex flex-col justify-between"
+            >
+              {/* Top glowing ambient strip */}
+              <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
+              
+              {/* Modal Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-purple-950/40 mb-5 shrink-0 select-none">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl border border-purple-800 bg-purple-500/10 text-purple-400 flex items-center justify-center shadow-[0_0_12px_rgba(168,85,247,0.15)]">
+                    <Brain className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <span className="font-mono text-[8px] font-extrabold uppercase tracking-widest text-purple-400 block">REINFORCEMENT LEARNING CORE</span>
+                    <p className="font-sans text-[13px] sm:text-base font-extrabold text-slate-100 leading-tight">
+                      Markov Decision Process (MDP) Interactive Guide
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowMdpModal(false)}
+                  className="w-7 h-7 bg-slate-950/80 border border-slate-900 hover:border-purple-800/40 hover:bg-purple-950/30 text-slate-400 hover:text-purple-300 rounded-lg flex items-center justify-center cursor-pointer transition-all active:scale-90"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Scrollable Contents */}
+              <div className="flex-1 overflow-y-auto pr-1 space-y-5 custom-scrollbar font-sans text-xs text-slate-300 leading-relaxed md:pb-4">
+                
+                {/* Introduction Card */}
+                <div className="p-4 bg-purple-950/10 border border-purple-900/20 rounded-xl space-y-2">
+                  <div className="flex items-center gap-1.5 font-mono text-[9px] text-purple-400 font-extrabold uppercase">
+                    <Info className="w-3.5 h-3.5" /> What is an MDP?
+                  </div>
+                  <p>
+                    A <strong>Markov Decision Process (MDP)</strong> is a classical mathematical framework used to model decision-making in environments where outcomes are partially random and partially under the control of a decision-maker (the agent). It forms the foundational model for almost all <strong>Reinforcement Learning (RL)</strong> algorithms.
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    The term <strong>"Markov"</strong> indicates that the environment complies with the <em>Markov Property</em>: the future is conditionally independent of the past given the present state. In other words, to make an optimal decision, you only need to know the current state, not how you got there.
+                  </p>
+                </div>
+
+                {/* MDP Mapping Table */}
+                <div className="space-y-2.5">
+                  <div className="flex justify-between items-center select-none">
+                    <span className="font-mono text-[9px] text-purple-400 font-extrabold uppercase tracking-wider block">
+                      [TABLE 1.0] THE 5-TUPLE FORMULATION MAPPED TO OUR CART-POLE
+                    </span>
+                    <span className="font-mono text-[7px] text-slate-500 font-bold uppercase">
+                      HOVER TO REVEAL CORRESPONDENCE
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-xl border border-purple-950/30 bg-[#04020a]">
+                    <table className="w-full text-left font-mono text-[10px] sm:text-[11px] border-collapse min-w-[600px]">
+                      <thead>
+                        <tr className="bg-purple-950/30 border-b border-purple-950/50 text-purple-400 font-extrabold uppercase select-none">
+                          <th className="p-3 text-[9px] w-[18%]">Tuple Component</th>
+                          <th className="p-3 text-[9px] w-[27%]">Mathematical Role</th>
+                          <th className="p-3 text-[9px] text-purple-300 w-[20%]">Simulation Values</th>
+                          <th className="p-3 text-[9px] text-slate-500 w-[35%]">Physical Execution Detail</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-purple-950/20 text-slate-300">
+                        <tr className="hover:bg-purple-500/5 transition-colors">
+                          <td className="p-3 font-semibold text-slate-100 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                            State (<span className="text-purple-400">S</span>)
+                          </td>
+                          <td className="p-3 text-slate-400 leading-snug">
+                            All environmental variables the agent relies on. At step t, state is S_t ∈ S.
+                          </td>
+                          <td className="p-3 text-purple-350 font-bold">
+                            [ x, dx, θ, dθ ]
+                          </td>
+                          <td className="p-3 text-slate-300 leading-normal">
+                            Readings from linear position sensor (Cart position/velocity) & rotary encoder (Pole angle/angular velocity).
+                          </td>
+                        </tr>
+                        <tr className="hover:bg-purple-500/5 transition-colors">
+                          <td className="p-3 font-semibold text-slate-100 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                            Action (<span className="text-purple-400">A</span>)
+                          </td>
+                          <td className="p-3 text-slate-400 leading-snug">
+                            Available choices A_t ∈ A the agent can select to execute.
+                          </td>
+                          <td className="p-3 text-purple-350 font-bold">
+                            [ LEFT, RIGHT ]
+                          </td>
+                          <td className="p-3 text-slate-300 leading-normal">
+                            Fires motor voltage states to drive cart base left (-10N thrust) or right (+10N thrust) to counter dynamic gravity load vectors.
+                          </td>
+                        </tr>
+                        <tr className="hover:bg-purple-500/5 transition-colors">
+                          <td className="p-3 font-semibold text-slate-100 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                            Transition (<span className="text-purple-400">P</span>)
+                          </td>
+                          <td className="p-3 text-slate-400 leading-snug">
+                            Probability of landing on s' from (s, a): P(s' | s, a).
+                          </td>
+                          <td className="p-3 text-purple-350 font-bold">
+                            Deterministic Physics
+                          </td>
+                          <td className="p-3 text-slate-300 leading-normal">
+                            Governed by friction coefficients, force thrust magnitude, cart mass, mass center, and current gravity fields.
+                          </td>
+                        </tr>
+                        <tr className="hover:bg-purple-500/5 transition-colors">
+                          <td className="p-3 font-semibold text-slate-100 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            Reward (<span className="text-purple-400">R</span>)
+                          </td>
+                          <td className="p-3 text-slate-400 leading-snug">
+                            Feedback score R(s, a) indicating immediate goodness of action.
+                          </td>
+                          <td className="p-3 text-purple-350 font-bold">
+                            +100 pts or 0 pts
+                          </td>
+                          <td className="p-3 text-slate-300 leading-normal">
+                            Gives +100 reward for each time step the pole is kept within ±36° and cart remains on track. Returns 0 on tipping reset.
+                          </td>
+                        </tr>
+                        <tr className="hover:bg-purple-500/5 transition-colors">
+                          <td className="p-3 font-semibold text-slate-100 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                            Discount (<span className="text-purple-400">γ</span>)
+                          </td>
+                          <td className="p-3 text-slate-400 leading-snug">
+                            Gamma γ ∈ [0, 1] models the importance given to future rewards.
+                          </td>
+                          <td className="p-3 text-purple-350 font-bold">
+                            γ = 0.99
+                          </td>
+                          <td className="p-3 text-slate-300 leading-normal">
+                            Prioritizes far-reaching structural safety. It forces the agent to prevent early wiggles that lead inevitably to tipping.
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* The Bellman & Q-Learning Section */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                  <div className="md:col-span-7 space-y-2.5">
+                    <span className="font-mono text-[9px] text-purple-400 font-extrabold uppercase tracking-wider block">
+                      Learning via Q-Value Estimation
+                    </span>
+                    <p className="text-[11px] text-slate-350 leading-relaxed animate-pulse">
+                      By modeling the environment as an MDP, the agent uses <strong>temporal-difference learning</strong> to approximate the value of performing an action a inside a specific state s. This status metric is stored as Q(s, a).
+                    </p>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      When training our cart-pole model across episodes (e.g. Episode 5 to Episode 250), the system continuously updates its policy matrix using the classic <strong>Bellman Update Equation</strong> displayed on the right. Over hundreds of balancing trials, the optimal action coordinates converge.
+                    </p>
+                  </div>
+                  <div className="md:col-span-5 bg-black/40 border border-purple-950/40 p-3.5 rounded-xl flex flex-col justify-center space-y-2 select-none">
+                    <span className="font-mono text-[8.5px] text-purple-400 font-extrabold uppercase leading-none block">THE BELLMAN UPDATE EQUATION</span>
+                    <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-900 font-mono text-[9px] sm:text-[10px] text-center text-purple-300 leading-normal">
+                      {"Q(s, a) ⟵ Q(s, a) + α [ r + γ max_a' Q(s', a') - Q(s, a) ]"}
+                    </div>
+                    <div className="font-mono text-[7.5px] text-slate-500 space-y-0.5 leading-snug">
+                      <p>• <strong className="text-purple-400">α (Alpha):</strong> Learning rate, governing speed of update.</p>
+                      <p>• <strong className="text-purple-400">r:</strong> Current step scalar reward (+100 pts).</p>
+                      <p>• <strong className="text-purple-400">γ (Gamma):</strong> Future discount (set to 0.99).</p>
+                      <p>• <strong className="text-purple-400">max Q(s', a'):</strong> Max potential value expected in next state.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Training Stages Explained */}
+                <div className="space-y-2 shrink-0 border-t border-purple-950/30 pt-4">
+                  <span className="font-mono text-[9px] text-purple-400 font-extrabold uppercase tracking-wider block">
+                    How Training Affects the MDP Decisions
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 font-mono text-[9px] sm:text-[10px]">
+                    <div className="p-3 bg-red-950/5 border border-red-900/10 rounded-lg space-y-1.5">
+                      <span className="text-red-400 font-extrabold block uppercase">[Untrained Pilot]</span>
+                      <p className="text-slate-400 text-[9px] leading-snug font-sans">
+                        The Q-table is filled with zeroes or random weights. The agent initiates random actions, immediately tilting the pole past the failure boundary.
+                      </p>
+                    </div>
+                    <div className="p-3 bg-sky-950/5 border border-sky-900/10 rounded-lg space-y-1.5">
+                      <span className="text-sky-400 font-extrabold block uppercase">[Adaptive wobbles]</span>
+                      <p className="text-slate-400 text-[9px] leading-snug font-sans">
+                        The agent has mapped critical hazard zones. It performs continuous aggressive Left/Right actions, wobbling significantly but maintaining survival.
+                      </p>
+                    </div>
+                    <div className="p-3 bg-emerald-950/5 border border-emerald-900/10 rounded-lg space-y-1.5">
+                      <span className="text-emerald-400 font-extrabold block uppercase">[Optimal policy]</span>
+                      <p className="text-slate-400 text-[9px] leading-snug font-sans">
+                        The state-action value landscape is perfectly converged. The system predicts minor offset angles early, maintaining near-perfect rest posture.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Modal Footer Controls */}
+              <div className="pt-4 border-t border-purple-950/40 flex justify-end gap-2 shrink-0 select-none">
+                <button
+                  type="button"
+                  onClick={() => setShowMdpModal(false)}
+                  className="px-4 py-2 bg-gradient-to-r from-purple-800 to-indigo-800 hover:from-purple-700 hover:to-indigo-700 text-white font-mono text-[10px] font-bold rounded-lg cursor-pointer transition-all active:scale-95 shadow-[0_0_15px_rgba(168,85,247,0.25)] select-none uppercase"
+                >
+                  ACQUIRE &amp; CLOSE STATION
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
 

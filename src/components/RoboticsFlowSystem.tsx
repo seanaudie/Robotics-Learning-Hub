@@ -495,8 +495,8 @@ export default function RoboticsFlowSystem() {
   useEffect(() => {
     if (!activeId) return;
     const timer = setInterval(() => {
-      setSimTick((t) => t + 1);
-    }, 100);
+      setSimTick((t) => t + 1.5);
+    }, 45);
     return () => clearInterval(timer);
   }, [activeId]);
 
@@ -2760,23 +2760,23 @@ export default function RoboticsFlowSystem() {
 
         return createPortal(
           <div 
-            className="fixed inset-0 z-[100000] overflow-y-auto bg-slate-950/85 backdrop-blur-md p-3 sm:p-6 flex justify-center items-start" 
+            className="fixed inset-0 z-[100000] overflow-hidden bg-slate-950/95 backdrop-blur-md p-2 sm:p-4 flex justify-center items-center" 
             onClick={() => setSelectedExample(null)}
           >
             <div 
-              className="w-full max-w-4xl bg-[#030919] border border-slate-800 rounded-2xl overflow-hidden shadow-[0_0_55px_rgba(56,189,248,0.3)] relative flex flex-col my-auto select-none text-left animate-slideUp"
+              className="w-full max-w-4xl bg-[#030a21] border-2 border-slate-750 rounded-2xl overflow-hidden shadow-[0_0_55px_rgba(56,189,248,0.3)] relative flex flex-col max-h-[96vh] sm:max-h-[92vh] select-none text-left animate-slideUp"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Scanline beam visual */}
               <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse" />
               
               {/* Modal Header */}
-              <div className="p-5 border-b border-slate-900 pb-4 flex items-start justify-between bg-[#01050e]/40">
+              <div className="p-4 sm:p-5 border-b border-slate-900 pb-4 flex items-start justify-between bg-[#01050e]/45 shrink-0">
                 <div>
                   <span className="font-mono text-[9px] font-black uppercase tracking-widest text-sky-400 bg-sky-950/55 px-2 py-0.5 rounded border border-sky-400/10">
                     {detail?.category.toUpperCase()} DIAGNOSTIC SUITE
                   </span>
-                  <h3 className="font-sans font-black text-white text-lg sm:text-2xl uppercase tracking-tight mt-1.5">
+                  <h3 className="font-sans font-black text-white text-base sm:text-2xl uppercase tracking-tight mt-1.5">
                     {detail?.name}
                   </h3>
                   <span className="font-mono text-[10px] text-slate-500 font-bold uppercase tracking-wide">
@@ -2785,14 +2785,14 @@ export default function RoboticsFlowSystem() {
                 </div>
                 <button 
                   onClick={() => setSelectedExample(null)}
-                  className="font-mono text-[10px] tracking-wider font-extrabold text-slate-400 hover:text-white transition-colors uppercase border border-slate-800 hover:border-slate-700 bg-slate-950/45 px-3 py-1.5 rounded-lg cursor-pointer select-none shrink-0"
+                  className="font-mono text-[10px] tracking-wider font-extrabold text-slate-400 hover:text-white transition-colors uppercase border border-slate-800 hover:border-slate-750 bg-slate-950/45 px-3 py-1.5 rounded-lg cursor-pointer select-none shrink-0"
                 >
                   Close (ESC)
                 </button>
               </div>
 
               {/* Direct Grid Deck - Spec Parameters, Theory & Interactive Oscilloscope Signal waveforms side-by-side */}
-              <div className="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5 select-none bg-[#020612]/20">
+              <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5 select-none bg-[#020612]/20 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-slate-800">
                 
                 {/* Left Column: Category Spec Parameters & Description Block */}
                 <div className="lg:col-span-7 flex flex-col gap-5 text-left">

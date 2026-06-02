@@ -292,7 +292,7 @@ export const SevenSegInteractiveModal: React.FC<SevenSegInteractiveModalProps> =
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm overflow-y-auto" id="seven-segment-interactive-modal">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-sm overflow-hidden" id="seven-segment-interactive-modal">
           <div className="absolute inset-0 cursor-pointer" onClick={onClose} />
           
           <motion.div
@@ -300,7 +300,7 @@ export const SevenSegInteractiveModal: React.FC<SevenSegInteractiveModalProps> =
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ type: "spring", duration: 0.4 }}
-            className="relative w-full max-w-6xl rounded-2xl border border-slate-800 bg-[#0a0f24] p-5 md:p-6 shadow-2xl space-y-5 text-left z-10 my-4 overflow-hidden max-h-[92vh] flex flex-col"
+            className="relative w-full max-w-6xl rounded-2xl border-2 border-slate-700 bg-[#070b1e] p-3 sm:p-5 md:p-6 shadow-2xl space-y-3 sm:space-y-5 text-left z-10 my-2 overflow-hidden max-h-[96vh] sm:max-h-[92vh] flex flex-col"
           >
             {/* Glowing Ambient Background Circles */}
             <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-cyan-500/5 blur-3xl pointer-events-none" />

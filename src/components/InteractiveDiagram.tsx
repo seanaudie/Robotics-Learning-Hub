@@ -1579,20 +1579,20 @@ export default function InteractiveDiagram({
         </div>
 
         {/* Dynamic Navigation Mode Toggle Tabs */}
-        <div className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-lg border border-slate-800 text-[11px] self-start sm:self-auto font-mono">
+        <div className="flex items-center gap-1.5 bg-[#0e1630] p-1.5 rounded-xl border-2 border-slate-700/90 text-[11px] self-start sm:self-auto font-mono">
           <button
             onClick={() => setViewMode("realphoto")}
-            className={`px-3 py-1.5 rounded transition-all font-bold flex items-center gap-1.5 ${
-              activeMode === "realphoto" ? "bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20" : "text-slate-400 hover:text-slate-200"
+            className={`px-3.5 py-2.5 rounded-lg transition-all font-black flex items-center gap-1.5 cursor-pointer uppercase ${
+              activeMode === "realphoto" ? "bg-sky-500 text-slate-950 shadow-lg shadow-sky-500/25 border border-sky-300" : "text-slate-350 hover:text-white hover:bg-[#162244]"
             }`}
           >
-            <Camera className="w-3.5 h-3.5" /> Real Photo
+            <Camera className="w-4 h-4" /> Real Photo
           </button>
           {hasHotspots && (
             <button
               onClick={() => setViewMode("crosssection")}
-              className={`px-3 py-1.5 rounded transition-all font-bold ${
-                activeMode === "crosssection" ? "bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20" : "text-slate-400 hover:text-slate-200"
+              className={`px-3.5 py-2.5 rounded-lg transition-all font-black cursor-pointer uppercase ${
+                activeMode === "crosssection" ? "bg-sky-500 text-slate-950 shadow-lg shadow-sky-500/25 border border-sky-300" : "text-slate-350 hover:text-white hover:bg-[#162244]"
               }`}
             >
               Cross-Section
@@ -1600,8 +1600,8 @@ export default function InteractiveDiagram({
           )}
           <button
             onClick={() => setViewMode("blueprint")}
-            className={`px-3 py-1.5 rounded transition-all font-bold ${
-              activeMode === "blueprint" ? "bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20" : "text-slate-400 hover:text-slate-200"
+            className={`px-3.5 py-2.5 rounded-lg transition-all font-black cursor-pointer uppercase ${
+              activeMode === "blueprint" ? "bg-sky-500 text-slate-950 shadow-lg shadow-sky-500/25 border border-sky-300" : "text-slate-350 hover:text-white hover:bg-[#162244]"
             }`}
           >
             Blueprint/Specs

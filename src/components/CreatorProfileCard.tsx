@@ -11,7 +11,7 @@ export function CreatorProfileModal({ isOpen, onClose }: CreatorProfileProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
           {/* Backdrop with cyber blur */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -27,7 +27,7 @@ export function CreatorProfileModal({ isOpen, onClose }: CreatorProfileProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-[#050c1e] border-2 border-sky-500/30 rounded-2xl p-6 md:p-8 max-w-2xl w-full relative overflow-hidden shadow-[0_0_50px_rgba(14,165,233,0.15)] z-10 font-sans"
+            className="bg-[#050c1e] border-2 border-sky-500/30 rounded-2xl p-4 sm:p-6 md:p-8 max-w-2xl w-full relative overflow-y-auto max-h-[96vh] sm:max-h-[92vh] shadow-[0_0_50px_rgba(14,165,233,0.15)] z-10 font-sans"
           >
             {/* Cyber Grid Lines */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#0c1322_1px,transparent_1px),linear-gradient(to_bottom,#0c1322_1px,transparent_1px)] bg-[size:16px_16px] opacity-10 pointer-events-none" />

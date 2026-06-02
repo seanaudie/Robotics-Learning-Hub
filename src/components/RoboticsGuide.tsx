@@ -923,7 +923,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSimTick((prev) => (prev + 1) % 12000);
+      setSimTick((prev) => (prev + 1.6) % 12000);
       
       // Keep background animations running for interactive 2D indicators
       if (activeCodingSubTab === "loops" && activeLoopExample === "servo") {
@@ -2198,7 +2198,7 @@ delay(250); // Pause execution`)}
             {/* Interactive Popup Modal for Shape Logic Guides */}
             <AnimatePresence>
               {showGlossaryModal && selectedShape && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm shadow-2xl" id="flowchart-glossary-modal">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-sm shadow-2xl" id="flowchart-glossary-modal">
                   <div className="absolute inset-0 cursor-pointer" onClick={() => setShowGlossaryModal(false)} />
                   
                   <motion.div
@@ -2206,7 +2206,7 @@ delay(250); // Pause execution`)}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 15 }}
                     transition={{ type: "spring", duration: 0.4 }}
-                    className="relative w-full max-w-md rounded-3xl border border-indigo-500/20 bg-slate-900 p-6 shadow-2xl space-y-4 text-left z-10"
+                    className="relative w-full max-w-md rounded-2xl border-2 border-slate-705 bg-[#090f2b] p-4 sm:p-6 shadow-2xl space-y-3 sm:space-y-4 text-left z-10 max-h-[96vh] flex flex-col overflow-hidden"
                   >
                     <div className="flex items-center justify-between border-b border-slate-805/70 pb-3">
                       <div className="flex items-center gap-2">
@@ -2392,7 +2392,7 @@ delay(250); // Pause execution`)}
               {/* Show Control Loop Selection & Hardware Specifications Modal */}
               <AnimatePresence>
                 {showControlLoopModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md" id="control-loop-specs-modal">
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-md" id="control-loop-specs-modal">
                     <div className="absolute inset-0 cursor-pointer" onClick={() => setShowControlLoopModal(false)} />
                     
                     <motion.div
@@ -2400,7 +2400,7 @@ delay(250); // Pause execution`)}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: 20 }}
                       transition={{ type: "spring", duration: 0.4 }}
-                      className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-indigo-500/20 bg-slate-950 p-6 md:p-8 shadow-2xl space-y-6 text-left z-10"
+                      className="relative w-full max-w-4xl max-h-[96vh] sm:max-h-[90vh] overflow-y-auto rounded-2xl border-2 border-slate-700 bg-[#04091e] p-4 sm:p-6 md:p-8 shadow-2xl space-y-4 sm:space-y-6 text-left z-10"
                     >
                       {/* Header */}
                       <div className="flex items-center justify-between border-b border-slate-900 pb-4">
@@ -5656,7 +5656,7 @@ delay(250); // Pause execution`)}
       {/* Combined Series & Parallel Circuit Sandbox Modal */}
       <AnimatePresence>
         {isCombinedCircuitModalOpen && (
-          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md overflow-y-auto animate-fadeIn" id="combined-circuit-sandbox-modal">
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-md overflow-hidden animate-fadeIn" id="combined-circuit-sandbox-modal">
             <div className="absolute inset-0 cursor-pointer" onClick={() => setIsCombinedCircuitModalOpen(false)} />
             
             <motion.div
@@ -5664,7 +5664,7 @@ delay(250); // Pause execution`)}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", duration: 0.4 }}
-              className="relative w-full max-w-4xl rounded-2xl border border-slate-800 bg-[#090e1f] p-5 md:p-6 shadow-2xl space-y-6 text-left z-10 my-4"
+              className="relative w-full max-w-4xl max-h-[96vh] sm:max-h-[92vh] overflow-y-auto rounded-2xl border-2 border-slate-705 bg-[#090e1f] p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-6 text-left z-10"
             >
               {/* Header */}
               <div className="flex items-center justify-between border-b border-slate-900 pb-3">
@@ -6111,9 +6111,9 @@ delay(250); // Pause execution`)}
 
       {/* Ohm's Law Highly Interactive Educational Modal Overlay */}
       {isOhmsModalOpen && (
-        <div className="fixed inset-0 z-[100005] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md shadow-2xl overflow-y-auto">
+        <div className="fixed inset-0 z-[100005] flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-md shadow-2xl overflow-hidden">
           <div 
-            className="bg-[#030919] border border-slate-800 rounded-3xl w-full max-w-5xl overflow-hidden shadow-[0_0_50px_rgba(56,189,248,0.25)] relative my-auto p-4 md:p-8 animate-slideUp text-left flex flex-col gap-6"
+            className="bg-[#03091e] border-2 border-slate-700 rounded-2xl w-full max-w-5xl overflow-y-auto max-h-[96vh] sm:max-h-[92vh] shadow-[0_0_50px_rgba(56,189,248,0.25)] relative p-3.5 md:p-8 animate-slideUp text-left flex flex-col gap-4 sm:gap-6"
             id="ohms-law-modal-container"
           >
             {/* Semi-translucent layout background details */}
@@ -6540,8 +6540,8 @@ delay(250); // Pause execution`)}
       )}
 
       {isAdcSandboxModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
-          <div className="relative w-full max-w-5xl bg-[#090d16] border border-purple-500/35 rounded-2xl shadow-[0_0_50px_rgba(168,85,247,0.25)] overflow-hidden flex flex-col my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-md overflow-hidden">
+          <div className="relative w-full max-w-5xl max-h-[96vh] sm:max-h-[92vh] overflow-y-auto bg-[#090d16] border-2 border-purple-500/45 rounded-2xl shadow-[0_0_50px_rgba(168,85,247,0.3)] flex flex-col">
             
             {/* Modal Header */}
             <div className="border-b border-purple-550/20 bg-[#120624] px-6 py-4 flex items-center justify-between">
