@@ -764,8 +764,8 @@ export default function RoboticsFlowSystem() {
                         {systemData.sensorSub}
                       </span>
                     </div>
-                    <div className="p-1.5 rounded-md bg-sky-950/45 border border-sky-500/10">
-                      <SensorIcon className={`w-4 h-4 transition-all duration-500 ${activeStep === "sensors" ? "text-sky-400 rotate-12 scale-110" : bootHighlightSensors ? "text-sky-400/80 scale-100" : "text-slate-650"}`} />
+                    <div className="p-2 rounded-xl bg-sky-950/45 border border-sky-500/10">
+                      <SensorIcon className={`w-8 h-8 transition-all duration-500 ${activeStep === "sensors" ? "text-sky-400 rotate-12 scale-110" : bootHighlightSensors ? "text-sky-400/80 scale-100" : "text-slate-650"}`} />
                     </div>
                   </div>
                   
@@ -952,8 +952,8 @@ export default function RoboticsFlowSystem() {
                         {systemData.controllerSub}
                       </span>
                     </div>
-                    <div className="p-1.5 rounded-md bg-indigo-950/45 border border-indigo-500/10">
-                      <ControllerIcon className={`w-4 h-4 transition-all duration-500 ${activeStep === "controllers" ? "text-indigo-400 scale-110" : bootHighlightControllers ? "text-indigo-400/80 scale-100" : "text-slate-650"}`} />
+                    <div className="p-2 rounded-xl bg-indigo-950/45 border border-indigo-500/10">
+                      <ControllerIcon className={`w-8 h-8 transition-all duration-500 ${activeStep === "controllers" ? "text-indigo-400 scale-110" : bootHighlightControllers ? "text-indigo-405/80 scale-100" : "text-slate-650"}`} />
                     </div>
                   </div>
                   
@@ -1159,8 +1159,8 @@ export default function RoboticsFlowSystem() {
                         {systemData.actuatorSub}
                       </span>
                     </div>
-                    <div className="p-1.5 rounded-md bg-emerald-950/45 border border-emerald-500/10">
-                      <ActuatorIcon className={`w-4 h-4 transition-all duration-500 ${activeStep === "actuators" ? "text-emerald-400 scale-110 animate-spin" : bootHighlightActuators ? "text-emerald-400/80 scale-100 animate-spin [animation-duration:8s]" : "text-slate-650"}`} />
+                    <div className="p-2 rounded-xl bg-emerald-950/45 border border-emerald-500/10">
+                      <ActuatorIcon className={`w-8 h-8 transition-all duration-500 ${activeStep === "actuators" ? "text-emerald-400 scale-110 animate-spin" : bootHighlightActuators ? "text-emerald-400/80 scale-100 animate-spin [animation-duration:8s]" : "text-slate-650"}`} />
                     </div>
                   </div>
                   

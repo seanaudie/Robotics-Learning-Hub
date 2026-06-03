@@ -2676,15 +2676,15 @@ const RoboticsAiCore = () => {
               </div>
 
               {/* Glowing Holographic Robot Section */}
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-[#030a1c] border border-cyan-500/20 shadow-[0_0_20px_rgba(34,211,238,0.06)] relative overflow-hidden mb-5">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#030a1c] border border-cyan-500/20 shadow-[0_0_20px_rgba(34,211,238,0.06)] relative overflow-hidden mb-5">
                 {/* Visual scanline effect */}
                 <div className="absolute inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400/35 to-transparent top-0 animate-bounce" style={{ animationDuration: "5s" }} />
                 
                 {/* Holographic Robot Avatar */}
                 <div className="shrink-0 relative">
-                  <div className="w-16 h-16 rounded-full bg-cyan-950/40 border border-cyan-500/35 flex items-center justify-center text-cyan-400 relative">
+                  <div className="w-28 h-28 rounded-full bg-cyan-950/40 border border-cyan-500/35 flex items-center justify-center text-cyan-400 relative">
                     <div className="absolute inset-0 rounded-full border border-cyan-400/20 animate-ping" style={{ animationDuration: "3s" }} />
-                    <svg className="w-10 h-10" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg className="w-20 h-20" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       {/* Cyber Head */}
                       <rect x="25" y="30" width="50" height="40" rx="10" fill="#010410" />
                       {/* Antenna */}
@@ -2700,7 +2700,7 @@ const RoboticsAiCore = () => {
                       <path d="M 80 50 Q 75 50 75 55" stroke="rgba(34, 211, 238, 0.5)" />
                     </svg>
                   </div>
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-cyan-900 border border-cyan-400 px-1 py-0.2 rounded font-mono text-[5.5px] font-black text-cyan-200 tracking-wider">NEURO_V2</span>
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-cyan-900 border border-cyan-400 px-2 py-0.5 rounded font-mono text-[7px] font-black text-cyan-200 tracking-wider">NEURO_V2</span>
                 </div>
 
                 {/* Robot Voice / Speech bubble */}
