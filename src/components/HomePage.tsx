@@ -833,7 +833,7 @@ export default function HomePage({
                             }
                           }
                         }}
-                        className={`group relative z-10 p-3 sm:p-4 rounded-xl border-2 text-left cursor-pointer transition-all duration-300 flex flex-col justify-between select-none min-h-[105px] ${
+                        className={`group relative z-10 p-3 sm:p-4 rounded-xl border-2 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-between select-none min-h-[175px] ${
                           isActive 
                             ? "scale-[1.03]" 
                             : "hover:scale-[1.01]"
@@ -878,7 +878,7 @@ export default function HomePage({
                         } opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`} />
 
                         {/* Top Metadata Row */}
-                        <div className="flex items-center justify-between pointer-events-none">
+                        <div className="flex items-center justify-between pointer-events-none w-full">
                           <span className={`font-mono text-[7px] px-1.5 py-0.5 rounded font-extrabold tracking-wider ${phase.badgeColor}`}>
                             {phase.phaseNum}
                           </span>
@@ -912,41 +912,41 @@ export default function HomePage({
                           </div>
                         </div>
 
-                        {/* Central Content (Icon + Title & Concept Code) */}
-                        <div className="flex items-start gap-3 mt-3.5 pointer-events-none">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all duration-300 shrink-0 ${
+                        {/* Central Content (Icon + Title & Concept Code) - Fully Centered Centric Architecture */}
+                        <div className="flex flex-col items-center justify-center text-center mt-2.5 pointer-events-none flex-1 gap-2.5 w-full">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center border transition-all duration-300 shrink-0 [&>svg]:!w-[26px] [&>svg]:!h-[26px] ${
                             phase.color === "sky"
                               ? isActive 
-                                ? "border-sky-500 bg-slate-950 text-sky-400 scale-115" 
+                                ? "border-sky-500 bg-slate-950 text-sky-400 scale-110" 
                                 : "border-sky-950 bg-slate-950 text-sky-450/40 group-hover:border-sky-500/40 group-hover:text-sky-400"
                               : phase.color === "indigo"
                               ? isActive 
-                                ? "border-indigo-500 bg-slate-950 text-indigo-400 scale-115" 
+                                ? "border-indigo-500 bg-slate-950 text-indigo-400 scale-110" 
                                 : "border-indigo-950 bg-slate-950 text-indigo-450/40 group-hover:border-indigo-500/40 group-hover:text-indigo-400"
                               : phase.color === "emerald"
                               ? isActive 
-                                ? "border-emerald-500 bg-slate-950 text-emerald-400 scale-115" 
+                                ? "border-emerald-500 bg-slate-950 text-emerald-400 scale-110" 
                                 : "border-emerald-950 bg-slate-950 text-emerald-450/40 group-hover:border-emerald-500/40 group-hover:text-emerald-400"
                               : phase.color === "amber"
                               ? isActive 
-                                ? "border-amber-500 bg-slate-950 text-amber-400 scale-115" 
+                                ? "border-amber-500 bg-slate-950 text-amber-400 scale-110" 
                                 : "border-amber-950 bg-slate-950 text-amber-450/40 group-hover:border-amber-500/40 group-hover:text-amber-400"
                               : phase.color === "purple"
                               ? isActive 
-                                ? "border-purple-500 bg-slate-950 text-purple-400 scale-115" 
+                                ? "border-purple-500 bg-slate-950 text-purple-400 scale-110" 
                                 : "border-purple-950 bg-slate-950 text-purple-450/40 group-hover:border-purple-500/40 group-hover:text-purple-400"
                               : phase.color === "fuchsia"
                               ? isActive 
-                                ? "border-fuchsia-500 bg-slate-950 text-fuchsia-400 scale-115" 
+                                ? "border-fuchsia-500 bg-slate-950 text-fuchsia-400 scale-110" 
                                 : "border-fuchsia-950 bg-slate-950 text-fuchsia-450/40 group-hover:border-fuchsia-500/40 group-hover:text-fuchsia-400"
                               : isActive 
-                                ? "border-sky-500 bg-slate-950 text-sky-400 scale-115" 
+                                ? "border-sky-500 bg-slate-950 text-sky-400 scale-110" 
                                 : "border-slate-900 bg-slate-950 text-slate-500 group-hover:border-slate-700"
                           }`}>
                             {phase.icon}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h5 className={`font-sans font-black text-[11px] sm:text-xs tracking-tight uppercase leading-tight transition-colors duration-250 ${
+                          <div className="flex flex-col items-center justify-center w-full">
+                            <h5 className={`font-sans font-black text-[12.5px] sm:text-[13.5px] tracking-tight text-center uppercase leading-tight transition-colors duration-250 ${
                               isActive
                                 ? (phase.color === "sky" ? "text-sky-300" :
                                    phase.color === "indigo" ? "text-indigo-300" :
@@ -965,7 +965,7 @@ export default function HomePage({
                             }`}>
                               {phase.name}
                             </h5>
-                            <span className="font-mono text-[7.5px] text-slate-450 block mt-1 font-semibold leading-none truncate animate-fadeIn">
+                            <span className="font-mono text-[7.5px] text-slate-400 block mt-1.5 font-bold leading-normal tracking-wide uppercase text-center max-w-[95%]">
                               {phase.concept}
                             </span>
                           </div>
@@ -1028,7 +1028,7 @@ export default function HomePage({
                   </div>
 
                   {/* Humanoid Robot Interactive Box */}
-                  <div className="flex flex-col items-center justify-center py-6 flex-1 gap-4">
+                  <div className="flex flex-col items-center justify-center py-4 md:py-5 flex-1 gap-4">
                     {/* Bobbing Humanoid Robot SVG Frame */}
                     <motion.div
                       animate={{ 
@@ -1042,7 +1042,7 @@ export default function HomePage({
                         repeat: Infinity, 
                         ease: "easeInOut" 
                       }}
-                      className="w-32 h-32 relative flex items-center justify-center animate-fadeIn"
+                      className="w-56 h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 relative flex items-center justify-center animate-fadeIn"
                     >
                       {/* Luminous backdrop circle */}
                       <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-500/5 to-violet-500/10 blur-xl animate-pulse" />
@@ -1135,7 +1135,7 @@ export default function HomePage({
                     </motion.div>
 
                     {/* Holographic Projector Pedestal / Base Platform with projection cone light highlights */}
-                    <div className="relative w-44 h-12 flex flex-col items-center justify-center -mt-6 mb-4 select-none pointer-events-none">
+                    <div className="relative w-64 h-12 flex flex-col items-center justify-center -mt-16 mb-4 select-none pointer-events-none">
                       {/* Projection Cone / Light Beam highlighting the robot from below (Wider and Shorter) */}
                       <div className="absolute bottom-[18px] w-72 h-20 bg-gradient-to-t from-cyan-500/40 via-cyan-500/[0.03] to-transparent blur-lg opacity-90 z-20" 
                            style={{ clipPath: 'polygon(0% 0%, 100% 0%, 40% 100%, 60% 100%)' }} />

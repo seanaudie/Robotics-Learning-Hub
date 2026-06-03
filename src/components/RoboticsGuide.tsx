@@ -744,7 +744,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
   const [alternateBranch, setAlternateBranch] = useState<boolean>(false);
 
   // Coding interactive sandbox state
-  const [activeCodingSubTab, setActiveCodingSubTab] = useState<"variables" | "conditions" | "loops" | "handbook">("variables");
+  const [activeCodingSubTab, setActiveCodingSubTab] = useState<"variables" | "conditions" | "loops" | "functions" | "automation" | "handbook">("variables");
   const [userDistance, setUserDistance] = useState<number>(45); // 0-100cm slider
   const [isMotionTriggered, setIsMotionTriggered] = useState<boolean>(false);
   const [lightRawADC, setLightRawADC] = useState<number>(650); // 0-1023 slider
@@ -755,6 +755,15 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
   const [activeVarExample, setActiveVarExample] = useState<"proximity" | "temp">("proximity");
   const [activeCondExample, setActiveCondExample] = useState<"lamp" | "laser">("lamp");
   const [activeLoopExample, setActiveLoopExample] = useState<"orbit" | "servo">("orbit");
+  const [activeFuncExample, setActiveFuncExample] = useState<"average" | "buzzer">("average");
+  const [activeAutoExample, setActiveAutoExample] = useState<"statemachine" | "pid">("statemachine");
+
+  // Custom states for the new workshops
+  const [sampleVal1, setSampleVal1] = useState<number>(32);
+  const [sampleVal2, setSampleVal2] = useState<number>(48);
+  const [sampleVal3, setSampleVal3] = useState<number>(40);
+  const [buzzerPitchHz, setBuzzerPitchHz] = useState<number>(440);
+  const [autoSensedDistance, setAutoSensedDistance] = useState<number>(85);
 
   // Temperature example additional variables
   const [tempSensorValue, setTempSensorValue] = useState<number>(24.0); // °C simulation
@@ -1174,6 +1183,8 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                   { id: "variables", label: "Variables & Storage", desc: "How programs save sensor values in memory", flagColor: "border-indigo-500" },
                   { id: "conditions", label: "If / Else Decisions", desc: "Choose what the robot does based on sensor readings", flagColor: "border-sky-500" },
                   { id: "loops", label: "The Continuous Loop", desc: "How robots read inputs and update outputs over and over again", flagColor: "border-emerald-500" },
+                  { id: "functions", label: "Custom Functions", desc: "Package reusable logic blocks to simplify complex programs", flagColor: "border-purple-500" },
+                  { id: "automation", label: "System Automation", desc: "Run state-machines and autonomous hardware feedback loops", flagColor: "border-pink-500" },
                   { id: "handbook", label: "Programmer's Handbook", desc: "Core C++ syntax rules, variables types & beginner tips", flagColor: "border-amber-500" }
                 ] as const).map((sub) => {
                   const isCur = activeCodingSubTab === sub.id;
@@ -1825,6 +1836,584 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                             <Info className="w-3.5 h-3.5 shrink-0" />
                             <span>{activeLoopExample === "orbit" ? "In embedded systems, loop() repeats thousands of times per second." : "Servo gears update their angle depending on the duty cycle width of PWM pulses."}</span>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {activeCodingSubTab === "functions" && (
+                  <motion.div
+                    key="functions"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-4 text-left"
+                  >
+                    <div className="border-b border-slate-900 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-sans font-extrabold text-[#f1f5f9] text-sm uppercase tracking-wider">
+                          Custom Functions & Reusability
+                        </h4>
+                        <p className="font-sans text-[11px] text-slate-500 leading-tight">Pack reusable code blocks to shrink execution footprint and clean your workspace:</p>
+                      </div>
+                      <div className="flex gap-1.5 bg-slate-950 p-1 border border-slate-905 rounded-xl self-start">
+                        <button
+                          type="button"
+                          onClick={() => setActiveFuncExample("average")}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeFuncExample === "average" ? "bg-purple-500/15 text-purple-400 border border-purple-500/20" : "text-slate-505"}`}
+                        >
+                          Ex 1: Smooth Data (averageThreeSamples)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveFuncExample("buzzer")}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeFuncExample === "buzzer" ? "bg-purple-500/15 text-purple-400 border border-purple-500/20" : "text-slate-505"}`}
+                        >
+                          Ex 2: Sound Alarm (beepBuzzer)
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Left Side: Interactive controls & schematic */}
+                      <div className="space-y-4 bg-slate-900/20 p-4 rounded-xl border border-slate-900 flex flex-col justify-between">
+                        <div>
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 block font-bold mb-2">Configure Function Arguments:</span>
+
+                          {activeFuncExample === "average" ? (
+                            <div className="space-y-3">
+                              <p className="font-sans text-[11.5px] text-slate-400 leading-normal">
+                                Functions take parameters (inputs) to compute or output values. Tweak the three raw data registers flowing to the function wrapper below:
+                              </p>
+                              
+                              <div className="space-y-2 pt-1">
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-350">Sample Pin A0:</span>
+                                  <span className="font-mono font-bold text-sky-400">{sampleVal1} mA</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="100" 
+                                  value={sampleVal1}
+                                  onChange={(e) => setSampleVal1(parseInt(e.target.value))}
+                                  className="w-full accent-purple-500 cursor-pointer"
+                                />
+
+                                <div className="flex justify-between text-[11px] pt-1">
+                                  <span className="text-slate-350">Sample Pin A1:</span>
+                                  <span className="font-mono font-bold text-sky-400">{sampleVal2} mA</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="100" 
+                                  value={sampleVal2}
+                                  onChange={(e) => setSampleVal2(parseInt(e.target.value))}
+                                  className="w-full accent-purple-500 cursor-pointer"
+                                />
+
+                                <div className="flex justify-between text-[11px] pt-1">
+                                  <span className="text-slate-350">Sample Pin A2:</span>
+                                  <span className="font-mono font-bold text-sky-400">{sampleVal3} mA</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="100" 
+                                  value={sampleVal3}
+                                  onChange={(e) => setSampleVal3(parseInt(e.target.value))}
+                                  className="w-full accent-purple-500 cursor-pointer"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              <p className="font-sans text-[11.5px] text-slate-400 leading-normal">
+                                Reusable function processes a warning frequency duty cycle. Slide below to alter the argument value structure:
+                              </p>
+
+                              <div className="space-y-2 pt-1">
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-350">Warning Tone Frequency:</span>
+                                  <span className="font-mono font-extrabold text-amber-500">{buzzerPitchHz} Hz</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="200" 
+                                  max="1200" 
+                                  step="50"
+                                  value={buzzerPitchHz}
+                                  onChange={(e) => setBuzzerPitchHz(parseInt(e.target.value))}
+                                  className="w-full accent-purple-500 cursor-pointer"
+                                />
+                                <div className="flex justify-between text-[9px] text-slate-500">
+                                  <span>200 Hz (Low Bass Beep)</span>
+                                  <span>1200 Hz (High Pitch Siren)</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Schematic representing logic flow */}
+                        <div className="p-4 rounded-xl bg-slate-950 border border-slate-900 flex flex-col items-center justify-center min-h-[160px] relative overflow-hidden select-none">
+                          <span className="font-mono text-[8.5px] text-purple-400 absolute top-2 left-2 tracking-widest uppercase font-extrabold">FUNCTION FLOWPIPE SCHEMATIC</span>
+
+                          {activeFuncExample === "average" ? (
+                            <div className="w-full h-32 relative flex items-center justify-center pt-2">
+                              {/* Funnel flowing inputs into central block */}
+                              <div className="flex items-center justify-between w-11/12 gap-2">
+                                <div className="flex flex-col gap-1.5 shrink-0">
+                                  <div className="text-[9px] font-mono bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800 text-slate-400">
+                                    sampleA0 = {sampleVal1}
+                                  </div>
+                                  <div className="text-[9px] font-mono bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800 text-slate-400">
+                                    sampleA1 = {sampleVal2}
+                                  </div>
+                                  <div className="text-[9px] font-mono bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800 text-slate-400">
+                                    sampleA2 = {sampleVal3}
+                                  </div>
+                                </div>
+
+                                <div className="flex-1 flex items-center justify-center text-slate-655 text-slate-600">
+                                  <ArrowRight className="w-5 h-5 text-indigo-500/50 animate-pulse" />
+                                </div>
+
+                                <div className="p-2.5 rounded-lg border border-purple-500/30 bg-purple-950/25 flex flex-col items-center justify-center text-center">
+                                  <span className="font-mono text-[7px] text-purple-300 uppercase">WRAPPER PROCESSING</span>
+                                  <span className="font-sans text-[11px] font-extrabold block text-slate-100 mt-0.5 leading-none">averageThreeSamples()</span>
+                                  <span className="font-mono text-[9.5px] font-black text-emerald-400 mt-2 bg-slate-950 px-2 py-0.5 rounded border border-slate-900">
+                                    out: {((sampleVal1 + sampleVal2 + sampleVal3) / 3).toFixed(1)} mA
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-full h-32 relative flex items-center justify-center pt-2">
+                              <div className="flex items-center gap-4 w-10/12 justify-center">
+                                <div className="flex flex-col items-center">
+                                  <span className="font-mono text-[7px] text-slate-500">INPUT REGISTER</span>
+                                  <div className="px-2.5 py-1 bg-slate-900 border border-slate-805 font-mono text-xs text-sky-400 font-extrabold rounded mt-1">
+                                    pitch = {buzzerPitchHz}
+                                  </div>
+                                </div>
+
+                                <ArrowRight className="w-5 h-5 text-purple-500/50 animate-pulse mt-3" />
+
+                                <div className="flex flex-col items-center bg-purple-950/30 border border-purple-500/30 p-2.5 rounded-xl text-center relative">
+                                  <span className="font-mono text-[7.5px] text-purple-300 uppercase">beepBuzzer(pitch)</span>
+                                  <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-505/30 mt-1.5 flex items-center justify-center relative">
+                                    <Zap className="w-5 h-5 text-amber-400 animate-pulse" />
+                                    {/* Concentric ripple circles simulating soundwaves */}
+                                    <div className="absolute inset-0 rounded-full border border-amber-500/20 animate-ping scale-150 opacity-40" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right Side: Translation display Text-to-Block Side-by-Side */}
+                      <div className="space-y-2 flex flex-col justify-between">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 block font-bold">Programming Code Translation Structure:</span>
+                          <span className="font-mono text-[8px] bg-purple-950 text-purple-400 px-2 py-0.5 rounded border border-purple-900 uppercase font-black tracking-wide">Blockly-to-C++ Translator</span>
+                        </div>
+
+                        <div className="rounded-xl bg-slate-950 border border-slate-900 flex-1 flex flex-col p-4 space-y-4">
+                          {activeFuncExample === "average" ? (
+                            <div className="space-y-4">
+                              {/* 1. Block-Based Layout (Upper/Left) */}
+                              <div className="space-y-1">
+                                <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">1. Block-Based Visual Code:</span>
+                                <div className="space-y-1.5 font-sans font-extrabold text-xs">
+                                  {/* Function Block Outer */}
+                                  <div className="bg-purple-600 text-white rounded-lg p-2 flex items-center gap-1.5 w-11/12 relative shadow border-l-4 border-purple-800">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-white/20 flex items-center justify-center font-mono text-[8px]">ƒ</span>
+                                    <span>Define Function <strong className="text-purple-100">averageThreeSamples</strong> with (a, b, c)</span>
+                                  </div>
+                                  
+                                  {/* Nested math block */}
+                                  <div className="pl-6">
+                                    <div className="bg-emerald-600 text-white rounded-lg p-2 flex items-center gap-1.5 w-11/12 shadow border-l-4 border-emerald-800">
+                                      <span>Return mathematical block</span>
+                                      <span className="bg-emerald-800 px-2 py-0.5 rounded text-[10.5px] font-mono">(a + b + c) / 3.0</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* 2. Text-Based Layout (Lower/Right) */}
+                              <div className="space-y-1 pt-3 border-t border-slate-900">
+                                <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">2. Translated C++ Firmware:</span>
+                                <div className="bg-[#020617] p-3 rounded-lg border border-slate-900 font-mono text-[10px] leading-relaxed text-slate-400">
+                                  <p className="text-violet-400 font-extrabold">float <span className="text-[#38bdf8]">averageThreeSamples</span>(<span className="text-orange-400">int</span> a, <span className="text-orange-400">int</span> b, <span className="text-orange-400">int</span> c) &#123;</p>
+                                  <p className="pl-4 text-emerald-450 font-sans text-[9px]">// Gathers reading metrics and smooths spikes</p>
+                                  <p className="pl-4 text-[#f1f5f9]">
+                                    <span className="text-pink-500 font-bold">return</span> (a + b + c) / <span className="text-amber-400">3.0</span>;
+                                  </p>
+                                  <p className="text-violet-400">&#125;</p>
+
+                                  <div className="mt-2.5 pt-2 border-t border-slate-900/60 text-slate-450 text-slate-400 text-[9.5px]">
+                                    <span className="text-emerald-400 font-extrabold block">Active compiler state check:</span>
+                                    Called with variables: <code className="text-yellow-400 font-mono">averageThreeSamples({sampleVal1}, {sampleVal2}, {sampleVal3}) = {((sampleVal1 + sampleVal2 + sampleVal3) / 3).toFixed(1)}</code>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              {/* 1. Block-Based Layout */}
+                              <div className="space-y-1">
+                                <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">1. Block-Based Visual Code:</span>
+                                <div className="space-y-1.5 font-sans font-extrabold text-xs">
+                                  {/* Function Block Outer */}
+                                  <div className="bg-purple-600 text-white rounded-lg p-2 flex items-center gap-1.5 w-11/12 shadow border-l-4 border-purple-800">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-white/20 flex items-center justify-center font-mono text-[8px]">ƒ</span>
+                                    <span>Define Function <strong className="text-purple-100">beepBuzzer</strong> with (pitch)</span>
+                                  </div>
+
+                                  {/* Nested active blocks */}
+                                  <div className="pl-6 space-y-1">
+                                    <div className="bg-sky-600 text-white rounded-lg p-2 flex items-center gap-1.5 w-11/12 shadow border-l-4 border-sky-800">
+                                      <span>Write tone at Piezo Pin 9 with pitch</span>
+                                      <span className="bg-sky-800 px-1.5 rounded font-mono text-[10.5px]">{buzzerPitchHz} Hz</span>
+                                    </div>
+                                    <div className="bg-amber-600 text-white rounded-lg p-1.5 flex items-center gap-1.5 w-max shadow border-l-4 border-amber-800">
+                                      <span>Wait 120 ms</span>
+                                    </div>
+                                    <div className="bg-sky-600 text-white rounded-lg p-2 flex items-center gap-1.5 w-11/12 shadow border-l-4 border-sky-800">
+                                      <span>Stop tone at Piezo Pin 9</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* 2. Translated C++ Code */}
+                              <div className="space-y-1 pt-3 border-t border-slate-900">
+                                <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">2. Translated C++ Firmware:</span>
+                                <div className="bg-[#020617] p-3 rounded-lg border border-slate-900 font-mono text-[10px] leading-relaxed text-slate-400">
+                                  <p className="text-violet-400 font-extrabold">void <span className="text-[#38bdf8]">beepBuzzer</span>(<span className="text-orange-400">int</span> pitch) &#123;</p>
+                                  <p className="pl-4 text-slate-205">tone(<span className="text-amber-400">9</span>, pitch); <span className="text-[9.5px] text-slate-500 font-sans italic">// Activate buzzer duty cycle</span></p>
+                                  <p className="pl-4 text-slate-205">delay(<span className="text-[#10b981] font-bold">120</span>); <span className="text-[9.5px] text-slate-500 font-sans italic">// sound waves active time</span></p>
+                                  <p className="pl-4 text-slate-205">noTone(<span className="text-amber-400">9</span>); <span className="text-[9.5px] text-slate-500 font-sans italic">// mute safety pin</span></p>
+                                  <p className="text-violet-400">&#125;</p>
+
+                                  <div className="mt-2 text-[9.5px] text-slate-405 pt-2 border-t border-slate-900/60">
+                                    <span className="text-purple-400 font-bold block">Logic Application benefits:</span>
+                                    Consolidates the entire buzzer sound loop under a single command: <code className="text-purple-305 font-mono px-1 py-0.5 bg-slate-950/80 rounded border border-slate-900">beepBuzzer({buzzerPitchHz});</code>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {activeCodingSubTab === "automation" && (
+                  <motion.div
+                    key="automation"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-4 text-left"
+                  >
+                    <div className="border-b border-slate-900 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-sans font-extrabold text-[#f1f5f9] text-sm uppercase tracking-wider">
+                          Robotic System Automation
+                        </h4>
+                        <p className="font-sans text-[11px] text-slate-500 leading-tight">Implement autonomous state switching and feedback loops to navigate physical environments:</p>
+                      </div>
+                      <div className="flex gap-1.5 bg-slate-950 p-1 border border-slate-905 rounded-xl self-start">
+                        <button
+                          type="button"
+                          onClick={() => setActiveAutoExample("statemachine")}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeAutoExample === "statemachine" ? "bg-pink-500/15 text-pink-400 border border-pink-500/20" : "text-slate-505"}`}
+                        >
+                          Ex 1: Finite State Machine
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveAutoExample("pid")}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeAutoExample === "pid" ? "bg-pink-500/15 text-pink-400 border border-pink-500/20" : "text-slate-505"}`}
+                        >
+                          Ex 2: Autopilot Alignment (PID)
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Left Side: Interactive controls & state machine display */}
+                      <div className="space-y-4 bg-slate-900/20 p-4 rounded-xl border border-slate-900 flex flex-col justify-between">
+                        <div>
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 block font-bold mb-2">Adjust Environmental State triggers:</span>
+
+                          {activeAutoExample === "statemachine" ? (
+                            <div className="space-y-3">
+                              <p className="font-sans text-[11.5px] text-slate-400 leading-normal">
+                                Autonomous robots use state machines to manage different logic modes. Slide the sonar obstacle distance to prompt instant logic modifications:
+                              </p>
+
+                              <div className="space-y-2 pt-1">
+                                <div className="flex justify-between text-[#e2e8f0] font-sans text-xs font-bold pt-1">
+                                  <span>Sonar Track Sensed Distance:</span>
+                                  <span className="font-mono text-pink-400">{autoSensedDistance} cm</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="10" 
+                                  max="140" 
+                                  value={autoSensedDistance}
+                                  onChange={(e) => setAutoSensedDistance(parseInt(e.target.value))}
+                                  className="w-full accent-pink-500 cursor-pointer"
+                                />
+                                <div className="flex justify-between text-[10px] text-slate-500 font-sans mt-0.5">
+                                  <span>&lt; 30cm (Critical Stop)</span>
+                                  <span>30cm - 80cm (Caution Lock)</span>
+                                  <span>&gt; 80cm (Clear Run)</span>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              <p className="font-sans text-[11.5px] text-slate-400 leading-normal">
+                                Proportional-Integral-Derivative (PID) alignment keeps autonomous logistic buggies dead-centered. Tweak the PID mathematical coefficients here:
+                              </p>
+
+                              <div className="grid grid-cols-3 gap-2">
+                                <div className="bg-slate-950/80 p-2 border border-slate-900 text-center rounded-xl">
+                                  <span className="font-mono text-[8px] text-rose-400 block font-bold mb-1">P (Kp)</span>
+                                  <span className="font-sans text-xs text-slate-300 font-extrabold">{pidKp}</span>
+                                  <input 
+                                    type="range" 
+                                    min="1" 
+                                    max="8" 
+                                    step="0.5" 
+                                    value={pidKp}
+                                    onChange={(e) => setPidKp(parseFloat(e.target.value))}
+                                    className="w-full accent-rose-500 cursor-pointer h-1 rounded mt-1.5" 
+                                  />
+                                </div>
+                                <div className="bg-slate-950/80 p-2 border border-slate-900 text-center rounded-xl">
+                                  <span className="font-mono text-[8px] text-emerald-400 block font-bold mb-1">I (Ki)</span>
+                                  <span className="font-sans text-xs text-slate-300 font-extrabold">{pidKi}</span>
+                                  <input 
+                                    type="range" 
+                                    min="0.1" 
+                                    max="3" 
+                                    step="0.1" 
+                                    value={pidKi}
+                                    onChange={(e) => setPidKi(parseFloat(e.target.value))}
+                                    className="w-full accent-green-500 cursor-pointer h-1 rounded mt-1.5" 
+                                  />
+                                </div>
+                                <div className="bg-slate-950/80 p-2 border border-slate-900 text-center rounded-xl">
+                                  <span className="font-mono text-[8px] text-blue-400 block font-bold mb-1">D (Kd)</span>
+                                  <span className="font-sans text-xs text-slate-300 font-extrabold">{pidKd}</span>
+                                  <input 
+                                    type="range" 
+                                    min="0.1" 
+                                    max="2" 
+                                    step="0.1" 
+                                    value={pidKd}
+                                    onChange={(e) => setPidKd(parseFloat(e.target.value))}
+                                    className="w-full accent-blue-500 cursor-pointer h-1 rounded mt-1.5" 
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Schematic layout */}
+                        <div className="p-4 rounded-xl bg-slate-950 border border-slate-900 flex flex-col items-center justify-center min-h-[160px] relative overflow-hidden select-none">
+                          <span className="font-mono text-[8.5px] text-pink-400 absolute top-2 left-2 tracking-widest uppercase font-extrabold">AUTOMATION STATE DIAGRAM</span>
+
+                          {activeAutoExample === "statemachine" ? (
+                            <div className="w-full h-32 relative flex items-center justify-center pt-2">
+                              {/* 3 nodes in a row */}
+                              <div className="flex items-center gap-2 justify-between w-full px-2">
+                                <div className={`flex-1 p-1.5 rounded-lg border text-center transition-all ${autoSensedDistance >= 80 ? "bg-emerald-500/10 border-emerald-500 text-emerald-400 shadow-[0_0_10px_#10b981]" : "bg-slate-900/30 border-slate-800 text-slate-500 opacity-40"}`}>
+                                  <span className="font-mono text-[6.5px] uppercase block leading-none mb-0.5">S-01</span>
+                                  <span className="font-sans text-[9px] font-extrabold">SEARCHING</span>
+                                </div>
+
+                                <ArrowRight className={`w-4 h-4 shrink-0 ${autoSensedDistance < 80 && autoSensedDistance >= 30 ? "text-amber-400" : "text-slate-700"}`} />
+
+                                <div className={`flex-1 p-1.5 rounded-lg border text-center transition-all ${autoSensedDistance < 80 && autoSensedDistance >= 30 ? "bg-amber-500/10 border-amber-500 text-amber-400 shadow-[0_0_10px_#f59e0b]" : "bg-slate-900/30 border-slate-800 text-slate-500 opacity-40"}`}>
+                                  <span className="font-mono text-[6.5px] uppercase block leading-none mb-0.5">S-02</span>
+                                  <span className="font-sans text-[9px] font-extrabold">DETECTED</span>
+                                </div>
+
+                                <ArrowRight className={`w-4 h-4 shrink-0 ${autoSensedDistance < 30 ? "text-rose-400 animate-pulse" : "text-slate-700"}`} />
+
+                                <div className={`flex-1 p-1.5 rounded-lg border text-center transition-all ${autoSensedDistance < 30 ? "bg-rose-500/10 border-rose-500 text-rose-400 shadow-[0_0_10px_#ef4444]" : "bg-slate-900/30 border-slate-800 text-slate-500 opacity-40"}`}>
+                                  <span className="font-mono text-[6.5px] uppercase block leading-none mb-0.5">S-03</span>
+                                  <span className="font-sans text-[9px] font-extrabold">STOPPED</span>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-full h-32 relative flex flex-col items-center justify-center pt-2">
+                              {/* Horizontal track with centering icon */}
+                              <div className="w-full px-4 text-center">
+                                <span className="font-mono text-[7px] text-slate-500 uppercase block">ALIGN OFFSET CONTROLLER</span>
+                                <div className="h-2 w-full bg-slate-900 rounded border border-slate-805 mt-2 relative overflow-hidden">
+                                  {/* Center line */}
+                                  <div className="absolute left-1/2 top-0 bottom-0 w-[1.5px] bg-slate-800 bg-sky-500/70" />
+                                  
+                                  {/* Dynamic corrected node */}
+                                  <motion.div 
+                                    animate={{ 
+                                      x: [0, -18, 10, -5, 2, 0],
+                                    }}
+                                    transition={{
+                                      duration: 3,
+                                      repeat: Infinity,
+                                      ease: "easeInOut"
+                                    }}
+                                    className="absolute left-[calc(50%-6px)] top-[calc(50%-6px)] w-3 h-3 rounded-full bg-pink-500 border border-white shadow shadow-pink-500/80" 
+                                  />
+                                </div>
+                                <span className="font-mono text-[9px] text-[#22c55e] block font-bold mt-2">
+                                  PID Corrective Motor Pulses Active. Correcting alignment.
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right Side: Visual Blockly and C++ Translator side-by-side */}
+                      <div className="space-y-2 flex flex-col justify-between">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 block font-bold">Programming Code Translation Structure:</span>
+                          <span className="font-mono text-[8px] bg-pink-950 text-pink-400 px-2 py-0.5 rounded border border-pink-900 uppercase font-black tracking-wide">Blockly-to-C++ Translator</span>
+                        </div>
+
+                        <div className="rounded-xl bg-slate-950 border border-slate-900 flex-1 flex flex-col p-4 space-y-4">
+                          {activeAutoExample === "statemachine" ? (
+                            <div className="space-y-4">
+                              {/* 1. Block-Based Layout */}
+                              <div className="space-y-1">
+                                <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">1. Block-Based Visual Code:</span>
+                                <div className="space-y-1.5 font-sans font-extrabold text-xs">
+                                  {/* Cond block */}
+                                  <div className="bg-emerald-600 text-white rounded-lg p-2 flex items-center gap-1.5 w-11/12 shadow border-l-4 border-emerald-800">
+                                    <span>If distance</span>
+                                    <span className="bg-emerald-800 px-1.5 py-0.5 rounded text-[10px]">&lt; 30</span>
+                                    <span>then</span>
+                                  </div>
+                                  <div className="pl-6">
+                                    <div className="bg-pink-600 text-white rounded-lg p-1.5 w-[85%] border-l-4 border-pink-800">
+                                      Set System State to <strong>"CRITICAL_STOP"</strong>
+                                    </div>
+                                  </div>
+
+                                  <div className="bg-emerald-600 text-white rounded-lg p-2 flex items-center gap-1.5 w-11/12 shadow border-emerald-700">
+                                    <span>Else If distance</span>
+                                    <span className="bg-emerald-800 px-1.5 py-0.5 rounded text-[10px]">&lt; 80</span>
+                                    <span>then</span>
+                                  </div>
+                                  <div className="pl-6">
+                                    <div className="bg-pink-600 text-white rounded-lg p-1.5 w-[85%] border-l-4 border-pink-800">
+                                      Set System State to <strong>"DETECTED"</strong>
+                                    </div>
+                                  </div>
+
+                                  <div className="bg-emerald-600 text-white rounded-lg p-2 flex items-center gap-0.5 w-[45%] shadow border-emerald-700">
+                                    <span>Else</span>
+                                  </div>
+                                  <div className="pl-6">
+                                    <div className="bg-pink-600 text-white rounded-lg p-1.5 w-[85%] border-l-4 border-pink-800">
+                                      Set System State to <strong>"SEARCHING"</strong>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* 2. C++ Layout */}
+                              <div className="space-y-1 pt-3 border-t border-slate-900">
+                                <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">2. Translated C++ Firmware:</span>
+                                <div className="bg-[#020617] p-3 rounded-lg border border-slate-900 font-mono text-[10px] leading-relaxed text-slate-400">
+                                  <p className="text-slate-205">
+                                    <span className="text-[#f43f5e] font-bold">if</span> (distance &lt; <span className="text-pink-400">30</span>) &#123;
+                                  </p>
+                                  <p className={`pl-4 py-0.5 transition-all text-[9.5px] rounded ${autoSensedDistance < 30 ? "bg-rose-500/15 text-rose-300 font-bold" : "text-slate-600 font-light"}`}>
+                                    systemState = CRITICAL_STOP;
+                                  </p>
+                                  <p className="text-slate-205">
+                                    &#125; <span className="text-[#f43f5e] font-bold">else if</span> (distance &lt; <span className="text-pink-400">80</span>) &#123;
+                                  </p>
+                                  <p className={`pl-4 py-0.5 transition-all text-[9.5px] rounded ${autoSensedDistance < 80 && autoSensedDistance >= 30 ? "bg-amber-500/15 text-amber-300 font-bold" : "text-slate-600 font-light"}`}>
+                                    systemState = DETECTED;
+                                  </p>
+                                  <p className="text-slate-205">&#125; <span className="text-[#f43f5e] font-bold">else</span> &#123;</p>
+                                  <p className={`pl-4 py-0.5 transition-all text-[9.5px] rounded ${autoSensedDistance >= 80 ? "bg-emerald-500/15 text-emerald-300 font-bold" : "text-slate-600 font-light"}`}>
+                                    systemState = SEARCHING;
+                                  </p>
+                                  <p className="text-slate-205">&#125;</p>
+
+                                  <div className="mt-2 text-[9px] text-slate-405 pt-1.5 border-t border-slate-900/60">
+                                    Current active target evaluation is: <strong className="text-pink-400 border border-pink-500/10 px-1 py-0.5 rounded bg-pink-950/20">
+                                      {autoSensedDistance >= 80 ? "SEARCHING" : autoSensedDistance >= 30 ? "DETECTED" : "CRITICAL_STOP"}
+                                    </strong>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              {/* 1. Block-Based Layout */}
+                              <div className="space-y-1">
+                                <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">1. Block-Based Visual Code:</span>
+                                <div className="space-y-1.5 font-sans font-extrabold text-xs">
+                                  {/* Loop Outer */}
+                                  <div className="bg-emerald-600 text-white rounded-lg p-2 flex items-center gap-1.5 w-11/12 shadow border-l-4 border-emerald-800">
+                                    <span>Repeat forever loop</span>
+                                  </div>
+                                  <div className="pl-6 space-y-1.5">
+                                    <div className="bg-pink-600 text-white rounded-lg p-2 flex items-center gap-1 w-11/12 shadow border-l-4 border-pink-800">
+                                      <span>Calculate Error = setpoint - actualPosition</span>
+                                    </div>
+                                    <div className="bg-pink-600 text-white rounded-lg p-2 flex items-center gap-1 w-11/12 shadow border-l-4 border-pink-800">
+                                      <span>Calculate PID (Kp = {pidKp}, Ki = {pidKi}, Kd = {pidKd})</span>
+                                    </div>
+                                    <div className="bg-sky-600 text-white rounded-lg p-2 flex items-center gap-1 w-11/12 shadow border-l-4 border-sky-800">
+                                      <span>Adjust motor power with corrected PID duty</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* 2. C++ Layout */}
+                              <div className="space-y-1 pt-3 border-t border-slate-900 border-t border-slate-900">
+                                <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">2. Translated C++ Firmware:</span>
+                                <div className="bg-[#020617] p-3 rounded-lg border border-slate-900 font-mono text-[10px] leading-relaxed text-slate-400">
+                                  <p className="text-slate-205"><span className="text-violet-400 font-extrabold">void</span> <span className="text-sky-300 font-bold">updatePIDControl</span>() &#123;</p>
+                                  <p className="pl-4"><span className="text-[#38bdf8]">float</span> error = setpoint - current_pos;</p>
+                                  <p className="pl-4">integral += error * dT;</p>
+                                  <p className="pl-4">derivative = (error - lastError) / dT;</p>
+                                  <p className="pl-4 text-[#ef4444] mt-1 bg-[#ef4444]/10 px-2 py-0.5 rounded border border-[#ef4444]/20 w-max text-[9px] leading-tight">
+                                    float output = (<span className="text-orange-400 font-bold">{pidKp}</span> * error) + (<span className="text-green-400 font-bold">{pidKi}</span> * integral) + (<span className="text-[#3b82f6] font-bold">{pidKd}</span> * derivative);
+                                  </p>
+                                  <p className="pl-4">analogWrite(motorDrivePin, output);</p>
+                                  <p className="text-slate-205">&#125;</p>
+
+                                  <div className="mt-2 text-[9px] text-[#38bdf8] pt-1.5 border-t border-slate-900/60">
+                                    Kp={pidKp}, Ki={pidKi}, Kd={pidKd} are utilized on every micro-second iteration for continuous automated error alignment.
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
