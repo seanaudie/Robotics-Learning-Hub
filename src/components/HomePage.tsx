@@ -16,9 +16,13 @@ import {
   Sliders,
   Compass,
   GraduationCap,
-  Cog
+  Cog,
+  MessageSquare,
+  Bot
 } from 'lucide-react';
 import { CreatorProfileCard } from './CreatorProfileCard';
+import RoboticArmIcon from './RoboticArmIcon';
+import AnimatedManipulatorDiagnostic from './AnimatedManipulatorDiagnostic';
 
 export default function HomePage({ 
   onEnter,
@@ -150,6 +154,30 @@ export default function HomePage({
     {
       id: "ph-5",
       phaseNum: "PHASE 05",
+      name: "Robotics Manipulators",
+      concept: "Kinematics & Multi-axis Control",
+      subTitle: "Planar geometry & pick-and-place",
+      desc: "Explore multi-joint manipulation. Tune rotational microsecond PWM vectors, map angular joint states dynamically, and execute step-by-step path automation programs.",
+      targetTab: "manipulators" as any,
+      color: "sky",
+      badgeColor: "bg-sky-500/10 text-sky-400 border-sky-500/25",
+      glowColor: "rgba(56, 189, 248, 0.4)",
+      shadowColor: "shadow-[0_0_20px_rgba(56,189,248,0.2)]",
+      bgColor: "bg-sky-500/5",
+      borderColor: "border-sky-500/30",
+      btnGlow: "shadow-[0_0_25px_rgba(56,189,248,0.4)] hover:shadow-[0_0_40px_rgba(56,189,248,0.7)] hover:bg-sky-400/20",
+      diagnosticCode: "SYS_MANP_KIN_05",
+      recommendedTime: "Week 9 Recommended",
+      techSpecs: [
+        { label: "COORDINATOR", value: "Forward / Inverse Solver" },
+        { label: "SERVO PULSE", value: "Microsecond PWM Mapping" },
+        { label: "PATH PLANNING", value: "Discrete State Machine" }
+      ],
+      icon: <RoboticArmIcon className="w-5 h-5 text-sky-400" />
+    },
+    {
+      id: "ph-6",
+      phaseNum: "PHASE 06",
       name: "AI Robotics Systems",
       concept: "Intelligent behavior trees & AI agents",
       subTitle: "Cognitive control & decision matrices",
@@ -162,8 +190,8 @@ export default function HomePage({
       bgColor: "bg-purple-500/5",
       borderColor: "border-purple-500/30",
       btnGlow: "shadow-[0_0_25px_rgba(168,85,247,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.7)] hover:bg-purple-400/20",
-      diagnosticCode: "SYS_COGN_AI_05",
-      recommendedTime: "Week 9 Recommended",
+      diagnosticCode: "SYS_COGN_AI_06",
+      recommendedTime: "Week 10-11 Recommended",
       techSpecs: [
         { label: "COGNITION", value: "Interactive Brain Mesh" },
         { label: "DECISIONS", value: "Dynamic Action Decision Nodes" },
@@ -172,8 +200,32 @@ export default function HomePage({
       icon: <Sparkles className="w-5 h-5 text-purple-400" />
     },
     {
-      id: "ph-6",
-      phaseNum: "PHASE 06",
+      id: "ph-types",
+      phaseNum: "PHASE 07",
+      name: "Robot Types & Applications",
+      concept: "Beginner to advanced robotics taxonomy",
+      subTitle: "Taxonomy, specs, component layouts & simulators",
+      desc: "Explore the major branches of robots from basic line counters to drones, walking quadrupeds, humanoids, and mesh swarms. Adjust mechanics, resolve parameters, and pass alignment quizzes.",
+      targetTab: "types" as any,
+      color: "cyan",
+      badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/25",
+      glowColor: "rgba(34, 211, 238, 0.4)",
+      shadowColor: "shadow-[0_0_20px_rgba(34,211,238,0.2)]",
+      bgColor: "bg-cyan-500/5",
+      borderColor: "border-cyan-500/30",
+      btnGlow: "shadow-[0_0_25px_rgba(34,211,238,0.4)] hover:shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:bg-cyan-400/20",
+      diagnosticCode: "SYS_TAXONOMY_07",
+      recommendedTime: "Week 12 Recommended",
+      techSpecs: [
+        { label: "BRANCHES", value: "8 Key Robotics Classes" },
+        { label: "EXPERIMENT", value: "Interactive Live Kinematics" },
+        { label: "CERTIFY", value: "Progress Alignment Quizzes" }
+      ],
+      icon: <Bot className="w-5 h-5 text-cyan-400" />
+    },
+    {
+      id: "ph-8",
+      phaseNum: "PHASE 08",
       name: "Diagnostics",
       concept: "Deep signal inspection & oscilloscope probes",
       subTitle: "Electronic failure tracking & analysis",
@@ -185,9 +237,9 @@ export default function HomePage({
       shadowColor: "shadow-[0_0_20px_rgba(217,70,239,0.2)]",
       bgColor: "bg-fuchsia-500/5",
       borderColor: "border-fuchsia-500/30",
-      btnGlow: "shadow-[0_0_25px_rgba(217,70,239,0.4)] hover:shadow-[0_0_40px_rgba(217,70,239,0.7)] hover:bg-fuchsia-400/20",
-      diagnosticCode: "SYS_DIAG_WAV_06",
-      recommendedTime: "Week 10+ Recommended",
+      btnGlow: "shadow-[0_0_25px_rgba(217, 70, 239, 0.4)] hover:shadow-[0_0_40px_rgba(217, 70, 239, 0.7)] hover:bg-fuchsia-400/20",
+      diagnosticCode: "SYS_DIAG_WAV_08",
+      recommendedTime: "Week 13+ Recommended",
       techSpecs: [
         { label: "PROBE INDEX", value: "Multi-point Voltage Probe" },
         { label: "OSCILLOSCOPE", value: "Signal Waveform Sandbox" },
@@ -571,7 +623,7 @@ export default function HomePage({
             </div>
           </div>
         );
-      case 4: // Robotic AI Systems
+      case 5: // Robotic AI Systems
         return (
           <div className="w-full h-full flex flex-col justify-between p-3 relative">
             <span className="font-mono text-[7px] text-purple-500 font-extrabold pb-2 uppercase border-b border-slate-900 block font-bold">
@@ -656,7 +708,49 @@ export default function HomePage({
             </div>
           </div>
         );
-      case 5: // Diagnostics
+      case 6: // Robot Types & Applications (index 6)
+        return (
+          <div className="w-full h-full flex flex-col justify-between p-3 relative bg-slate-950/45 rounded-xl border border-slate-900 overflow-hidden">
+            <span className="font-mono text-[7px] text-cyan-400 font-extrabold pb-2 uppercase border-b border-cyan-950/40 block">ROBOT CLASSIFICATION ENGINE // COMPILED</span>
+            
+            <div className="flex-1 flex flex-col justify-center items-center py-2 relative">
+              <svg viewBox="0 0 300 100" className="w-full h-24">
+                {/* Orbit track */}
+                <ellipse cx="150" cy="50" rx="90" ry="30" fill="none" stroke="#1e293b" strokeWidth="1" strokeDasharray="3,3" />
+                <ellipse cx="150" cy="50" rx="50" ry="16" fill="none" stroke="#22d3ee" strokeWidth="0.5" className="opacity-30" />
+                
+                {/* Core base node */}
+                <circle cx="150" cy="50" r="10" fill="#0f172a" stroke="#22d3ee" strokeWidth="1.5" />
+                <circle cx="150" cy="50" r="4" fill="#06b6d4" className="animate-pulse" />
+                
+                {/* Rotating category dots */}
+                <g>
+                  {/* Drone dot at angle 1 */}
+                  <circle cx="110" cy="40" r="4" fill="#38bdf8" stroke="#fff" strokeWidth="0.5" />
+                  {/* Hexapod dot at angle 2 */}
+                  <circle cx="190" cy="60" r="4.5" fill="#a855f7" stroke="#fff" strokeWidth="0.5" />
+                </g>
+                
+                <text x="150" y="24" fill="#22d3ee" className="font-mono text-[6.5px] font-black uppercase text-center" textAnchor="middle">
+                  COGNITIVE MORPHOLOGY MESH
+                </text>
+              </svg>
+              
+              <div className="flex gap-2 justify-around w-full font-mono text-[6.5px] text-slate-500 uppercase mt-1">
+                <span>[01] EDUCATIONAL</span>
+                <span>[04] DRONES</span>
+                <span>[06] HUMANOID</span>
+                <span>[08] SWARM</span>
+              </div>
+            </div>
+
+            <div className="flex justify-between text-[7px] font-mono text-slate-500 pt-1 border-t border-slate-900 uppercase">
+              <span>Taxonomical scale active</span>
+              <span className="text-cyan-400 font-extrabold uppercase animate-pulse">8 Core Branches Map</span>
+            </div>
+          </div>
+        );
+      case 7: // Diagnostics
         return (
           <div className="w-full h-full flex flex-col justify-between p-3 relative bg-slate-950/45 rounded-xl border border-slate-900">
             <span className="font-mono text-[7px] text-emerald-500 font-extrabold pb-2 uppercase border-b border-emerald-950/40 block">SIGNAL INTEGRITY PROBE // LIVE ANALYSIS</span>
@@ -693,6 +787,42 @@ export default function HomePage({
             </div>
           </div>
         );
+      case 4: // Robotic Manipulators
+        return <AnimatedManipulatorDiagnostic />;
+      case 8: // AI Advisor Chatbot
+        return (
+          <div className="w-full h-full flex flex-col justify-between p-3 relative bg-slate-950/45 rounded-xl border border-slate-900">
+            <span className="font-mono text-[7px] text-emerald-400 font-extrabold pb-2 uppercase border-b border-emerald-950/40 block">INTELLIGENT ADVISOR CHATBOT CORE // ENGAGED</span>
+            
+            <div className="flex-1 flex flex-col justify-center py-2 gap-2 text-left">
+              {/* Simulated chat preview cards */}
+              <div className="space-y-1.5">
+                <div className="p-1 px-2 rounded bg-slate-900/80 border border-slate-800 text-[8px] font-sans flex items-start gap-1.5 max-w-[90%]">
+                  <span className="font-mono text-emerald-400 font-bold">[USER]:</span>
+                  <span className="text-slate-300">How do I compute inverse kinematics for my robotic manipulator?</span>
+                </div>
+                <div className="p-1.5 px-2 rounded bg-emerald-950/10 border border-emerald-500/20 text-[8px] font-sans flex items-start gap-1.5 ml-auto max-w-[90%]">
+                  <span className="font-mono text-cyan-400 font-bold">[AI]:</span>
+                  <span className="text-emerald-300 font-medium">Use trigonometric geometric solvers or algebraic matrices. Here is a Python code snippet: theta2 = acos...</span>
+                </div>
+              </div>
+
+              {/* Glowing active intelligence signal */}
+              <div className="flex items-center justify-between text-[7.5px] font-mono text-slate-500 bg-slate-950 p-1.5 rounded border border-slate-900 mt-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-emerald-400 font-bold">KNOWLEDGE RETRIEVAL STACK ACTIVE</span>
+                </div>
+                <span className="text-[6.5px] text-slate-600">GEN_CODES_OK</span>
+              </div>
+            </div>
+
+            <div className="flex justify-between text-[7.5px] font-mono text-slate-500 pt-1.5 border-t border-slate-900 uppercase">
+              <span>REAL-TIME MULTI-AXIS TUTORIAL</span>
+              <span className="text-emerald-400 font-black animate-pulse">GEMINI GENERATIVE ACTIVE</span>
+            </div>
+          </div>
+        );
       default:
         return null;
     }
@@ -710,29 +840,29 @@ export default function HomePage({
       <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-sky-500/40 to-transparent pointer-events-none" />
 
       {/* SECTION 1: HERO VIEW + INTERACTIVE FUTURISTIC ROBOTICS ROADMAP */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center py-2 md:py-4">
+      <section className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center py-1 md:py-2">
         
         {/* Animated Main Title Box */}
-        <div className="space-y-3 max-w-3xl mx-auto flex flex-col items-center mb-6 text-center">
+        <div className="space-y-2 max-w-3xl mx-auto flex flex-col items-center mb-3 text-center">
           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-sky-950/40 border border-sky-500/15">
             <Radio className="w-3 h-3 text-sky-400 animate-pulse" />
             <span className="font-mono text-[8.5px] text-sky-400 font-extrabold tracking-widest uppercase">STEERING AUTOMATION SYLLABUS GATE</span>
           </div>
 
-          <div className="flex flex-col items-center justify-center gap-2 mb-1">
-            <PremiumLogo className="w-10 h-10 md:w-12 h-12" glow={true} />
-            <h1 className="text-2xl md:text-[2.2rem] font-sans font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white via-slate-100 to-slate-400 leading-none uppercase select-none text-center">
+          <div className="flex flex-col items-center justify-center gap-1.5 mb-0.5">
+            <PremiumLogo className="w-8 h-8 md:w-9 h-9" glow={true} />
+            <h1 className="text-xl md:text-[1.8rem] font-sans font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white via-slate-100 to-slate-400 leading-none uppercase select-none text-center">
               ROBOTICS LEARNING HUB
             </h1>
           </div>
           
-          <p className="text-xs md:text-[13px] text-slate-400 leading-normal font-sans max-w-2xl mx-auto font-medium">
+          <p className="text-[11px] md:text-[12px] text-slate-400 leading-normal font-sans max-w-xl mx-auto font-medium">
             Learn robotics interactive modules sequentially. Analyze live sensor input signal flows, structure algorithmic codes, trace hardware electrical circuits, and calibrate physical feedback loops.
           </p>
         </div>
 
         {/* Dynamic Connected Roadmap Unified Dashboard - Combined Curriculum Flow & Companion Robot DEB-09 */}
-        <div id="curriculum-roadmap-dashboard" className="w-full bg-[#040c1e]/95 border-2 border-slate-900 rounded-2xl p-6 md:p-7 my-4 max-w-7xl mx-auto relative overflow-hidden backdrop-blur-md shadow-[0_0_50px_rgba(30,58,138,0.15)] select-none animate-fadeIn">
+        <div id="curriculum-roadmap-dashboard" className="w-full bg-[#040c1e]/95 border-2 border-slate-900 rounded-xl p-4 md:p-5 my-2 max-w-7xl mx-auto relative overflow-hidden backdrop-blur-md shadow-[0_0_50px_rgba(30,58,138,0.15)] select-none animate-fadeIn">
           {/* Luminous high header overlay border */}
           <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-500/35 to-rose-500/5 pointer-events-none" />
 
@@ -753,23 +883,23 @@ export default function HomePage({
           />
 
           {/* Elegant Consolidated Dashboard Header */}
-          <div className="mb-6 flex flex-wrap items-center justify-between border-b border-slate-900 pb-4 text-left gap-3 relative z-10">
+          <div className="mb-3.5 flex flex-wrap items-center justify-between border-b border-slate-900 pb-2 text-left gap-3 relative z-10">
             <div className="flex items-center gap-3">
-              <span className="relative flex h-3 w-3">
+              <span className="relative flex h-2.5 w-2.5">
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${sensorAlertActive ? "bg-rose-400" : "bg-cyan-400"}`}></span>
-                <span className={`relative inline-flex rounded-full h-3 w-3 ${sensorAlertActive ? "bg-rose-500" : "bg-cyan-500"}`}></span>
+                <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${sensorAlertActive ? "bg-rose-500" : "bg-cyan-500"}`}></span>
               </span>
               <div>
-                <span className="font-mono text-[8.5px] text-fuchsia-400 font-black block tracking-widest uppercase drop-shadow-[0_0_6px_rgba(217,70,239,0.5)] animate-pulse">INTEGRATED DIAGNOSTICS CONTROL</span>
-                <h3 className="font-sans font-black text-sm md:text-base text-white uppercase tracking-tight flex items-center gap-2 mt-0.5">
-                  <GraduationCap className="w-5 h-5 text-sky-400" />
+                <span className="font-mono text-[7.5px] text-fuchsia-400 font-black block tracking-widest uppercase drop-shadow-[0_0_6px_rgba(217,70,239,0.5)] animate-pulse">INTEGRATED DIAGNOSTICS CONTROL</span>
+                <h3 className="font-sans font-black text-xs md:text-sm text-white uppercase tracking-tight flex items-center gap-2 mt-0.5">
+                  <GraduationCap className="w-4 h-4 text-sky-400" />
                   STEM CURRICULUM PIPELINE
                 </h3>
               </div>
             </div>
 
             <div className="flex items-center gap-3 select-none">
-              <div className="font-mono text-[9px] bg-[#0c132c] text-sky-400 px-3 py-1 rounded border border-sky-500/20 font-bold flex items-center gap-2">
+              <div className="font-mono text-[8px] bg-[#0c132c] text-sky-400 px-2 py-0.5 rounded border border-sky-500/20 font-bold flex items-center gap-1.5">
                 <span>SYSTEM HUB</span>
                 <span className="text-slate-700">|</span>
                 <span className="animate-pulse font-extrabold text-emerald-400">
@@ -780,10 +910,10 @@ export default function HomePage({
           </div>
 
           {/* Integrated 12-Column Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch relative z-10 font-sans">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch relative z-10 font-sans">
             
             {/* LEFT 7-COLUMNS: The Active STEM Sequence Log */}
-            <div id="curriculum-flow-selector-section" className="col-span-12 md:col-span-7 flex flex-col justify-between gap-5 bg-[#030718]/45 border-2 border-slate-900 rounded-2xl p-5 md:p-6 relative select-none">
+            <div id="curriculum-flow-selector-section" className="col-span-12 md:col-span-7 flex flex-col justify-between gap-3 bg-[#030718]/45 border-2 border-slate-900 rounded-xl p-3.5 md:p-4 relative select-none">
               
               {/* Corner brackets */}
               <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sky-500/30" />
@@ -792,25 +922,25 @@ export default function HomePage({
               <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-indigo-500/30" />
 
               {/* Header section identical to the Right Panel header for aligned PC user experience */}
-              <div className="flex items-center justify-between border-b border-slate-900 pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-950 border border-slate-800">
-                    <GraduationCap className="w-5 h-5 text-sky-400" />
+              <div className="flex items-center justify-between border-b border-slate-900 pb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-slate-950 border border-slate-800">
+                    <GraduationCap className="w-4 h-4 text-sky-400" />
                   </div>
                   <div className="text-left font-sans">
-                    <span className="font-mono text-[7.5px] px-1.5 py-0.5 rounded font-extrabold tracking-wider bg-sky-500/10 text-sky-400 border border-sky-500/25">
+                    <span className="font-mono text-[7px] px-1 py-0.5 rounded font-extrabold tracking-wider bg-sky-500/10 text-sky-400 border border-sky-500/25">
                       STAGE CHANNELS
                     </span>
-                    <h4 className="font-sans font-black text-xs md:text-sm text-white uppercase tracking-tight mt-0.5">
+                    <h4 className="font-sans font-black text-xs text-white uppercase tracking-tight mt-0.5">
                       CURRICULUM FLOW SELECTOR
                     </h4>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4 flex-1 justify-between">
+              <div className="flex flex-col gap-3 flex-1 justify-between">
                 {/* STAGES SEQUENTIAL PATHWAY SELECTOR */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {roadmapPhases.map((phase, idx) => {
                     const isActive = activePhaseIndex === idx;
                     
@@ -818,52 +948,48 @@ export default function HomePage({
                       <div 
                         key={phase.id} 
                         onClick={() => {
-                          if (activePhaseIndex === idx) {
-                            setActivePhaseIndex(null);
-                          } else {
-                            setActivePhaseIndex(idx);
-                            // Seamless smooth-scroll down to diagnostic readout on mobile screens
-                            if (window.innerWidth < 768) {
-                              setTimeout(() => {
-                                const targetElement = document.getElementById("module-diagnostic-panel");
-                                if (targetElement) {
-                                  targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                }
-                              }, 100);
-                            }
+                          setActivePhaseIndex(idx);
+                          // Seamless smooth-scroll down to diagnostic readout on mobile screens if needed
+                          if (window.innerWidth < 768) {
+                            setTimeout(() => {
+                              const targetElement = document.getElementById("module-diagnostic-panel");
+                              if (targetElement) {
+                                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }
+                            }, 100);
                           }
                         }}
-                        className={`group relative z-10 p-3 sm:p-4 rounded-xl border-2 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-between select-none min-h-[175px] ${
+                        className={`group relative z-10 p-2 sm:p-2.5 rounded-lg border flex flex-col items-center justify-between select-none min-h-[108px] transition-all duration-300 ${
                           isActive 
-                            ? "scale-[1.03]" 
-                            : "hover:scale-[1.01]"
+                            ? "scale-[1.02]" 
+                            : "hover:scale-[1.005]"
                         } ${
                           phase.color === "sky"
                             ? isActive 
-                              ? "border-sky-400 bg-sky-500/10 shadow-[0_0_25px_rgba(56,189,248,0.5)] ring-2 ring-sky-450/40" 
-                              : "border-sky-500/20 bg-slate-950/50 hover:border-sky-450 hover:bg-sky-500/[0.03] hover:shadow-[0_0_20px_rgba(56,189,248,0.35)]"
+                              ? "border-sky-400 bg-sky-500/10 shadow-[0_0_20px_rgba(56,189,248,0.4)] ring-1 ring-sky-450/40" 
+                              : "border-sky-500/15 bg-slate-950/50 hover:border-sky-450 hover:bg-sky-500/[0.02] hover:shadow-[0_0_15px_rgba(56,189,248,0.25)]"
                             : phase.color === "indigo"
                             ? isActive 
-                              ? "border-indigo-400 bg-indigo-500/10 shadow-[0_0_25px_rgba(99,102,241,0.5)] ring-2 ring-indigo-450/40" 
-                              : "border-indigo-500/20 bg-slate-950/50 hover:border-indigo-450 hover:bg-indigo-500/[0.03] hover:shadow-[0_0_20px_rgba(99,102,241,0.35)]"
+                              ? "border-indigo-400 bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.4)] ring-1 ring-indigo-450/40" 
+                              : "border-indigo-500/15 bg-slate-950/50 hover:border-indigo-450 hover:bg-indigo-500/[0.02] hover:shadow-[0_0_15px_rgba(99,102,241,0.25)]"
                             : phase.color === "emerald"
                             ? isActive 
-                              ? "border-emerald-400 bg-emerald-500/10 shadow-[0_0_25px_rgba(16,185,129,0.5)] ring-2 ring-emerald-450/40" 
-                              : "border-emerald-500/20 bg-slate-950/50 hover:border-emerald-450 hover:bg-emerald-500/[0.03] hover:shadow-[0_0_20px_rgba(16,185,129,0.35)]"
+                              ? "border-emerald-400 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.4)] ring-1 ring-emerald-450/40" 
+                              : "border-emerald-500/15 bg-slate-950/50 hover:border-emerald-450 hover:bg-emerald-500/[0.02] hover:shadow-[0_0_15px_rgba(16,185,129,0.25)]"
                             : phase.color === "amber"
                             ? isActive 
-                              ? "border-amber-400 bg-amber-500/10 shadow-[0_0_25px_rgba(245,158,11,0.5)] ring-2 ring-amber-450/40" 
-                              : "border-amber-500/20 bg-slate-950/50 hover:border-amber-450 hover:bg-amber-500/[0.03] hover:shadow-[0_0_20px_rgba(245,158,11,0.35)]"
+                              ? "border-amber-400 bg-amber-500/10 shadow-[0_0_20px_rgba(245,158,11,0.4)] ring-1 ring-amber-450/40" 
+                              : "border-amber-500/15 bg-slate-950/50 hover:border-amber-450 hover:bg-amber-500/[0.02] hover:shadow-[0_0_15px_rgba(245,158,11,0.25)]"
                             : phase.color === "purple"
                             ? isActive 
-                              ? "border-purple-400 bg-purple-500/10 shadow-[0_0_25px_rgba(168,85,247,0.5)] ring-2 ring-purple-450/40" 
-                              : "border-purple-500/20 bg-slate-950/50 hover:border-purple-450 hover:bg-purple-500/[0.03] hover:shadow-[0_0_20px_rgba(168,85,247,0.35)]"
+                              ? "border-purple-400 bg-purple-500/10 shadow-[0_0_20px_rgba(168,85,247,0.4)] ring-1 ring-purple-450/40" 
+                              : "border-purple-500/15 bg-slate-950/50 hover:border-purple-450 hover:bg-purple-500/[0.02] hover:shadow-[0_0_15px_rgba(168,85,247,0.25)]"
                             : phase.color === "fuchsia"
                             ? isActive 
-                              ? "border-fuchsia-400 bg-fuchsia-500/10 shadow-[0_0_25px_rgba(217,70,239,0.6)] ring-2 ring-fuchsia-450/40" 
-                              : "border-fuchsia-500/20 bg-slate-950/50 hover:border-fuchsia-450 hover:bg-fuchsia-500/[0.03] hover:shadow-[0_0_20px_rgba(217,70,239,0.4)]"
+                              ? "border-fuchsia-400 bg-fuchsia-500/10 shadow-[0_0_20px_rgba(217,70,239,0.5)] ring-1 ring-fuchsia-450/40" 
+                              : "border-fuchsia-500/15 bg-slate-950/50 hover:border-fuchsia-450 hover:bg-fuchsia-500/[0.02] hover:shadow-[0_0_217,70,239,0.3)] hover:shadow-[0_0_20px_rgba(217,70,239,0.35)]"
                             : isActive 
-                              ? "border-sky-400 bg-sky-500/10 ring-2 ring-sky-450/40" 
+                              ? "border-sky-400 bg-sky-500/10 ring-1 ring-sky-450/40" 
                               : "border-slate-800 bg-slate-950/50 hover:border-sky-400"
                         }`}
                       >
@@ -879,15 +1005,15 @@ export default function HomePage({
 
                         {/* Top Metadata Row */}
                         <div className="flex items-center justify-between pointer-events-none w-full">
-                          <span className={`font-mono text-[7px] px-1.5 py-0.5 rounded font-extrabold tracking-wider ${phase.badgeColor}`}>
+                          <span className={`font-mono text-[6.5px] px-1 py-0.5 rounded font-extrabold tracking-wider ${phase.badgeColor}`}>
                             {phase.phaseNum}
                           </span>
                           
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-[6.5px] text-slate-500 uppercase font-black tracking-widest leading-none">
+                          <div className="flex items-center gap-1">
+                            <span className="font-mono text-[6px] text-slate-500 uppercase font-black tracking-widest leading-none">
                               {isActive ? "INSPECTING" : "STANDBY"}
                             </span>
-                            <div className="relative flex h-1.5 w-1.5">
+                            <div className="relative flex h-1 w-1">
                               {isActive && (
                                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                                   phase.color === "sky" ? "bg-sky-400" :
@@ -898,7 +1024,7 @@ export default function HomePage({
                                   phase.color === "fuchsia" ? "bg-fuchsia-400" : "bg-sky-400"
                                 }`} />
                               )}
-                              <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${
+                              <span className={`relative inline-flex rounded-full h-1 w-1 ${
                                 isActive 
                                   ? (phase.color === "sky" ? "bg-sky-400" :
                                      phase.color === "indigo" ? "bg-indigo-400" :
@@ -913,40 +1039,40 @@ export default function HomePage({
                         </div>
 
                         {/* Central Content (Icon + Title & Concept Code) - Fully Centered Centric Architecture */}
-                        <div className="flex flex-col items-center justify-center text-center mt-2.5 pointer-events-none flex-1 gap-2.5 w-full">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center border transition-all duration-300 shrink-0 [&>svg]:!w-[26px] [&>svg]:!h-[26px] ${
+                        <div className="flex flex-col items-center justify-center text-center mt-1 pointer-events-none flex-1 gap-1.5 w-full">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all duration-300 shrink-0 [&>svg]:!w-[18px] [&>svg]:!h-[18px] ${
                             phase.color === "sky"
                               ? isActive 
-                                ? "border-sky-500 bg-slate-950 text-sky-400 scale-110" 
-                                : "border-sky-950 bg-slate-950 text-sky-450/40 group-hover:border-sky-500/40 group-hover:text-sky-400"
+                                ? "border-sky-500 bg-slate-950 text-sky-400 scale-[1.05]" 
+                                : "border-sky-950 bg-slate-950 text-sky-455/45 group-hover:border-sky-500/45 group-hover:text-sky-400"
                               : phase.color === "indigo"
                               ? isActive 
-                                ? "border-indigo-500 bg-slate-950 text-indigo-400 scale-110" 
-                                : "border-indigo-950 bg-slate-950 text-indigo-450/40 group-hover:border-indigo-500/40 group-hover:text-indigo-400"
+                                ? "border-indigo-500 bg-slate-950 text-indigo-400 scale-[1.05]" 
+                                : "border-indigo-950 bg-slate-950 text-indigo-455/45 group-hover:border-indigo-500/45 group-hover:text-indigo-400"
                               : phase.color === "emerald"
                               ? isActive 
-                                ? "border-emerald-500 bg-slate-950 text-emerald-400 scale-110" 
-                                : "border-emerald-950 bg-slate-950 text-emerald-450/40 group-hover:border-emerald-500/40 group-hover:text-emerald-400"
+                                ? "border-emerald-500 bg-slate-950 text-emerald-400 scale-[1.05]" 
+                                : "border-emerald-950 bg-slate-950 text-emerald-455/45 group-hover:border-emerald-500/45 group-hover:text-emerald-400"
                               : phase.color === "amber"
                               ? isActive 
-                                ? "border-amber-500 bg-slate-950 text-amber-400 scale-110" 
-                                : "border-amber-950 bg-slate-950 text-amber-450/40 group-hover:border-amber-500/40 group-hover:text-amber-400"
+                                ? "border-amber-500 bg-slate-950 text-amber-400 scale-[1.05]" 
+                                : "border-amber-950 bg-slate-950 text-amber-455/45 group-hover:border-amber-500/45 group-hover:text-amber-400"
                               : phase.color === "purple"
                               ? isActive 
-                                ? "border-purple-500 bg-slate-950 text-purple-400 scale-110" 
-                                : "border-purple-950 bg-slate-950 text-purple-450/40 group-hover:border-purple-500/40 group-hover:text-purple-400"
+                                ? "border-purple-500 bg-slate-950 text-purple-400 scale-[1.05]" 
+                                : "border-purple-950 bg-slate-950 text-purple-455/45 group-hover:border-purple-500/45 group-hover:text-purple-400"
                               : phase.color === "fuchsia"
                               ? isActive 
-                                ? "border-fuchsia-500 bg-slate-950 text-fuchsia-400 scale-110" 
-                                : "border-fuchsia-950 bg-slate-950 text-fuchsia-450/40 group-hover:border-fuchsia-500/40 group-hover:text-fuchsia-400"
+                                ? "border-fuchsia-500 bg-slate-950 text-fuchsia-400 scale-[1.05]" 
+                                : "border-fuchsia-950 bg-slate-950 text-fuchsia-455/45 group-hover:border-fuchsia-500/45 group-hover:text-fuchsia-400"
                               : isActive 
-                                ? "border-sky-500 bg-slate-950 text-sky-400 scale-110" 
-                                : "border-slate-900 bg-slate-950 text-slate-500 group-hover:border-slate-700"
+                                ? "border-sky-500 bg-slate-950 text-sky-400 scale-[1.05]" 
+                                : "border-slate-905 bg-slate-950 text-slate-500 group-hover:border-slate-700"
                           }`}>
                             {phase.icon}
                           </div>
                           <div className="flex flex-col items-center justify-center w-full">
-                            <h5 className={`font-sans font-black text-[12.5px] sm:text-[13.5px] tracking-tight text-center uppercase leading-tight transition-colors duration-250 ${
+                            <h5 className={`font-sans font-black text-[11px] sm:text-[11.5px] tracking-tight text-center uppercase leading-tight transition-colors duration-250 ${
                               isActive
                                 ? (phase.color === "sky" ? "text-sky-300" :
                                    phase.color === "indigo" ? "text-indigo-300" :
@@ -965,7 +1091,7 @@ export default function HomePage({
                             }`}>
                               {phase.name}
                             </h5>
-                            <span className="font-mono text-[7.5px] text-slate-400 block mt-1.5 font-bold leading-normal tracking-wide uppercase text-center max-w-[95%]">
+                            <span className="font-mono text-[7px] text-slate-400 block mt-0.5 font-bold leading-normal tracking-wide uppercase text-center max-w-[95%] font-medium">
                               {phase.concept}
                             </span>
                           </div>
@@ -976,14 +1102,14 @@ export default function HomePage({
                 </div>
  
                 {/* COMPACT STAGE MONITORING NOTIFICATION AREA */}
-                <div className="mt-2 p-3.5 rounded-xl bg-slate-950/80 border-2 border-slate-800 select-none text-left flex items-start gap-3 w-full">
-                  <span className="relative flex h-2 w-2 mt-1">
+                <div className="mt-1.5 p-2 py-2.5 rounded bg-slate-950/80 border border-slate-900 select-none text-left flex items-start gap-2.5 w-full">
+                  <span className="relative flex h-1.5 w-1.5 mt-1">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-500"></span>
                   </span>
                   <div>
-                    <span className="font-mono text-[7.5px] text-cyan-400 font-extrabold uppercase tracking-widest block">SYSTEM TELEMETRY LINK ACTIVE</span>
-                    <p className="text-[10.5px] text-slate-200 leading-normal font-sans font-medium mt-1">
+                    <span className="font-mono text-[7px] text-cyan-400 font-extrabold uppercase tracking-widest block">SYSTEM TELEMETRY LINK ACTIVE</span>
+                    <p className="text-[10px] text-slate-350 leading-normal font-sans font-medium mt-0.5">
                       {currentPhase ? (
                         <>
                           Module <span className="text-white font-bold">#{currentPhase.phaseNum} ({currentPhase.name})</span> is aligned. Tap stage to inspect telemetry.
@@ -1000,7 +1126,7 @@ export default function HomePage({
             </div>
 
             {/* RIGHT 5-COLUMNS: Integrated Module Readout Panel */}
-            <div id="module-diagnostic-panel" className="col-span-12 md:col-span-4 lg:col-span-5 flex flex-col justify-between gap-5 bg-[#030718]/45 border-2 border-slate-900 rounded-2xl p-5 md:p-6 relative select-none">
+            <div id="module-diagnostic-panel" className="col-span-12 md:col-span-4 lg:col-span-5 flex flex-col justify-between gap-3 bg-[#030718]/45 border-2 border-slate-900 rounded-xl p-3.5 md:p-4 relative select-none">
               
               {/* Corner brackets */}
               <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sky-500/30" />
@@ -1011,9 +1137,9 @@ export default function HomePage({
               {currentPhase === null ? (
                 <div className="flex flex-col justify-between h-full flex-1">
                   {/* Holographic Speech header */}
-                  <div className="flex items-center justify-between border-b border-slate-900 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-sky-500/10 border border-sky-500/30 text-sky-400 animate-pulse">
+                  <div className="flex items-center justify-between border-b border-slate-900 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-sky-500/10 border border-sky-500/30 text-sky-400 animate-pulse">
                         <Cpu className="w-5 h-5" />
                       </div>
                       <div className="text-left font-sans">
@@ -1028,30 +1154,30 @@ export default function HomePage({
                   </div>
 
                   {/* Humanoid Robot Interactive Box */}
-                  <div className="flex flex-col items-center justify-center py-4 md:py-5 flex-1 gap-4">
+                  <div className="flex flex-col items-center justify-center py-2 md:py-3 flex-1 gap-2">
                     {/* Bobbing Humanoid Robot SVG Frame */}
                     <motion.div
                       animate={{ 
-                        y: [0, -15, 0],
-                        scaleY: [1, 0.95, 1.02, 1],
-                        scaleX: [1, 1.05, 0.98, 1],
-                        rotate: [-1.5, 1.5, -1.5]
+                        y: [0, -8, 0],
+                        scaleY: [1, 0.97, 1.01, 1],
+                        scaleX: [1, 1.03, 0.99, 1],
+                        rotate: [-1, 1, -1]
                       }}
                       transition={{ 
                         duration: 3, 
                         repeat: Infinity, 
                         ease: "easeInOut" 
                       }}
-                      className="w-56 h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 relative flex items-center justify-center animate-fadeIn"
+                      className="w-32 h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 relative flex items-center justify-center animate-fadeIn"
                     >
                       {/* Luminous backdrop circle */}
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-500/5 to-violet-500/10 blur-xl animate-pulse" />
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-500/5 to-violet-500/10 blur-lg animate-pulse" />
                       
                       {/* Holographic base stand */}
                       <motion.div 
                         animate={{ opacity: [0.3, 0.7, 0.3], scaleX: [0.95, 1.05, 0.95] }}
                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute -bottom-1 w-24 h-1.5 bg-gradient-to-r from-sky-500/10 via-violet-500/20 to-sky-500/10 rounded-full blur-[1px] border border-sky-400/20" 
+                        className="absolute -bottom-1 w-16 h-1 bg-gradient-to-r from-sky-500/10 via-violet-500/20 to-sky-500/10 rounded-full blur-[1px] border border-sky-400/20" 
                       />
                       
                       {/* High Tech Vector SVG Robot Shape */}
@@ -1063,10 +1189,10 @@ export default function HomePage({
                         
                         <line x1="45" y1="38" x2="33" y2="25" strokeWidth="1" />
                         <circle cx="33" cy="25" r="1.5" className="fill-indigo-400" />
-
+ 
                         <line x1="75" y1="38" x2="87" y2="25" strokeWidth="1" />
                         <circle cx="87" cy="25" r="1.5" className="fill-indigo-400" />
-
+ 
                         {/* Robot Head Frame */}
                         <rect x="36" y="36" width="48" height="34" rx="14" fill="#030712" strokeWidth="1.7" className="stroke-sky-400" />
                         <rect x="42" y="42" width="36" height="22" rx="8" fill="#01030a" strokeWidth="0.8" className="stroke-indigo-500/50" />
@@ -1093,13 +1219,13 @@ export default function HomePage({
                           {/* Subtle digital scanning lines across look */}
                           <line x1="44" y1="53" x2="76" y2="53" stroke="rgba(56, 189, 248, 0.2)" strokeWidth="0.5" />
                         </g>
-
+ 
                         {/* Torso Shoulder Line */}
                         <path d="M 32,95 C 40,84 80,84 88,95" fill="#030712" strokeWidth="1.5" className="stroke-sky-400/80" />
                         {/* Glowing chest power reactor core */}
                         <circle cx="60" cy="94" r="5.5" fill="#050a18" className="stroke-purple-500" strokeWidth="1" />
                         <circle cx="60" cy="94" r="3" fill="#a855f7" className="animate-pulse" />
-
+ 
                         {/* Left floating arms/thrusters */}
                         <motion.path 
                           d="M 24,65 Q 16,75 22,85" 
@@ -1107,7 +1233,7 @@ export default function HomePage({
                           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                           style={{ transformOrigin: "24px 65px" }} 
                         />
-
+ 
                         {/* Right floating arms/thrusters (Symmetric cute arm) */}
                         <motion.path 
                           d="M 96,65 Q 104,75 98,85" 
@@ -1115,59 +1241,57 @@ export default function HomePage({
                           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
                           style={{ transformOrigin: "96px 65px" }} 
                         />
-
+ 
                         {/* Outer tracking design rings */}
                         <circle cx="60" cy="53" r="42" className="stroke-indigo-500/10" strokeDasharray="3,15" />
                         <circle cx="60" cy="53" r="50" className="stroke-sky-500/10" strokeDasharray="4,8" />
                       </svg>
-
+ 
                       {/* Dynamic speech lines on the side of the robot */}
-                      <div className="absolute left-[-20px] top-1/2 flex flex-col gap-1 items-end opacity-60">
-                        <div className="h-[1px] w-4 bg-sky-500" />
-                        <div className="h-[1px] w-6 bg-indigo-500" />
-                        <div className="h-[1px] w-3 bg-violet-500" />
+                      <div className="absolute left-[-12px] top-1/2 flex flex-col gap-1 items-end opacity-60">
+                        <div className="h-[1px] w-3 bg-sky-500" />
+                        <div className="h-[1px] w-4.5 bg-indigo-500" />
                       </div>
-                      <div className="absolute right-[-20px] top-1/2 flex flex-col gap-1 items-start opacity-60">
-                        <div className="h-[1px] w-4 bg-sky-500" />
-                        <div className="h-[1px] w-6 bg-indigo-500" />
-                        <div className="h-[1px] w-3 bg-violet-500" />
+                      <div className="absolute right-[-12px] top-1/2 flex flex-col gap-1 items-start opacity-60">
+                        <div className="h-[1px] w-3 bg-sky-500" />
+                        <div className="h-[1px] w-4.5 bg-indigo-500" />
                       </div>
                     </motion.div>
-
+ 
                     {/* Holographic Projector Pedestal / Base Platform with projection cone light highlights */}
-                    <div className="relative w-64 h-12 flex flex-col items-center justify-center -mt-16 mb-4 select-none pointer-events-none">
+                    <div className="relative w-48 h-8 flex flex-col items-center justify-center -mt-6 mb-1 select-none pointer-events-none">
                       {/* Projection Cone / Light Beam highlighting the robot from below (Wider and Shorter) */}
-                      <div className="absolute bottom-[18px] w-72 h-20 bg-gradient-to-t from-cyan-500/40 via-cyan-500/[0.03] to-transparent blur-lg opacity-90 z-20" 
+                      <div className="absolute bottom-[10px] w-44 h-12 bg-gradient-to-t from-cyan-500/30 via-cyan-500/[0.02] to-transparent blur-md opacity-90 z-20" 
                            style={{ clipPath: 'polygon(0% 0%, 100% 0%, 40% 100%, 60% 100%)' }} />
-
+ 
                       {/* Elevated Circular Aperture centered on top of the platform representing the requested source circle */}
-                      <div className="absolute bottom-[14px] w-12 h-3 rounded-full bg-[#040e24] border-2 border-cyan-400/90 shadow-[0_0_15px_rgba(6,182,212,0.8)] flex items-center justify-center z-30">
+                      <div className="absolute bottom-[7px] w-8 h-2 rounded-full bg-[#040e24] border border-cyan-400/90 shadow-[0_0_10px_rgba(6,182,212,0.8)] flex items-center justify-center z-30">
                         {/* Dynamic pulsing inner white-hot light core */}
-                        <div className="w-5 h-1 rounded-full bg-cyan-100 shadow-[0_0_8px_#ffffff] animate-pulse" />
+                        <div className="w-3.5 h-0.5 rounded-full bg-cyan-100 shadow-[0_0_6px_#ffffff] animate-pulse" />
                       </div>
-
+ 
                       {/* Emitter Disk Outer Ring (Metallic / Dark slate) */}
-                      <div className="w-24 h-4 rounded-full bg-slate-900 border border-slate-800 relative shadow-[0_0_10px_rgba(0,0,0,0.8)] z-10 flex items-center justify-center">
+                      <div className="w-16 h-3 rounded-full bg-slate-900 border border-slate-800 relative shadow-[0_0_8px_rgba(0,0,0,0.8)] z-10 flex items-center justify-center">
                         {/* Glowing Emitter Core Ring */}
-                        <div className="w-16 h-2 rounded-full bg-cyan-950 border border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.4)] flex items-center justify-center overflow-hidden">
+                        <div className="w-11 h-1.5 rounded-full bg-cyan-950 border border-cyan-500/40 shadow-[0_0_6px_rgba(6,182,212,0.4)] flex items-center justify-center overflow-hidden">
                           {/* Laser focal lens */}
-                          <div className="w-6 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee] animate-pulse" />
+                          <div className="w-4 h-0.5 rounded-full bg-cyan-400 shadow-[0_0_4px_#22d3ee] animate-pulse" />
                         </div>
                       </div>
                       
                       {/* Holographic Ring Glow Base reflections on the floor */}
-                      <div className="absolute bottom-0 w-32 h-2.5 bg-gradient-to-r from-transparent via-cyan-500/15 to-transparent rounded-full blur-[2px] animate-pulse" />
+                      <div className="absolute bottom-0 w-24 h-1.5 bg-gradient-to-r from-transparent via-cyan-500/15 to-transparent rounded-full blur-[1px] animate-pulse" />
                     </div>
-
+ 
                     {/* Futuristic Welcome speech bubble */}
-                    <div className="w-full text-center font-sans bg-gradient-to-br from-[#0a0f2d] to-[#04061a] p-5 rounded-2xl border-2 border-cyan-500/40 relative shadow-[0_0_20px_rgba(6,182,212,0.15)] hover:border-violet-500/60 hover:shadow-[0_0_25px_rgba(139,92,246,0.2)] transition-all duration-300">
+                    <div className="w-full text-center font-sans bg-gradient-to-br from-[#0a0f2d] to-[#04061a] p-3 rounded-xl border border-cyan-500/35 relative shadow-[0_0_15px_rgba(6,182,212,0.12)] hover:border-violet-500/50 transition-all duration-300">
                       
                       {/* Centered clean block typography layout (uniform cyan/theme colors, wrapped body) */}
                       <p className="font-sans leading-relaxed tracking-wide text-center flex flex-col items-center select-none antialiased text-cyan-400 uppercase">
-                        <span className="font-black text-[12px] sm:text-[13px] tracking-wider mb-2 animate-pulse">
+                        <span className="font-black text-[10.5px] tracking-wider mb-1 animate-pulse">
                           Welcome Robotics Engineer!
                         </span>
-                        <span className="font-bold text-[10.5px] sm:text-[11.2px] tracking-tight max-w-[340px] leading-snug text-center text-cyan-300">
+                        <span className="font-bold text-[9px] tracking-tight max-w-[280px] leading-snug text-center text-cyan-300">
                           Select a learning module on the left to activate feedback and launch simulators
                         </span>
                       </p>
@@ -1234,7 +1358,15 @@ export default function HomePage({
                     {/* Embedded Signal Visualizer Graph */}
                     <div className="text-left flex-1 min-h-[160px] flex flex-col justify-between font-sans animate-fadeIn">
                       <span className="font-mono text-[7px] text-indigo-400 font-extrabold uppercase tracking-wide block mb-1 opacity-70">
-                        {activePhaseIndex === 3 ? "CLOSED-LOOP FEEDBACK CONTROL DIAGRAM" : activePhaseIndex === 4 ? "NEURAL NETWORK INFERENCE CORE" : "MODULE SYNAPTIC INTERACTION SIGNALS"}
+                        {activePhaseIndex === 3 
+                          ? "CLOSED-LOOP FEEDBACK CONTROL DIAGRAM" 
+                          : activePhaseIndex === 4 
+                          ? "SPATIAL MULTI-AXIS MANIPULATOR GEOMETRY" 
+                          : activePhaseIndex === 5 
+                          ? "NEURAL NETWORK INFERENCE CORE" 
+                          : activePhaseIndex === 7 
+                          ? "SIGNAL INTEGRITY SPECTRUM ANALYZER" 
+                          : "MODULE SYNAPTIC INTERACTION SIGNALS"}
                       </span>
                       <div className="flex-1 w-full min-h-[150px] rounded-xl bg-slate-950/95 border border-slate-900 p-1.5 relative overflow-hidden flex flex-col justify-between select-none">
                         {renderPhaseVisualizer(activePhaseIndex)}
@@ -1249,16 +1381,16 @@ export default function HomePage({
                       onClick={() => {
                         onEnter(currentPhase.targetTab);
                       }}
-                      className="w-full relative px-6 py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black font-mono text-[11.5px] tracking-widest rounded-xl transition-all duration-300 active:scale-95 cursor-pointer uppercase flex items-center justify-center gap-3 group border-2 border-sky-300 shadow-[0_0_25px_rgba(56,189,248,0.45)]"
+                      className="w-full relative px-6 py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black font-mono text-[11.5px] tracking-widest rounded-xl transition-all duration-300 active:scale-95 cursor-pointer uppercase flex items-center justify-center gap-3 group border border-sky-500 shadow-[0_0_25px_rgba(56,189,248,0.25)]"
                     >
                       <span>LAUNCH SIMULATOR // ENGAGE {currentPhase.phaseNum}</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300 text-slate-950" />
                       
                       {/* Corner brackets */}
-                      <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-white" />
-                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-white" />
-                      <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-white" />
-                      <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-white" />
+                      <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-sky-400/60" />
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-sky-400/60" />
+                      <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-sky-400/60" />
+                      <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-sky-400/60" />
                     </button>
                   </div>
                 </div>

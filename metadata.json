@@ -1,6 +1,6 @@
 {
   "name": "Robotics Learning Hub",
-  "description": "Your comprehensive interactive guide and playground for mastering modern robotics systems, tracing hardware signal pathways, and exploring microcontroller workflows.",
+  "description": "Your comprehensive interactive guide and playground for mastering modern robotics systems, tracing hardware signal pathways, exploring microcontroller workflows, and studying robot categories from simple buggies to walking quadrupeds, humanoids, and space swarms.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

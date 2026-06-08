@@ -725,6 +725,14 @@ const FLOW_STEP_DETAILS: Record<string, { title: string; type: string; desc: str
   }
 };
 
+const getProgressStyle = (val: number, min: number, max: number, color: string) => {
+  const percent = ((val - min) / (max - min)) * 100;
+  return {
+    background: `linear-gradient(to right, ${color} ${percent}%, #02050f ${percent}%)`,
+    height: "6px"
+  };
+};
+
 export default function RoboticsGuide({ viewType }: { viewType?: "programming" | "electronics" }) {
   const [activeGuideTab, setActiveGuideTab] = useState<"coding" | "flowchart" | "electronics">(
     viewType === "electronics" ? "electronics" : "flowchart"
@@ -751,18 +759,28 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
   const [loopsCodeMode, setLoopsCodeMode] = useState<"block" | "text">("text");
   const [functionsCodeMode, setFunctionsCodeMode] = useState<"block" | "text">("text");
   const [activeInputExample, setActiveInputExample] = useState<"digital" | "analog">("digital");
-  const [pirSensorMotionDetected, setPirSensorMotionDetected] = useState<boolean>(false);
+  const [isMotionTriggered, setIsMotionTriggered] = useState<boolean>(false);
+  const pirSensorMotionDetected = isMotionTriggered;
+  const setPirSensorMotionDetected = setIsMotionTriggered;
   const [analogLightSensorReading, setAnalogLightSensorReading] = useState<number>(512);
   const [userDistance, setUserDistance] = useState<number>(45); // 0-100cm slider
-  const [isMotionTriggered, setIsMotionTriggered] = useState<boolean>(false);
-  const [lightRawADC, setLightRawADC] = useState<number>(650); // 0-1023 slider
+  const lightRawADC = analogLightSensorReading;
+  const setLightRawADC = setAnalogLightSensorReading;
   const [loopFrequencySelected, setLoopFrequencySelected] = useState<number>(1); // 0=Slow, 1=Med, 2=Fast
   const [loopPlayCycle, setLoopPlayCycle] = useState<number>(0);
+
+  // Dynamic calculations for the simplified LED Blinker for-loop example
+  const loopBlinkDurations = [3000, 1000, 200];
+  const currentBlinkDur = loopBlinkDurations[loopFrequencySelected] || 1000;
+  const totalLoopPeriod = 5 * currentBlinkDur;
+  const cycleTime = Date.now() % totalLoopPeriod;
+  const loopIteration = Math.floor(cycleTime / currentBlinkDur) + 1;
+  const loopLedOn = (cycleTime % currentBlinkDur) < (currentBlinkDur / 2);
 
   // Easy examples toggling states
   const [activeVarExample, setActiveVarExample] = useState<"proximity" | "temp">("proximity");
   const [activeCondExample, setActiveCondExample] = useState<"lamp" | "laser">("lamp");
-  const [activeLoopExample, setActiveLoopExample] = useState<"orbit" | "servo">("orbit");
+  const [activeLoopExample, setActiveLoopExample] = useState<"for" | "while">("for");
   const [activeFuncExample, setActiveFuncExample] = useState<"average" | "buzzer">("average");
   const [activeAutoExample, setActiveAutoExample] = useState<"statemachine" | "pid">("statemachine");
 
@@ -943,7 +961,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
       setSimTick((prev) => (prev + 1.6) % 12000);
       
       // Keep background animations running for interactive 2D indicators
-      if (activeCodingSubTab === "loops" && activeLoopExample === "servo") {
+      if (activeCodingSubTab === "loops" && activeLoopExample === "for") {
         setServoAngleDegrees((angle) => {
           const tickVal = Date.now() / [150, 75, 25][loopFrequencySelected];
           return Math.round(90 + 90 * Math.sin(tickVal / 10));
@@ -1018,6 +1036,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
         return;
       }
 
+      setAlternateBranch((prev) => !prev);
       setActiveFlowStep((currentStep) => {
         // Only walk along standard non-ending pathways (skip terminate/shut down lines during looping)
         const activeArrows = activeCase.flowArrows.filter(
@@ -1035,7 +1054,6 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
 
         // Handle path decision splitting (e.g. at Diamond shapes) by shifting branches
         const chosenIndex = alternateBranch ? 1 % activeArrows.length : 0;
-        setAlternateBranch((prev) => !prev);
         return activeArrows[chosenIndex].to;
       });
     }, 1800); // 1.8 seconds transition speed is perfect
@@ -1145,8 +1163,8 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                     }}
                     className={`group relative flex items-center justify-between p-2.5 rounded-xl border text-left transition-all duration-300 cursor-pointer overflow-hidden ${
                       isActive
-                        ? "border-sky-400 bg-sky-505/10 text-white font-extrabold shadow-[0_0_15px_rgba(56,189,248,0.22)] ring-1 ring-sky-400/50 scale-[1.015]"
-                        : "border-slate-800 bg-slate-950/40 text-slate-450 hover:text-slate-100 hover:border-slate-600 hover:bg-slate-950/80"
+                        ? "border-sky-400 bg-sky-500/10 text-white font-extrabold shadow-[0_0_15px_rgba(56,189,248,0.22)] ring-1 ring-sky-400/50 scale-[1.015]"
+                        : "border-slate-800 bg-slate-950/40 text-slate-400 hover:text-slate-100 hover:border-slate-600 hover:bg-slate-950/80"
                     }`}
                   >
                     <div className={`absolute left-0 top-0 bottom-0 w-[4px] bg-sky-400 transition-transform duration-250 ${isActive ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"}`} />
@@ -1155,12 +1173,12 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                         <IconComp className="w-4 h-4" />
                       </div>
                       <div>
-                        <h4 className={`font-sans font-bold text-xs ${isActive ? "text-sky-305" : "text-slate-300"}`}>{tab.label}</h4>
+                        <h4 className={`font-sans font-bold text-xs ${isActive ? "text-sky-300" : "text-slate-300"}`}>{tab.label}</h4>
                         <p className={`font-mono text-[9px] truncate max-w-[2700px] ${isActive ? "text-sky-400/70" : "text-slate-500"}`}>{tab.sub}</p>
                       </div>
                     </div>
                     {tab.num && (
-                      <span className={`font-mono text-[10px] pr-2 transition-colors ${isActive ? "text-sky-400 font-extrabold" : "text-slate-700 group-hover:text-slate-555"}`}>
+                      <span className={`font-mono text-[10px] pr-2 transition-colors ${isActive ? "text-sky-400 font-extrabold" : "text-slate-700 group-hover:text-slate-500"}`}>
                         {tab.num}
                       </span>
                     )}
@@ -1210,14 +1228,14 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                           }, 120);
                         }
                       }}
-                      className={`w-full text-left p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                      className={`w-full text-left p-4.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
                         isCur 
-                          ? "border-sky-550 bg-sky-500/[0.04] ring-1 ring-sky-500/20" 
-                          : "border-slate-800 hover:border-slate-700 bg-slate-900/10 hover:bg-slate-900/45"
+                          ? "border-blue-500 bg-blue-500/[0.05] shadow-[0_0_15px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/35" 
+                          : "border-slate-800 hover:border-slate-705 hover:border-slate-700 bg-slate-900/10 hover:bg-slate-900/45"
                       }`}
                     >
-                      <h4 className="font-sans font-extrabold text-slate-200 text-xs">{sub.label}</h4>
-                      <p className="font-sans text-[10px] text-slate-500 mt-0.5 leading-tight">{sub.desc}</p>
+                      <h4 className="font-sans font-black text-slate-100 text-sm">{sub.label}</h4>
+                      <p className="font-sans text-[11px] text-slate-500 mt-1 leading-snug">{sub.desc}</p>
                     </button>
                   );
                 })}
@@ -1265,7 +1283,107 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Left: Interactive Simulators */}
+                      {/* Left: Code area with representation toggle */}
+                      <div className="space-y-3 flex flex-col justify-between">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 font-bold">Code Format:</span>
+                          <div className="flex gap-1 bg-slate-950 p-1 border border-slate-900 rounded-lg">
+                            <button
+                              type="button"
+                              onClick={() => setVariablesCodeMode("text")}
+                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${variablesCodeMode === "text" ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/20" : "text-slate-500 hover:text-slate-300"}`}
+                            >
+                              Text C++ Code
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setVariablesCodeMode("block")}
+                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${variablesCodeMode === "block" ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/20" : "text-slate-500 hover:text-slate-300"}`}
+                            >
+                              Block-Based Code
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="rounded-xl bg-slate-950 p-4 border border-slate-900 font-mono text-[10.5px] leading-relaxed relative flex-1 flex flex-col justify-between">
+                          {variablesCodeMode === "block" ? (
+                            <div className="space-y-4 font-sans text-xs">
+                              <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">// Block-Based Visual Code</span>
+                              
+                              {activeVarExample === "proximity" ? (
+                                <div className="space-y-2 font-sans font-extrabold text-[11px] text-left">
+                                  <div className="bg-indigo-600/90 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-indigo-800">
+                                    <span className="font-mono text-[9px] text-indigo-200">▤ Variable</span>
+                                    <span>Set <strong className="text-indigo-100">trigPin</strong> to <code className="bg-indigo-800 px-1.5 py-0.5 rounded text-[10px] font-mono">3</code></span>
+                                  </div>
+                                  <div className="bg-indigo-600/90 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-indigo-800">
+                                    <span className="font-mono text-[9px] text-indigo-200">▤ Variable</span>
+                                    <span>Set <strong className="text-indigo-100">echoPin</strong> to <code className="bg-indigo-800 px-1.5 py-0.5 rounded text-[10px] font-mono">4</code></span>
+                                  </div>
+                                  <div className="bg-sky-600/95 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-sky-800">
+                                    <span className="font-mono text-[9px] text-sky-200">▤ Variable</span>
+                                    <span>Set <strong className="text-sky-101">distance</strong> to <code className="bg-sky-800 px-1.5 py-0.5 rounded text-[10px] font-mono">{userDistance}</code></span>
+                                  </div>
+                                  <div className="bg-emerald-600/90 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-emerald-800">
+                                    <span className="font-mono text-[9px] text-emerald-200">▤ Variable</span>
+                                    <span>Set <strong className="text-emerald-100">obstacleDetected</strong> to <code className="bg-emerald-800 px-1.5 py-0.5 rounded text-[10px] font-mono">{userDistance < 20 ? "true" : "false"}</code></span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="space-y-2 font-sans font-extrabold text-[11px] text-left">
+                                  <div className="bg-indigo-600/90 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-indigo-800">
+                                    <span className="font-mono text-[9px] text-indigo-200">▤ Variable</span>
+                                    <span>Set <strong className="text-indigo-100">thermistorPin</strong> to <code className="bg-indigo-800 px-1.5 py-0.5 rounded text-[10px] font-mono">A1</code></span>
+                                  </div>
+                                  <div className="bg-sky-600/95 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-sky-800">
+                                    <span className="font-mono text-[9px] text-sky-200">▤ Variable</span>
+                                    <span>Set <strong className="text-sky-101">tempSensorVal</strong> to <code className="bg-sky-800 px-1.5 py-0.5 rounded text-[10px] font-mono">{tempSensorValue.toFixed(1)}</code></span>
+                                  </div>
+                                  <div className="bg-emerald-600/90 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-emerald-800">
+                                    <span className="font-mono text-[9px] text-emerald-200">▤ Variable</span>
+                                    <span>Set <strong className="text-emerald-100">activeCoolerState</strong> to <code className="bg-emerald-800 px-1.5 py-0.5 rounded text-[10px] font-mono">{tempSensorValue > 35 ? "true" : "false"}</code></span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="space-y-4 text-left">
+                              <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">// Text-Based C++ Firmware</span>
+                              {activeVarExample === "proximity" ? (
+                                <div className="space-y-2 text-slate-400">
+                                  <span className="text-slate-600 block">// Registers proximity sensor input pins</span>
+                                  <p><span className="text-[#f43f5e]">const int</span> trigPin = <span className="text-indigo-400">3</span>;</p>
+                                  <p><span className="text-[#f43f5e]">const int</span> echoPin = <span className="text-indigo-400">4</span>;</p>
+                                  <p className="text-pink-400 bg-pink-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f43f5e] transition-colors duration-150">
+                                    <span className="text-[#f43f5e]">int</span> distance = <span className="text-sky-400 font-extrabold">{userDistance}</span>; <span className="text-slate-550 text-[9.5px]">// updated dynamically</span>
+                                  </p>
+                                  <p className="text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f59e0b] transition-colors duration-150">
+                                    <span className="text-[#f43f5e]">bool</span> obstacleDetected = <span className="text-emerald-400 font-extrabold">{userDistance < 20 ? "true" : "false"}</span>;
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="space-y-2 text-slate-400">
+                                  <span className="text-slate-600 block">// Registers Thermistor temperature coefficient parameters</span>
+                                  <p><span className="text-[#f43f5e]">const int</span> thermistorPin = <span className="text-indigo-400">A1</span>;</p>
+                                  <p className="text-pink-405 bg-pink-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f43f5e] transition-colors duration-150">
+                                    <span className="text-[#f43f5e]">float</span> tempSensorVal = <span className="text-[#38bdf8] font-bold">{tempSensorValue.toFixed(1)}</span>; <span className="text-slate-550 text-[9.5px]">// Float storing decimal levels</span>
+                                  </p>
+                                  <p className="text-amber-404 bg-amber-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f59e0b] transition-colors duration-150">
+                                    <span className="text-[#f43f5e]">bool</span> activeCoolerState = <span className="text-emerald-400 font-extrabold">{tempSensorValue > 35 ? "true" : "false"}</span>;
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="border-t border-slate-900/60 pt-3 mt-4 flex items-center gap-1.5 text-[9.5px] text-indigo-400 font-mono text-left">
+                            <Info className="w-3.5 h-3.5 shrink-0" />
+                            <span>{activeVarExample === "proximity" ? "Integers save distance numbers. Booleans represent yes/no trigger states." : "Floats store fractional numbers (like celsius). Booleans activate status relays."}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Interactive Simulators */}
                       <div className="space-y-4 bg-slate-900/20 p-4 rounded-xl border border-slate-900 flex flex-col justify-between">
                         <div>
                           <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500 block font-bold mb-3">Adjust Physical Knobs:</span>
@@ -1284,7 +1402,8 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                                   max="100" 
                                   value={userDistance}
                                   onChange={(e) => setUserDistance(parseInt(e.target.value))}
-                                  className="w-full accent-indigo-500 cursor-pointer"
+                                  className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-sky-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-sky-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-sky-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-sky-500 [&::-moz-range-thumb]:shadow-md"
+                                  style={getProgressStyle(userDistance, 5, 100, "#38bdf8")}
                                 />
                                 <p className="font-sans text-[10px] text-slate-500">Compiles directly into: <code className="text-[#38bdf8] font-mono">int distance = {userDistance};</code></p>
                               </div>
@@ -1292,7 +1411,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                               {/* 2. Motion sensor toggle Switch */}
                               <div className="space-y-2 pt-3 border-t border-slate-900/40">
                                 <div className="flex justify-between items-center text-xs">
-                                  <span className="text-slate-300 font-sans font-bold">Trigger Motion (PIR):</span>
+                                  <span className="text-slate-305 font-sans font-bold">Trigger Motion (PIR):</span>
                                   <button
                                     onClick={() => setIsMotionTriggered(!isMotionTriggered)}
                                     className={`px-3 py-1 rounded-md font-mono font-bold text-[10px] border cursor-pointer select-none transition-all ${
@@ -1312,7 +1431,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                               {/* Thermostat controls */}
                               <div className="space-y-2">
                                 <div className="flex justify-between text-xs">
-                                  <span className="text-slate-300 font-sans font-bold">Thermostat Sensed Temp:</span>
+                                  <span className="text-slate-303 font-sans font-bold">Thermostat Sensed Temp:</span>
                                   <span className="font-mono text-amber-500 font-black">{tempSensorValue} °C</span>
                                 </div>
                                 <input 
@@ -1321,7 +1440,8 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                                   max="55" 
                                   value={tempSensorValue}
                                   onChange={(e) => setTempSensorValue(parseFloat(e.target.value))}
-                                  className="w-full accent-amber-500 cursor-pointer"
+                                  className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md"
+                                  style={getProgressStyle(tempSensorValue, 15, 55, "#f59e0b")}
                                 />
                                 <p className="font-sans text-[10px] text-slate-500">Compiles directly into: <code className="text-amber-500 font-mono">float ambientTemp = {tempSensorValue.toFixed(1)};</code></p>
                               </div>
@@ -1334,7 +1454,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                           
                           {/* Interactive Real-Time Schematic and Telemetry Simulator */}
                           <div className="mt-4 p-4 rounded-xl bg-slate-950 border border-slate-900 flex flex-col items-center justify-center min-h-[170px] relative overflow-hidden select-none">
-                            <span className="font-mono text-[8px] text-sky-400 absolute top-2 left-2 tracking-widest uppercase font-extrabold">REAL-TIME SYSTEM SIMULATION</span>
+                            <span className="font-mono text-[8px] text-sky-400 absolute top-2 left-2 tracking-widest uppercase font-extrabold text-left">REAL-TIME SYSTEM SIMULATION</span>
                             
                             {activeVarExample === "proximity" ? (
                               <div className="w-full h-32 relative flex items-center justify-center">
@@ -1423,106 +1543,6 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                           </div>
                         </div>
                       </div>
-
-                      {/* Right: Code area with representation toggle */}
-                      <div className="space-y-3 flex flex-col justify-between">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">Code Format:</span>
-                          <div className="flex gap-1 bg-slate-950 p-1 border border-slate-900 rounded-lg">
-                            <button
-                              type="button"
-                              onClick={() => setVariablesCodeMode("block")}
-                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${variablesCodeMode === "block" ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/20" : "text-slate-500 hover:text-slate-300"}`}
-                            >
-                              Block-Based Code
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setVariablesCodeMode("text")}
-                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${variablesCodeMode === "text" ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/20" : "text-slate-500 hover:text-slate-300"}`}
-                            >
-                              Text C++ Code
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl bg-slate-950 p-4 border border-slate-900 font-mono text-[10.5px] leading-relaxed relative flex-1 flex flex-col justify-between">
-                          {variablesCodeMode === "block" ? (
-                            <div className="space-y-4 font-sans text-xs">
-                              <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">// Block-Based Visual Code</span>
-                              
-                              {activeVarExample === "proximity" ? (
-                                <div className="space-y-2 font-sans font-extrabold text-[11px] text-left">
-                                  <div className="bg-indigo-600/90 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-indigo-800">
-                                    <span className="font-mono text-[9px] text-indigo-200">▤ Variable</span>
-                                    <span>Set <strong className="text-indigo-100">trigPin</strong> to <code className="bg-indigo-800 px-1.5 py-0.5 rounded text-[10px] font-mono">3</code></span>
-                                  </div>
-                                  <div className="bg-indigo-600/90 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-indigo-800">
-                                    <span className="font-mono text-[9px] text-indigo-200">▤ Variable</span>
-                                    <span>Set <strong className="text-indigo-100">echoPin</strong> to <code className="bg-indigo-800 px-1.5 py-0.5 rounded text-[10px] font-mono">4</code></span>
-                                  </div>
-                                  <div className="bg-sky-600/95 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-sky-800">
-                                    <span className="font-mono text-[9px] text-sky-200">▤ Variable</span>
-                                    <span>Set <strong className="text-sky-105">distance</strong> to <code className="bg-sky-800 px-1.5 py-0.5 rounded text-[10px] font-mono">{userDistance}</code></span>
-                                  </div>
-                                  <div className="bg-emerald-600/90 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-emerald-800">
-                                    <span className="font-mono text-[9px] text-emerald-200">▤ Variable</span>
-                                    <span>Set <strong className="text-emerald-100">obstacleDetected</strong> to <code className="bg-emerald-800 px-1.5 py-0.5 rounded text-[10px] font-mono">{userDistance < 20 ? "true" : "false"}</code></span>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="space-y-2 font-sans font-extrabold text-[11px] text-left">
-                                  <div className="bg-indigo-600/90 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-indigo-800">
-                                    <span className="font-mono text-[9px] text-indigo-200">▤ Variable</span>
-                                    <span>Set <strong className="text-indigo-100">thermistorPin</strong> to <code className="bg-indigo-800 px-1.5 py-0.5 rounded text-[10px] font-mono">A1</code></span>
-                                  </div>
-                                  <div className="bg-sky-600/95 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-sky-800">
-                                    <span className="font-mono text-[9px] text-sky-200">▤ Variable</span>
-                                    <span>Set <strong className="text-sky-105">tempSensorVal</strong> to <code className="bg-sky-800 px-1.5 py-0.5 rounded text-[10px] font-mono">{tempSensorValue.toFixed(1)}</code></span>
-                                  </div>
-                                  <div className="bg-emerald-600/90 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-emerald-800">
-                                    <span className="font-mono text-[9px] text-emerald-200">▤ Variable</span>
-                                    <span>Set <strong className="text-emerald-100">activeCoolerState</strong> to <code className="bg-emerald-800 px-1.5 py-0.5 rounded text-[10px] font-mono">{tempSensorValue > 35 ? "true" : "false"}</code></span>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="space-y-4 text-left">
-                              <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">// Text-Based C++ Firmware</span>
-                              {activeVarExample === "proximity" ? (
-                                <div className="space-y-2 text-slate-400">
-                                  <span className="text-slate-600 block">// Registers proximity sensor input pins</span>
-                                  <p><span className="text-[#f43f5e]">const int</span> trigPin = <span className="text-indigo-400">3</span>;</p>
-                                  <p><span className="text-[#f43f5e]">const int</span> echoPin = <span className="text-indigo-400">4</span>;</p>
-                                  <p className="text-pink-400 bg-pink-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f43f5e] transition-colors duration-150">
-                                    <span className="text-[#f43f5e]">int</span> distance = <span className="text-sky-400 font-extrabold">{userDistance}</span>; <span className="text-slate-550 text-[9.5px]">// updated dynamically</span>
-                                  </p>
-                                  <p className="text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f59e0b] transition-colors duration-150">
-                                    <span className="text-[#f43f5e]">bool</span> obstacleDetected = <span className="text-emerald-400 font-extrabold">{userDistance < 20 ? "true" : "false"}</span>;
-                                  </p>
-                                </div>
-                              ) : (
-                                <div className="space-y-2 text-slate-400">
-                                  <span className="text-slate-600 block">// Registers Thermistor temperature coefficient parameters</span>
-                                  <p><span className="text-[#f43f5e]">const int</span> thermistorPin = <span className="text-indigo-400">A1</span>;</p>
-                                  <p className="text-pink-400 bg-pink-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f43f5e] transition-colors duration-150">
-                                    <span className="text-[#f43f5e]">float</span> tempSensorVal = <span className="text-[#38bdf8] font-bold">{tempSensorValue.toFixed(1)}</span>; <span className="text-slate-550 text-[9.5px]">// Float storing decimel levels</span>
-                                  </p>
-                                  <p className="text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded shadow-[inset_2px_0_0_#f59e0b] transition-colors duration-150">
-                                    <span className="text-[#f43f5e]">bool</span> activeCoolerState = <span className="text-emerald-400 font-extrabold">{tempSensorValue > 35 ? "true" : "false"}</span>;
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          <div className="border-t border-slate-900/60 pt-3 mt-4 flex items-center gap-1.5 text-[9.5px] text-indigo-400 font-mono text-left">
-                            <Info className="w-3.5 h-3.5 shrink-0" />
-                            <span>{activeVarExample === "proximity" ? "Integers save distance numbers. Booleans represent yes/no trigger states." : "Floats store fractional numbers (like celsius). Booleans activate status relays."}</span>
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -1561,126 +1581,24 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Left: Interactive Simulators */}
-                      <div className="space-y-4 bg-slate-900/20 p-4 rounded-xl border border-slate-900 flex flex-col justify-between">
-                        <div>
-                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500 block font-bold mb-3">Adjust Physical Stimulus:</span>
-                          
-                          {activeInputExample === "digital" ? (
-                            <div className="space-y-4">
-                              <div className="flex justify-between items-center text-xs">
-                                <span className="text-slate-300 font-sans font-bold">Simulate Human Walk (PIR):</span>
-                                <button
-                                  type="button"
-                                  onClick={() => setPirSensorMotionDetected(!pirSensorMotionDetected)}
-                                  className={`px-3 py-1.5 rounded-md font-mono font-bold text-[10px] border cursor-pointer select-none transition-all ${
-                                    pirSensorMotionDetected 
-                                      ? "bg-rose-500/15 text-rose-400 border-rose-500/40" 
-                                      : "bg-slate-950 text-slate-500 border-slate-800"
-                                  }`}
-                                >
-                                  {pirSensorMotionDetected ? "WALKING (HIGH/1)" : "STILLNESS (LOW/0)"}
-                                </button>
-                              </div>
-                              <p className="font-sans text-[10px] text-slate-500">The infrared digital sensor asserts a HIGH voltage pulse when detecting thermal variation.</p>
-                            </div>
-                          ) : (
-                            <div className="space-y-4">
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-slate-300 font-sans font-bold">Ambient Light Intensity:</span>
-                                  <span className="font-mono text-pink-400 font-black">{analogLightSensorReading} ADC Units</span>
-                                </div>
-                                <input 
-                                  type="range" 
-                                  min="0" 
-                                  max="1023" 
-                                  value={analogLightSensorReading}
-                                  onChange={(e) => setAnalogLightSensorReading(parseInt(e.target.value))}
-                                  className="w-full accent-pink-500 cursor-pointer"
-                                />
-                                <div className="flex justify-between text-[9px] text-slate-500">
-                                  <span>0 (Pure Darkness)</span>
-                                  <span>1023 (Sunlight Glow)</span>
-                                </div>
-                              </div>
-                              <p className="font-sans text-[10px] text-slate-500">Analog signals provide continuous gradient values translated via a 10-bit converter register.</p>
-                            </div>
-                          )}
-                          
-                          {/* 2D Real-time Input Simulator */}
-                          <div className="mt-4 p-4 rounded-xl bg-slate-950 border border-slate-900 flex flex-col items-center justify-center min-h-[170px] relative overflow-hidden select-none">
-                            <span className="font-mono text-[8px] text-pink-400 absolute top-2 left-2 tracking-widest uppercase font-extrabold">HARDWARE PIN CONNECTIVITY</span>
-                            
-                            {activeInputExample === "digital" ? (
-                              <div className="w-full h-32 relative flex items-center justify-center">
-                                <div className="w-11/12 h-14 bg-slate-900/60 rounded-lg p-2.5 flex items-center justify-between border border-slate-800/80 relative">
-                                  <div className="flex items-center gap-1.5 bg-rose-950/40 border border-rose-500/30 px-2.5 py-1 rounded">
-                                    <div className="w-2.5 h-2.5 rounded bg-rose-500 animate-pulse" />
-                                    <span className="font-mono text-[8px] text-slate-205 font-extrabold">DIGITAL IN PIN 2</span>
-                                  </div>
-
-                                  <div className="flex-1 flex flex-col items-center justify-center font-mono text-[8px] text-slate-500">
-                                    <span className="uppercase">{pirSensorMotionDetected ? "PULSE TRIGGERED" : "DWELL STATE"}</span>
-                                    <div className="h-[2px] w-10/12 bg-slate-800 mt-1 relative overflow-hidden">
-                                      <div className={`absolute top-0 bottom-0 w-1/3 bg-pink-400 transition-all ${pirSensorMotionDetected ? "left-[30%] animate-pulse" : "left-0 bg-slate-700"}`} />
-                                    </div>
-                                  </div>
-
-                                  <div className={`px-2.5 py-1 rounded font-mono text-[10px] font-black transition-all ${pirSensorMotionDetected ? "bg-rose-500/20 text-rose-300 border border-rose-550" : "bg-slate-950 text-slate-600 border border-slate-900"}`}>
-                                    {pirSensorMotionDetected ? "HIGH (1)" : "LOW (0)"}
-                                  </div>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="w-full h-32 relative flex items-center justify-center">
-                                <div className="w-11/12 h-16 bg-slate-900/60 rounded-lg p-2.5 flex items-center justify-between border border-slate-800/80">
-                                  <div className="flex flex-col gap-0.5">
-                                    <span className="font-mono text-[7px] text-slate-500">ANALOG IN PIN A0</span>
-                                    <div className="flex items-center gap-1 bg-slate-950 border border-slate-850 px-2 py-0.5 rounded text-[10px] font-mono text-pink-400 font-bold">
-                                      {(analogLightSensorReading / 1023 * 5.0).toFixed(2)} Volts
-                                    </div>
-                                  </div>
-
-                                  <div className="flex-1 flex flex-col items-center px-4">
-                                    <span className="font-mono text-[7px] text-slate-500">ADC 10-BIT CONVERSION</span>
-                                    <div className="h-2 w-full bg-slate-950 rounded-full border border-slate-900 overflow-hidden mt-1 relative">
-                                      <div 
-                                        className="h-full bg-gradient-to-r from-pink-600 to-pink-400 transition-all duration-150"
-                                        style={{ width: `${(analogLightSensorReading / 1023) * 100}%` }}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div className="flex flex-col items-end text-right">
-                                    <span className="font-mono text-[7px] text-slate-500">REGISTER VALUE</span>
-                                    <span className="font-mono text-xs font-black text-rose-300">{analogLightSensorReading}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right: Code area with representation toggle */}
+                      {/* Left: Code area with representation toggle */}
                       <div className="space-y-3 flex flex-col justify-between">
                         <div className="flex items-center justify-between">
                           <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">Code Format:</span>
                           <div className="flex gap-1 bg-slate-950 p-1 border border-slate-900 rounded-lg">
                             <button
                               type="button"
-                              onClick={() => setInputsCodeMode("block")}
-                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${inputsCodeMode === "block" ? "bg-pink-500/20 text-pink-400 border border-pink-500/20" : "text-slate-500 hover:text-slate-300"}`}
-                            >
-                              Block-Based Code
-                            </button>
-                            <button
-                              type="button"
                               onClick={() => setInputsCodeMode("text")}
                               className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${inputsCodeMode === "text" ? "bg-pink-500/20 text-pink-400 border border-pink-500/20" : "text-slate-500 hover:text-slate-300"}`}
                             >
                               Text C++ Code
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setInputsCodeMode("block")}
+                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${inputsCodeMode === "block" ? "bg-pink-500/20 text-pink-400 border border-pink-500/20" : "text-slate-500 hover:text-slate-300"}`}
+                            >
+                              Block-Based Code
                             </button>
                           </div>
                         </div>
@@ -1767,6 +1685,109 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                           </div>
                         </div>
                       </div>
+
+                      {/* Right: Interactive Simulators */}
+                      <div className="space-y-4 bg-slate-900/20 p-4 rounded-xl border border-slate-900 flex flex-col justify-between">
+                        <div>
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500 block font-bold mb-3">Adjust Physical Stimulus:</span>
+                          
+                          {activeInputExample === "digital" ? (
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-slate-300 font-sans font-bold">Simulate Human Walk (PIR):</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setPirSensorMotionDetected(!pirSensorMotionDetected)}
+                                  className={`px-3 py-1.5 rounded-md font-mono font-bold text-[10px] border cursor-pointer select-none transition-all ${
+                                    pirSensorMotionDetected 
+                                      ? "bg-rose-500/15 text-rose-400 border-rose-500/40" 
+                                      : "bg-slate-950 text-slate-500 border-slate-800"
+                                  }`}
+                                >
+                                  {pirSensorMotionDetected ? "WALKING (HIGH/1)" : "STILLNESS (LOW/0)"}
+                                </button>
+                              </div>
+                              <p className="font-sans text-[10px] text-slate-500">The infrared digital sensor asserts a HIGH voltage pulse when detecting thermal variation.</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-xs">
+                                  <span className="text-slate-300 font-sans font-bold">Ambient Light Intensity:</span>
+                                  <span className="font-mono text-pink-400 font-black">{analogLightSensorReading} ADC Units</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="1023" 
+                                  value={analogLightSensorReading}
+                                  onChange={(e) => setAnalogLightSensorReading(parseInt(e.target.value))}
+                                  className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-pink-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-pink-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-pink-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-pink-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-pink-500 [&::-moz-range-thumb]:shadow-md"
+                                  style={getProgressStyle(analogLightSensorReading, 0, 1023, "#ec4899")}
+                                />
+                                <div className="flex justify-between text-[9px] text-slate-500">
+                                  <span>0 (Pure Darkness)</span>
+                                  <span>1023 (Sunlight Glow)</span>
+                                </div>
+                              </div>
+                              <p className="font-sans text-[10px] text-slate-500">Analog signals provide continuous gradient values translated via a 10-bit converter register.</p>
+                            </div>
+                          )}
+                          
+                          {/* 2D Real-time Input Simulator */}
+                          <div className="mt-4 p-4 rounded-xl bg-slate-950 border border-slate-900 flex flex-col items-center justify-center min-h-[170px] relative overflow-hidden select-none">
+                            <span className="font-mono text-[8px] text-pink-400 absolute top-2 left-2 tracking-widest uppercase font-extrabold">HARDWARE PIN CONNECTIVITY</span>
+                            
+                            {activeInputExample === "digital" ? (
+                              <div className="w-full h-32 relative flex items-center justify-center">
+                                <div className="w-11/12 h-14 bg-slate-900/60 rounded-lg p-2.5 flex items-center justify-between border border-slate-800/80 relative">
+                                  <div className="flex items-center gap-1.5 bg-rose-950/40 border border-rose-500/30 px-2.5 py-1 rounded">
+                                    <div className="w-2.5 h-2.5 rounded bg-rose-500 animate-pulse" />
+                                    <span className="font-mono text-[8px] text-slate-205 font-extrabold">DIGITAL IN PIN 2</span>
+                                  </div>
+
+                                  <div className="flex-1 flex flex-col items-center justify-center font-mono text-[8px] text-slate-500">
+                                    <span className="uppercase">{pirSensorMotionDetected ? "PULSE TRIGGERED" : "DWELL STATE"}</span>
+                                    <div className="h-[2px] w-10/12 bg-slate-800 mt-1 relative overflow-hidden">
+                                      <div className={`absolute top-0 bottom-0 w-1/3 bg-pink-400 transition-all ${pirSensorMotionDetected ? "left-[30%] animate-pulse" : "left-0 bg-slate-700"}`} />
+                                    </div>
+                                  </div>
+
+                                  <div className={`px-2.5 py-1 rounded font-mono text-[10px] font-black transition-all ${pirSensorMotionDetected ? "bg-rose-500/20 text-rose-300 border border-rose-550" : "bg-slate-950 text-slate-600 border border-slate-900"}`}>
+                                    {pirSensorMotionDetected ? "HIGH (1)" : "LOW (0)"}
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="w-full h-32 relative flex items-center justify-center">
+                                <div className="w-11/12 h-16 bg-slate-900/60 rounded-lg p-2.5 flex items-center justify-between border border-slate-800/80">
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="font-mono text-[7px] text-slate-500">ANALOG IN PIN A0</span>
+                                    <div className="flex items-center gap-1 bg-slate-950 border border-slate-850 px-2 py-0.5 rounded text-[10px] font-mono text-pink-400 font-bold">
+                                      {(analogLightSensorReading / 1023 * 5.0).toFixed(2)} Volts
+                                    </div>
+                                  </div>
+
+                                  <div className="flex-1 flex flex-col items-center px-4">
+                                    <span className="font-mono text-[7px] text-slate-500">ADC 10-BIT CONVERSION</span>
+                                    <div className="h-2 w-full bg-slate-950 rounded-full border border-slate-900 overflow-hidden mt-1 relative">
+                                      <div 
+                                        className="h-full bg-gradient-to-r from-pink-600 to-pink-400 transition-all duration-150"
+                                        style={{ width: `${(analogLightSensorReading / 1023) * 100}%` }}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-col items-end text-right">
+                                    <span className="font-mono text-[7px] text-slate-500">REGISTER VALUE</span>
+                                    <span className="font-mono text-xs font-black text-rose-300">{analogLightSensorReading}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -1786,18 +1807,18 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                         </h4>
                         <p className="font-sans text-[11px] text-slate-500 leading-tight">Checks physical thresholds and triggers separate execution paths:</p>
                       </div>
-                      <div className="flex gap-1.5 bg-slate-950 p-1 border border-slate-905 rounded-xl self-start">
+                      <div className="flex gap-1.5 bg-slate-950 p-1 border border-slate-900 rounded-xl self-start">
                         <button
                           type="button"
                           onClick={() => setActiveCondExample("lamp")}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeCondExample === "lamp" ? "bg-sky-500/15 text-sky-400 border border-sky-505/20" : "text-slate-505"}`}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeCondExample === "lamp" ? "bg-sky-500/15 text-sky-400 border border-sky-500/20" : "text-slate-500"}`}
                         >
                           Ex 1: Solar Streetlamp
                         </button>
                         <button
                           type="button"
                           onClick={() => setActiveCondExample("laser")}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeCondExample === "laser" ? "bg-sky-500/15 text-sky-400 border border-sky-505/20" : "text-slate-505"}`}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeCondExample === "laser" ? "bg-sky-500/15 text-sky-400 border border-sky-500/20" : "text-slate-500"}`}
                         >
                           Ex 2: Laser Tripwire
                         </button>
@@ -1806,7 +1827,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Left side: Interactive raw condition controllers */}
-                      <div className="space-y-3 bg-slate-900/20 p-4 rounded-xl border border-slate-900 flex flex-col justify-between">
+                      <div className="space-y-3 bg-slate-900/20 p-4 rounded-xl border border-slate-900 flex flex-col justify-between order-2 md:order-2">
                         <div>
                           <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 block font-bold mb-2">Adjust Logical Trigger Sensed Metrics:</span>
                           
@@ -1822,7 +1843,8 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                                 max="950" 
                                 value={lightRawADC}
                                 onChange={(e) => setLightRawADC(parseInt(e.target.value))}
-                                className="w-full accent-indigo-550 cursor-pointer"
+                                className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-sky-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-sky-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-sky-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-sky-500 [&::-moz-range-thumb]:shadow-md"
+                                style={getProgressStyle(lightRawADC, 100, 950, "#38bdf8")}
                               />
                               <div className="flex justify-between text-[10px] text-slate-550 mb-4">
                                 <span>100 Lux (Dark Night)</span>
@@ -1921,23 +1943,23 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                       </div>
 
                       {/* Right side: Highlighted Code base depending on choice */}
-                      <div className="space-y-3 flex flex-col justify-between">
+                      <div className="space-y-3 flex flex-col justify-between order-1 md:order-1">
                         <div className="flex items-center justify-between">
                           <span className="font-mono text-[9px] uppercase tracking-wider text-slate-505 font-bold">Code Format:</span>
                           <div className="flex gap-1 bg-slate-950 p-1 border border-slate-900 rounded-lg">
-                            <button
-                              type="button"
-                              onClick={() => setConditionsCodeMode("block")}
-                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${conditionsCodeMode === "block" ? "bg-sky-500/20 text-sky-400 border border-sky-500/20" : "text-slate-500 hover:text-slate-300"}`}
-                            >
-                              Block-Based Code
-                            </button>
                             <button
                               type="button"
                               onClick={() => setConditionsCodeMode("text")}
                               className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${conditionsCodeMode === "text" ? "bg-sky-500/20 text-sky-400 border border-sky-500/20" : "text-slate-500 hover:text-slate-300"}`}
                             >
                               Text C++ Code
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConditionsCodeMode("block")}
+                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${conditionsCodeMode === "block" ? "bg-sky-500/20 text-sky-400 border border-sky-500/20" : "text-slate-500 hover:text-slate-300"}`}
+                            >
+                              Block-Based Code
                             </button>
                           </div>
                         </div>
@@ -2028,13 +2050,13 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                             <Info className="w-3.5 h-3.5 shrink-0" />
                             <span>{activeCondExample === "lamp" ? "Checks if raw photoresistor ADC value falls below the 400 dark threshold." : "Uses the logical equality binary check (== true) to trigger alert branches."}</span>
                           </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                )}
+                    </motion.div>
+                  )}
 
-                {activeCodingSubTab === "loops" && (
+                    {activeCodingSubTab === "loops" && (
                   <motion.div
                     key="loops"
                     initial={{ opacity: 0, y: 10 }}
@@ -2042,168 +2064,255 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                     exit={{ opacity: 0, y: -10 }}
                     className="space-y-4"
                   >
-                    <div className="border-b border-slate-900 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="border-b border-slate-900 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3 text-left">
                       <div>
                         <h4 className="font-sans font-extrabold text-[#f1f5f9] text-sm uppercase tracking-wider">
-                          The Infinite Execution loop()
+                          Autonomous Loops (for / while)
                         </h4>
-                        <p className="font-sans text-[11px] text-slate-500 leading-tight">Fires continuous scans to update hardware positions. Change CPU clock frequencies below:</p>
+                        <p className="font-sans text-[11px] text-slate-500 leading-tight">Create loops to blink indicators or repeat backups until safe thresholds are achieved:</p>
                       </div>
-                      <div className="flex gap-1.5 bg-slate-950 p-1 border border-slate-905 rounded-xl self-start">
+                      <div className="flex gap-1.5 bg-slate-950 p-1 border border-slate-800 rounded-xl self-start">
                         <button
                           type="button"
-                          onClick={() => setActiveLoopExample("orbit")}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeLoopExample === "orbit" ? "bg-emerald-500/15 text-emerald-450 border border-emerald-505/20" : "text-slate-505"}`}
+                          onClick={() => setActiveLoopExample("for")}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeLoopExample === "for" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20" : "text-slate-500"}`}
                         >
-                          Ex 1: instruction Orbit
+                          Ex 1: For Loop (LED Blinker)
                         </button>
                         <button
                           type="button"
-                          onClick={() => setActiveLoopExample("servo")}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeLoopExample === "servo" ? "bg-emerald-500/15 text-emerald-450 border border-emerald-505/20" : "text-slate-505"}`}
+                          onClick={() => setActiveLoopExample("while")}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeLoopExample === "while" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20" : "text-slate-500"}`}
                         >
-                          Ex 2: Servo PWM sweep
+                          Ex 2: While Loop (Obstacle Backup)
                         </button>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Left: Interactive loop speed dials and visualizer */}
-                      <div className="space-y-3 bg-slate-900/10 p-4 rounded-xl border border-slate-900 flex flex-col justify-between">
+                      <div className="space-y-3 bg-slate-900/10 p-4 rounded-xl border border-slate-900 flex flex-col justify-between text-left order-2 md:order-2">
                         <div>
-                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 block font-bold mb-2.5">Set Execution CPU Frequency:</span>
-                          
-                          <div className="flex gap-1.5 mb-4">
-                            {["Slow (0.3 Hz)", "Moderate (1.0 Hz)", "Fast (5.5 Hz)"].map((label, idx) => (
-                              <button
-                                key={idx}
-                                onClick={() => setLoopFrequencySelected(idx)}
-                                className={`flex-1 font-mono text-[9.5px] py-1.5 px-2.5 rounded-md border transition-all cursor-pointer select-none text-center font-bold ${
-                                  loopFrequencySelected === idx
-                                    ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 shadow-[0_2px_8px_rgba(16,185,129,0.15)]"
-                                    : "bg-slate-950 border-slate-850 text-slate-500 hover:text-slate-350"
-                                }`}
-                              >
-                                {label}
-                              </button>
-                            ))}
-                          </div>
-                                              {/* 2D Real-Time System Engine */}
-                        <div className="mt-4 p-4 rounded-xl bg-slate-950 border border-slate-900 flex flex-col items-center justify-center min-h-[170px] relative overflow-hidden select-none">
-                          <span className="font-mono text-[8px] text-emerald-400 absolute top-2 left-2 tracking-widest uppercase font-extrabold">REAL-TIME SYSTEM ENGINE</span>
-                          
-                          {activeLoopExample === "orbit" ? (
-                            <div className="w-full h-32 relative flex items-center justify-center animate-fadeIn">
-                              <div className="w-11/12 h-18 bg-slate-900/60 rounded-lg p-2.5 flex items-center justify-between border border-slate-800/80">
-                                {/* Left Panel: Instruction register */}
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="font-mono text-[7px] text-slate-500">INSTRUCTION STATE</span>
-                                  <div className="bg-slate-950 border border-slate-800 px-2 py-1 rounded">
-                                    <span className="font-mono text-[10px] text-emerald-400 font-black animate-pulse">CYCLE ACTIVE</span>
-                                  </div>
-                                </div>
-
-                                {/* Middle visualizer: Step Indicators */}
-                                <div className="flex items-center gap-1.5 px-3">
-                                  {[0, 1, 2, 3].map((stepIdx) => {
-                                    const isCurrent = loopPlayCycle === stepIdx;
-                                    return (
-                                      <div 
-                                        key={stepIdx}
-                                        className={`flex flex-col items-center justify-center w-7 h-7 rounded-md border font-mono text-[10px] tracking-wide font-extrabold transition-all duration-300 ${isCurrent ? "bg-emerald-500/20 text-emerald-300 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)] scale-110" : "bg-slate-950 border-slate-900 text-slate-600"}`}
-                                      >
-                                        S{stepIdx + 1}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-
-                                {/* Right panel: execution rate telemetry details */}
-                                <div className="flex flex-col items-end text-right">
-                                  <span className="font-mono text-[7px] block text-slate-500">EXEC FREQUENCY</span>
-                                  <span className="font-mono text-[11px] text-slate-300 uppercase font-black">
-                                    {loopFrequencySelected === 0 ? "0.3 Hz (Slow)" : loopFrequencySelected === 1 ? "1.0 Hz (Med)" : "5.5 Hz (Fast)"}
-                                  </span>
-                                  <span className="font-mono text-[7.5px] text-emerald-400/80 animate-pulse uppercase tracking-wider mt-0.5">Continuous Exec</span>
-                                </div>
+                          {activeLoopExample === "for" ? (
+                            <>
+                              <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 block font-bold mb-2.5">Set Execution CPU Frequency:</span>
+                              <div className="flex gap-1.5 mb-4">
+                                {["Slow (0.3 Hz)", "Moderate (1.0 Hz)", "Fast (5.5 Hz)"].map((label, idx) => (
+                                  <button
+                                    key={idx}
+                                    onClick={() => setLoopFrequencySelected(idx)}
+                                    className={`flex-1 font-mono text-[9px] py-1.5 px-2.5 rounded-md border transition-all cursor-pointer select-none text-center font-bold ${
+                                      loopFrequencySelected === idx
+                                        ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 shadow-[0_2px_8px_rgba(16,185,129,0.15)]"
+                                        : "bg-slate-950 border-slate-850 text-slate-500 hover:text-slate-350"
+                                    }`}
+                                  >
+                                    {label}
+                                  </button>
+                                ))}
                               </div>
-                              
-                              <p className="absolute bottom-1 right-2 font-mono text-[9px] text-[#10b981] bg-slate-950/80 border border-slate-900 rounded px-1.5 select-none">
-                                step: {loopPlayCycle + 1} / 4
-                              </p>
-                            </div>
+                            </>
                           ) : (
-                            <div className="w-full h-32 relative flex items-center justify-center animate-fadeIn">
-                              <div className="w-11/12 h-18 bg-slate-900/60 rounded-lg p-2.5 flex items-center justify-between border border-slate-800/80">
-                                {/* Left Panel: PWM Output channel pin */}
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="font-mono text-[7px] text-slate-500">ACTUATOR REGISTER</span>
-                                  <div className="bg-slate-950 border border-slate-800 px-2 py-1 rounded">
-                                    <span className="font-mono text-[10px] text-indigo-400 font-bold uppercase">PIN D9 (PWM)</span>
-                                  </div>
+                            <>
+                              <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 block font-bold mb-2">Adjust Proximity Barrier Distance:</span>
+                              <div className="space-y-2 bg-slate-950 p-3 rounded-lg border border-slate-900 mb-4">
+                                <div className="flex justify-between items-center text-[10px] font-mono">
+                                  <span className="text-slate-400">Ultrasonic Reading:</span>
+                                  <span className={`font-bold ${userDistance < 30 ? "text-[#f43f5e] animate-pulse" : "text-emerald-400"}`}>
+                                    {userDistance} cm {userDistance < 30 ? "(Obstacle Detected!)" : "(Path Clear)"}
+                                  </span>
                                 </div>
-
-                                {/* Middle panel: 2D radial angle arc gauge representation */}
-                                <div className="relative w-16 h-16 flex items-center justify-center">
-                                  {/* Custom flat 2D gauge circle */}
-                                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                    <path
-                                      className="stroke-[#020617]"
-                                      strokeWidth="3.2"
-                                      fill="none"
-                                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                    />
-                                    {/* Filled value of rotation */}
-                                    <path
-                                      className="stroke-indigo-500 transition-all duration-300"
-                                      strokeDasharray={`${(servoAngleDegrees / 180) * 100}, 100`}
-                                      strokeWidth="3.2"
-                                      strokeLinecap="round"
-                                      fill="none"
-                                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                    />
-                                  </svg>
-                                  {/* Internal core center pin indicator */}
-                                  <div className="absolute w-10 h-10 rounded-full bg-slate-950 flex flex-col items-center justify-center">
-                                    <span className="font-sans font-bold text-[9px] text-[#f8fafc]">{servoAngleDegrees}°</span>
-                                  </div>
-                                </div>
-
-                                {/* Right Panel: Active micro servo model specs flat */}
-                                <div className="flex flex-col items-end text-right justify-center">
-                                  <span className="font-mono text-[7px] text-slate-500 uppercase">DEVICE: micro sg90</span>
-                                  <span className="font-mono text-[9px] text-emerald-400 uppercase font-bold mt-1">LOCKING POSITION</span>
-                                  <span className="font-mono text-[7.5px] text-slate-400 mt-0.5 uppercase">Duty Cycle: {((servoAngleDegrees / 180) * 10).toFixed(1)} ms</span>
+                                <input
+                                  type="range"
+                                  min="5"
+                                  max="95"
+                                  value={userDistance}
+                                  onChange={(e) => setUserDistance(Number(e.target.value))}
+                                  className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-sky-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-sky-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-sky-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-sky-500 [&::-moz-range-thumb]:shadow-md"
+                                  style={getProgressStyle(userDistance, 5, 95, "#38bdf8")}
+                                />
+                                <div className="flex gap-2 pt-1">
+                                  <button
+                                    onClick={() => setUserDistance(15)}
+                                    className="flex-1 py-1 text-[8.5px] font-mono font-bold bg-[#f43f5e]/10 border border-[#f43f5e]/20 text-[#f43f5e] rounded hover:bg-[#f43f5e]/20 transition-all"
+                                  >
+                                    Force Barrier (15cm)
+                                  </button>
+                                  <button
+                                    onClick={() => setUserDistance(65)}
+                                    className="flex-1 py-1 text-[8.5px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded hover:bg-emerald-500/20 transition-all"
+                                  >
+                                    Clear Barrier (65cm)
+                                  </button>
                                 </div>
                               </div>
-
-                              <p className="absolute bottom-1 right-2 font-mono text-[9px] text-indigo-400 bg-slate-950/80 border border-slate-900 rounded px-1.5 select-none font-bold">
-                                PWM Angle: {servoAngleDegrees}°
-                              </p>
-                            </div>
+                            </>
                           )}
+                          
+                          {/* 2D Real-Time System Engine */}
+                          <div className="mt-4 p-4 rounded-xl bg-slate-950 border border-slate-900 flex flex-col items-center justify-center min-h-[170px] relative overflow-hidden select-none">
+                            <span className="font-mono text-[8px] text-emerald-400 absolute top-2 left-2 tracking-widest uppercase font-extrabold text-left">REAL-TIME SYSTEM ENGINE</span>
+                            
+                            {activeLoopExample === "while" ? (
+                              <div className="w-full h-32 relative flex flex-col items-center justify-between animate-fadeIn p-1">
+                                {/* The 2D Horizontal Arena Track / Road */}
+                                <div className="w-full h-18 bg-slate-900/40 rounded-xl relative border border-slate-800/80 overflow-hidden flex items-center px-4">
+                                  {/* Road Dash lines in background */}
+                                  <div className="absolute inset-x-0 h-0.5 border-t border-dashed border-slate-800/60" />
+                                  
+                                  {/* Dynamic calculations of robot relative horizontal alignment */}
+                                  {(() => {
+                                    const robotLeft = Math.max(8, Math.min(68, (userDistance / 100) * 75));
+                                    const isTooClose = userDistance < 30;
+                                    return (
+                                      <>
+                                        {/* Dynamic Laser beam / Connection line to the Wall */}
+                                        <div 
+                                          className="absolute h-0.5 transition-all duration-150 pointer-events-none"
+                                          style={{
+                                            left: `${robotLeft + 14}%`,
+                                            width: `${88 - robotLeft - 14}%`,
+                                            background: isTooClose 
+                                              ? "linear-gradient(90deg, #f43f5e 0%, rgba(244,63,94,0.1) 100%)" 
+                                              : "linear-gradient(90deg, #10b981 0%, rgba(16,185,129,0.1) 100%)"
+                                          }}
+                                        />
+
+                                        {/* Warning/Status Banner inline above laser */}
+                                        {isTooClose ? (
+                                          <div 
+                                            className="absolute text-[7.5px] font-mono text-rose-400 font-extrabold px-1.5 py-0.5 rounded bg-rose-950/90 border border-rose-500/30 animate-pulse pointer-events-none"
+                                            style={{ left: `${(robotLeft + 88) / 2 - 6}%`, transform: 'translateY(-50%)', top: '50%' }}
+                                          >
+                                            REVERSING...
+                                          </div>
+                                        ) : (
+                                          <div 
+                                            className="absolute text-[7.5px] font-mono text-emerald-400 font-extrabold px-1.5 py-0.5 rounded bg-slate-950/80 border border-emerald-500/20 pointer-events-none"
+                                            style={{ left: `${(robotLeft + 88) / 2 - 6}%`, transform: 'translateY(-50%)', top: '50%' }}
+                                          >
+                                            SAFE DISTANCE
+                                          </div>
+                                        )}
+
+                                        {/* Left Side: Dynamic Robot Car Container */}
+                                        <div 
+                                          className="absolute transition-all duration-150 flex items-center"
+                                          style={{ left: `${robotLeft}%` }}
+                                        >
+                                          {/* Mini Robot Box */}
+                                          <div className={`w-14 h-11 bg-slate-950 border rounded-lg flex flex-col justify-between p-1 shadow-md transition-all duration-150 ${isTooClose ? "border-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.15)] ring-1 ring-rose-500/20" : "border-indigo-500/80 shadow-[0_0_8px_rgba(99,102,241,0.05)]"}`}>
+                                            <div className="flex justify-between items-center leading-none">
+                                              <span className={`text-[6px] font-mono font-black ${isTooClose ? "text-rose-400" : "text-indigo-400"}`}>BOT_v1</span>
+                                              <span className="text-[7px] leading-none">{isTooClose ? "🚨" : "🤖"}</span>
+                                            </div>
+                                            
+                                            {/* Wheels Treads */}
+                                            <div className="flex justify-between items-center">
+                                              <motion.div 
+                                                className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${isTooClose ? "border-rose-400/50" : "border-slate-800"}`}
+                                                animate={isTooClose ? { rotate: -360 } : {}}
+                                                transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                                              >
+                                                <div className={`w-[1px] h-3 ${isTooClose ? "bg-rose-400/50" : "bg-slate-700"}`} />
+                                              </motion.div>
+                                              
+                                              <div className="text-[5.5px] font-mono text-slate-500 uppercase scale-[0.85] origin-center">
+                                                {isTooClose ? "REV" : "STBY"}
+                                              </div>
+
+                                              <motion.div 
+                                                className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${isTooClose ? "border-rose-400/50" : "border-slate-800"}`}
+                                                animate={isTooClose ? { rotate: -360 } : {}}
+                                                transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                                              >
+                                                <div className={`w-[1px] h-3 ${isTooClose ? "bg-rose-400/50" : "bg-slate-700"}`} />
+                                              </motion.div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </>
+                                    );
+                                  })()}
+
+                                  {/* Right side static Obstacle Solid Wall */}
+                                  <div className="absolute right-0 top-0 bottom-0 w-8 bg-slate-950 border-l-[3px] border-rose-500/50 flex flex-col items-center justify-center z-10">
+                                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #f43f5e, #f43f5e 3px, transparent 3px, transparent 6px)' }} />
+                                    <span className="text-xs select-none">🚧</span>
+                                    <span className="font-mono text-[6px] text-rose-400 font-black tracking-wider mt-0.5">WALL</span>
+                                  </div>
+                                </div>
+
+                                <div className="text-center font-mono text-[9px] w-full mt-2.5">
+                                  {userDistance < 30 ? (
+                                    <div className="flex items-center justify-center gap-1.5 text-[#f43f5e] font-extrabold uppercase animate-pulse">
+                                      <span>◀◀ BACKING UP CAR MOTORS</span>
+                                      <span className="py-0.5 px-1 bg-rose-500/10 border border-rose-500/20 rounded text-[7.5px] font-bold">while loops is true</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-1.5 text-slate-500 font-bold uppercase">
+                                      <span>✓ OBSTACLE CLEAR (&gt;= 30cm)</span>
+                                      <span className="py-0.5 px-1 bg-slate-900 border border-slate-800 rounded text-[7.5px] font-semibold text-slate-600">loop skipped</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="w-full h-32 relative flex items-center justify-center animate-fadeIn">
+                                <div className="w-11/12 h-18 bg-slate-900/60 rounded-lg p-2.5 flex items-center justify-between border border-slate-800/80">
+                                  {/* Left Panel: Actuator Pin */}
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="font-mono text-[7px] text-slate-500">ACTUATOR REGISTER</span>
+                                    <div className="bg-slate-950 border border-slate-800 px-2 py-1 rounded">
+                                      <span className="font-mono text-[10px] text-amber-400 font-bold uppercase">PIN D13 (LED)</span>
+                                    </div>
+                                  </div>
+
+                                  {/* Middle panel: Dynamic pulsing LED */}
+                                  <div className="flex flex-col items-center justify-center">
+                                    <div className={`w-10 h-10 rounded-full border-2 transition-all duration-200 flex items-center justify-center relative ${loopLedOn ? "bg-amber-400/90 border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.85)] scale-105" : "bg-slate-905 bg-slate-900 border-slate-800"}`}>
+                                      <span className="text-sm select-none">{loopLedOn ? "💡" : "🌑"}</span>
+                                    </div>
+                                    <span className="font-mono text-[7px] text-slate-500 font-bold uppercase mt-1">Status: {loopLedOn ? "ON" : "OFF"}</span>
+                                  </div>
+
+                                  {/* Right Panel: Spec detail */}
+                                  <div className="flex flex-col items-end text-right justify-center font-mono">
+                                    <span className="text-[7px] text-slate-500 uppercase">VOLTAGE OUT</span>
+                                    <span className={`text-[10.5px] font-black uppercase transition-colors duration-150 ${loopLedOn ? "text-amber-400" : "text-slate-500"}`}>
+                                      {loopLedOn ? "5.0 Volts" : "0.0 Volts"}
+                                    </span>
+                                    <span className="text-[7.5px] text-slate-400 mt-0.5 uppercase">iteration: {loopIteration} / 5</span>
+                                  </div>
+                                </div>
+
+                                <p className="absolute bottom-1 right-2 font-mono text-[9px] text-indigo-400 bg-slate-950/80 border border-slate-900 rounded px-1.5 select-none font-bold">
+                                  Loop step: count = {loopIteration}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
                       {/* Right: Loop C++ code template */}
-                      <div className="space-y-3 flex flex-col justify-between">
+                      <div className="space-y-3 flex flex-col justify-between text-left order-1 md:order-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-505 font-bold">Code Format:</span>
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 font-bold">Code Format:</span>
                           <div className="flex gap-1 bg-slate-950 p-1 border border-slate-900 rounded-lg">
                             <button
                               type="button"
-                              onClick={() => setLoopsCodeMode("block")}
-                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${loopsCodeMode === "block" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20" : "text-slate-505 hover:text-slate-300"}`}
+                              onClick={() => setLoopsCodeMode("text")}
+                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${loopsCodeMode === "text" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20" : "text-slate-500 hover:text-slate-300"}`}
                             >
-                              Block-Based Code
+                              Text C++ Code
                             </button>
                             <button
                               type="button"
-                              onClick={() => setLoopsCodeMode("text")}
-                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${loopsCodeMode === "text" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20" : "text-slate-505 hover:text-slate-300"}`}
+                              onClick={() => setLoopsCodeMode("block")}
+                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${loopsCodeMode === "block" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20" : "text-slate-500 hover:text-slate-300"}`}
                             >
-                              Text C++ Code
+                              Block-Based Code
                             </button>
                           </div>
                         </div>
@@ -2211,85 +2320,108 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                         <div className="rounded-xl bg-slate-950 p-4 border border-slate-900 font-mono text-[10.5px] leading-relaxed relative flex-1 flex flex-col justify-between">
                           {loopsCodeMode === "block" ? (
                             <div className="space-y-4 font-sans text-xs">
-                              <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">// Block-Based Visual Code</span>
+                              <span className="font-mono text-[8.5px] text-slate-500 uppercase tracking-wider block">// Block-Based Visual Code</span>
                               
-                              {activeLoopExample === "orbit" ? (
+                              {activeLoopExample === "while" ? (
                                 <div className="space-y-2 font-sans font-extrabold text-[11px] text-left">
-                                  <div className="bg-emerald-600 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-emerald-800">
-                                    <span className="font-mono text-[9px] text-emerald-200">⟳ Loop</span>
-                                    <span>Repeat Infinitely:</span>
+                                  <div className={`rounded-lg p-2.5 flex items-center justify-between w-full shadow border-l-4 transition-all duration-200 ${userDistance < 30 ? "bg-emerald-600 border-l-4 border-emerald-800 text-white shadow-[0_0_10px_rgba(16,185,129,0.15)]" : "bg-slate-900 border-l-4 border-slate-800 text-slate-500"}`}>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-mono text-[9px] text-[#34d399]">⟳ while</span>
+                                      <span>Repeat While: (Distance &lt; 30)</span>
+                                    </div>
+                                    <span className="text-[9px] font-mono opacity-80">{userDistance < 30 ? "ACTIVE CLOCK" : "SKIPPED"}</span>
                                   </div>
                                   <div className="pl-6 space-y-2">
-                                    <div className={`p-2 rounded-lg flex items-center gap-1 w-full shadow border-l-4 border-indigo-700 transition-all ${loopPlayCycle === 0 ? "bg-indigo-600 text-white" : "bg-slate-900 border-slate-800 text-slate-500 opacity-40"}`}>
-                                      <span className="font-mono text-[8.5px] font-stone-500">Step 1: 🔌</span>
-                                      <span>Read analog pin <strong className="font-sans">A0</strong></span>
+                                    <div className={`p-2 rounded-lg flex items-center justify-between gap-1 w-full transition-all duration-150 ${userDistance < 30 ? "bg-indigo-600 border-l-4 border-indigo-800 text-white shadow-[0_0_10px_rgba(79,70,229,0.15)]" : "bg-slate-900 border-l-4 border-slate-800 text-slate-500"}`}>
+                                      <div className="flex items-center gap-1">
+                                        <span className="font-mono text-[8.5px]">Step 1: ⚙</span>
+                                        <span>Set Left Track to BACKWARD</span>
+                                      </div>
+                                      <span className="text-[9.5px] opacity-80">{userDistance < 30 ? "RUNNING" : ""}</span>
                                     </div>
-                                    <div className={`p-2 rounded-lg flex items-center gap-1 w-full shadow border-l-4 border-purple-700 transition-all ${loopPlayCycle === 1 ? "bg-purple-600 text-white" : "bg-slate-900 border-slate-800 text-slate-500 opacity-40"}`}>
-                                      <span className="font-mono text-[8.5px]">Step 2: 🧮</span>
-                                      <span>Calibrate raw value (multiply by 0.12)</span>
+                                    <div className={`p-2 rounded-lg flex items-center justify-between gap-1 w-full transition-all duration-150 ${userDistance < 30 ? "bg-purple-600 border-l-4 border-purple-800 text-white shadow-[0_0_10px_rgba(168,85,247,0.15)]" : "bg-slate-900 border-l-4 border-slate-800 text-slate-500"}`}>
+                                      <div className="flex items-center gap-1">
+                                        <span className="font-mono text-[8.5px]">Step 2: ⚙</span>
+                                        <span>Set Right Track to BACKWARD</span>
+                                      </div>
+                                      <span className="text-[9.5px] opacity-80">{userDistance < 30 ? "RUNNING" : ""}</span>
                                     </div>
-                                    <div className={`p-2 rounded-lg flex items-center gap-1 w-full shadow border-l-4 border-amber-700 transition-all ${loopPlayCycle === 2 ? "bg-amber-600 text-white" : "bg-slate-900 border-slate-800 text-slate-500 opacity-40"}`}>
-                                      <span className="font-mono text-[8.5px]">Step 3: 🚦</span>
-                                      <span>Check light threshold flags</span>
+                                    <div className={`p-2 rounded-lg flex items-center justify-between gap-1 w-full transition-all duration-150 ${userDistance < 30 ? "bg-amber-600 border-l-4 border-amber-800 text-white shadow-[0_0_10px_rgba(245,158,11,0.15)]" : "bg-slate-900 border-l-4 border-slate-800 text-slate-500"}`}>
+                                      <div className="flex items-center gap-1">
+                                        <span className="font-mono text-[8.5px]">Step 3: ⚡</span>
+                                        <span>Write Reversing Power speed to 150</span>
+                                      </div>
+                                      <span className="text-[9.5px] opacity-80">{userDistance < 30 ? "RUNNING" : ""}</span>
                                     </div>
-                                    <div className={`p-2 rounded-lg flex items-center gap-1 w-full shadow border-l-4 border-teal-700 transition-all ${loopPlayCycle === 3 ? "bg-teal-600 text-white" : "bg-slate-900 border-slate-800 text-slate-500 opacity-40"}`}>
-                                      <span className="font-mono text-[8.5px]">Step 4: ⚡</span>
-                                      <span>Write Pin 10 (Motor) to HIGH</span>
-                                    </div>
-                                    <div className="p-2 rounded-lg flex items-center gap-1 w-full shadow border-l-4 border-slate-700 bg-slate-900/60 text-slate-350">
-                                      <span className="font-mono text-[8.5px]">Step 5: ⏱</span>
-                                      <span>Delay for {[2800, 1000, 180][loopFrequencySelected]} milliseconds</span>
+                                    <div className={`p-2 rounded-lg flex items-center justify-between gap-1 w-full transition-all duration-150 ${userDistance < 30 ? "bg-slate-800 border-l-4 border-slate-700 text-slate-300" : "bg-slate-900 border-l-4 border-slate-800 text-slate-500"}`}>
+                                      <div className="flex items-center gap-1">
+                                        <span className="font-mono text-[8.5px]">Step 4: ⏱</span>
+                                        <span>Wait 100 ms loop latency delay</span>
+                                      </div>
+                                      <span className="text-[9.5px] opacity-80">{userDistance < 30 ? "RUNNING" : ""}</span>
                                     </div>
                                   </div>
                                 </div>
                               ) : (
-                                <div className="space-y-2 font-sans font-extrabold text-[11px] text-left">
+                                <div className="space-y-2 font-sans font-extrabold text-[11px] text-left animate-fadeIn">
                                   <div className="bg-emerald-600 text-white rounded-lg p-2.5 flex items-center gap-1.5 w-full shadow border-l-4 border-emerald-800">
-                                    <span className="font-mono text-[9px] text-emerald-200">⟳ Loop</span>
-                                    <span>Repeat Infinitely:</span>
+                                    <span className="font-mono text-[9px] text-[#a7f3d0]">⟳ for</span>
+                                    <span>Repeat: For count from 1 to 5</span>
                                   </div>
                                   <div className="pl-6 space-y-2">
-                                    <div className="p-2 rounded-lg flex items-center gap-1 w-full bg-indigo-600 border-l-4 border-indigo-800 text-white shadow">
-                                      <span className="font-mono text-[8.5px]">Step 1: ⚙</span>
-                                      <span>Write Servo Pin 9 Angle to <strong className="font-sans text-amber-300">{servoAngleDegrees}°</strong></span>
+                                    <div className={`p-2 rounded-lg flex items-center justify-between gap-1 w-full transition-all duration-150 ${loopLedOn ? "bg-amber-600 border-l-4 border-amber-800 text-white shadow-[0_0_10px_rgba(245,158,11,0.2)]" : "bg-slate-900 border-l-4 border-slate-800 text-slate-500"}`}>
+                                      <div className="flex items-center gap-1">
+                                        <span className="font-mono text-[8.5px]">Step 1: 💡</span>
+                                        <span>Turn LED Pin 13 HIGH</span>
+                                      </div>
+                                      <span className="text-[9px] opacity-80">{loopLedOn ? "ACTIVE" : ""}</span>
                                     </div>
-                                    <div className="p-2 rounded-lg flex items-center gap-1 w-full bg-slate-900 border-l-4 border-slate-700 text-slate-350 shadow">
-                                      <span className="font-mono text-[8.5px]">Step 2: ⏱</span>
-                                      <span>Delay for {[40, 20, 5][loopFrequencySelected]} milliseconds</span>
+                                    <div className={`p-2 rounded-lg flex items-center justify-between gap-1 w-full transition-all duration-150 ${!loopLedOn ? "bg-indigo-600 border-l-4 border-indigo-800 text-white shadow-[0_0_10px_rgba(79,70,229,0.2)]" : "bg-slate-900 border-l-4 border-slate-800 text-slate-500"}`}>
+                                      <div className="flex items-center gap-1">
+                                        <span className="font-mono text-[8.5px]">Step 2: ⏱</span>
+                                        <span>Turn LED Pin 13 LOW (and wait)</span>
+                                      </div>
+                                      <span className="text-[9px] opacity-80">{!loopLedOn ? "ACTIVE" : ""}</span>
                                     </div>
                                   </div>
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <div className="space-y-4 text-left animate-fadeIn">
-                              <span className="font-mono text-[8.5px] text-slate-550 uppercase tracking-wider block">// Text-Based C++ Firmware</span>
-                              {activeLoopExample === "orbit" ? (
-                                <div className="space-y-0.5 text-slate-400">
-                                  <p className="text-[#a855f7]"><span className="text-[#f43f5e] font-bold">void</span> <span className="text-white font-bold">loop</span>() &#123;</p>
-                                  <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 0 ? "bg-pink-500/10 text-pink-400 font-bold shadow-[inset_2px_0_0_#f43f5e]" : "text-slate-550 opacity-40"}`}>
-                                    <span className="text-[#f43f5e]">int r = </span>analogRead(A0); <span className="text-[9.5px] font-sans opacity-60">// Acquisition (read raw input)</span>
+                            <div className="space-y-4 text-left animate-fadeIn font-mono text-[10px]">
+                              <span className="font-mono text-[8.5px] text-slate-500 uppercase tracking-wider block">// Text-Based C++ Firmware</span>
+                              {activeLoopExample === "while" ? (
+                                <div className={`space-y-0.5 transition-colors duration-200 ${userDistance < 30 ? "text-slate-300" : "text-slate-600"}`}>
+                                  <p className={userDistance < 30 ? "text-[#a855f7]" : "text-slate-600"}><span className={`font-bold ${userDistance < 30 ? "text-[#f43f5e]" : "text-slate-600"}`}>while</span> (readDistanceValue() &lt; <span className={`font-bold ${userDistance < 30 ? "text-amber-300" : "text-slate-600"}`}>30</span>) &#123;</p>
+                                  <p className={`pl-4 py-0.5 transition-colors duration-150 ${userDistance < 30 ? "text-slate-200" : "text-slate-600"}`}>
+                                    digitalWrite(motorLeftDir, <span className={userDistance < 30 ? "text-sky-300 font-bold" : "text-slate-600"}>BACKWARD</span>);
                                   </p>
-                                  <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 1 ? "bg-purple-500/10 text-purple-400 font-bold shadow-[inset_2px_0_0_#a855f7]" : "text-slate-550 opacity-40"}`}>
-                                    <span className="text-[#f43f5e]">float val = </span>r * <span className="text-indigo-400">0.12</span>; <span className="text-[9.5px] font-sans opacity-60">// Calibration (scale inputs)</span>
+                                  <p className={`pl-4 py-0.5 transition-colors duration-150 ${userDistance < 30 ? "text-slate-200" : "text-slate-600"}`}>
+                                    digitalWrite(motorRightDir, <span className={userDistance < 30 ? "text-sky-300 font-bold" : "text-slate-600"}>BACKWARD</span>);
                                   </p>
-                                  <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 2 ? "bg-amber-500/10 text-amber-400 font-bold shadow-[inset_2px_0_0_#f59e0b]" : "text-slate-550 opacity-40"}`}>
-                                    checkThresholdFlags(val); <span className="text-[9.5px] font-sans opacity-60">// Decision (verify logic)</span>
+                                  <p className={`pl-4 py-0.5 transition-colors duration-150 ${userDistance < 30 ? "text-slate-200" : "text-slate-600"}`}>
+                                    analogWrite(motorSpeedPin, <span className={userDistance < 30 ? "text-[#fb923c] font-black" : "text-slate-600"}>150</span>);
                                   </p>
-                                  <p className={`pl-4 py-0.5 rounded transition-all ${loopPlayCycle === 3 ? "bg-emerald-500/10 text-emerald-300 font-bold shadow-[inset_2px_0_0_#10b981]" : "text-slate-550 opacity-40"}`}>
-                                    digitalWrite(motor, HIGH); <span className="text-[9.5px] font-sans opacity-60">// Output (action trigger)</span>
+                                  <p className={`pl-4 py-0.5 transition-colors duration-150 ${userDistance < 30 ? "text-slate-500" : "text-slate-600"}`}>
+                                    delay(<span className={userDistance < 30 ? "text-indigo-400 font-bold" : "text-slate-600"}>100</span>); <span className="text-[9px] font-sans opacity-50">// motor latency delay</span>
                                   </p>
-                                  <p className="pl-4 text-slate-500">delay(<span className="text-indigo-400 font-bold">{[2800, 1000, 180][loopFrequencySelected]}</span>); <span className="text-[9.5px] font-sans opacity-60">// Sleep interval</span></p>
-                                  <p className="text-[#a855f7]">&#125;</p>
+                                  <p className={userDistance < 30 ? "text-[#a855f7]" : "text-slate-600"}>&#125;</p>
                                 </div>
                               ) : (
                                 <div className="space-y-0.5 text-slate-400">
-                                  <p className="text-[#a855f7]"><span className="text-[#f43f5e] font-bold">void</span> <span className="text-white font-bold">loop</span>() &#123;</p>
-                                  <p className="pl-4 text-slate-500">// Cycles angle value registers in sequence loops</p>
-                                  <p className="pl-4 py-0.5 rounded transition-all bg-emerald-500/10 text-emerald-300 font-bold shadow-[inset_2px_0_0_#10b981] w-max">
-                                    servoMotor.write(<span className="text-sky-305 font-extrabold">{servoAngleDegrees}</span>); <span className="text-[9.5px] font-sans opacity-60">// angle sweep updated</span>
+                                  <p className="text-[#a855f7]"><span className="text-[#f43f5e] font-bold">for</span> (<span className="text-[#f43f5e] font-bold">int</span> count = <span className="text-[#38bdf8]">1</span>; count &lt;= <span className="text-[#38bdf8]">5</span>; count++) &#123;</p>
+                                  <p className={`pl-4 transition-colors duration-150 ${loopLedOn ? "text-amber-400 font-bold" : "text-slate-500"}`}>
+                                    digitalWrite(<span className="text-sky-305">13</span>, <span className="text-amber-300 font-semibold">HIGH</span>); <span className="text-[9px] font-sans text-slate-500 font-normal">// Turn LED Pin 13 ON</span>
                                   </p>
-                                  <p className="pl-4 text-slate-500">delay(<span className="text-indigo-400 font-bold">{[40, 20, 5][loopFrequencySelected]}</span>); <span className="text-[9.5px] font-sans opacity-60">// servo response delay</span></p>
+                                  <p className="pl-4 text-slate-500">
+                                    delay(<span className="text-indigo-400 font-bold">200</span>); <span className="text-[9px] font-sans opacity-60">// keep light ON brief duration</span>
+                                  </p>
+                                  <p className={`pl-4 transition-colors duration-150 ${!loopLedOn ? "text-indigo-400 font-bold" : "text-slate-500"}`}>
+                                    digitalWrite(<span className="text-sky-305">13</span>, <span className="text-indigo-300 font-semibold">LOW</span>); <span className="text-[9px] font-sans text-slate-500 font-normal">// Turn LED Pin 13 OFF</span>
+                                  </p>
+                                  <p className="pl-4 text-slate-500">
+                                    delay(<span className="text-indigo-400 font-bold">200</span>); <span className="text-[9px] font-sans opacity-60">// keep light OFF brief duration</span>
+                                  </p>
                                   <p className="text-[#a855f7]">&#125;</p>
                                 </div>
                               )}
@@ -2298,7 +2430,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                           
                           <div className="border-t border-slate-900/60 pt-3 mt-4 flex items-center gap-1.5 text-[9.5px] text-indigo-400 font-mono text-left">
                             <Info className="w-3.5 h-3.5 shrink-0" />
-                            <span>{activeLoopExample === "orbit" ? "In embedded systems, loop() repeats thousands of times per second." : "Servo gears update their angle depending on the duty cycle width of PWM pulses."}</span>
+                            <span>{activeLoopExample === "while" ? "A while loop runs as long as target triggers remain active. Useful for safety overrides." : "A for loop repeats for a fixed number of times, managing counter increments inside defined limits."}</span>
                           </div>
                         </div>
                       </div>
@@ -2321,18 +2453,18 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                         </h4>
                         <p className="font-sans text-[11px] text-slate-500 leading-tight">Pack reusable code blocks to shrink execution footprint and clean your workspace:</p>
                       </div>
-                      <div className="flex gap-1.5 bg-slate-950 p-1 border border-slate-905 rounded-xl self-start">
+                      <div className="flex gap-1.5 bg-slate-950 p-1 border border-slate-900 rounded-xl self-start">
                         <button
                           type="button"
                           onClick={() => setActiveFuncExample("average")}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeFuncExample === "average" ? "bg-purple-500/15 text-purple-400 border border-purple-500/20" : "text-slate-505"}`}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeFuncExample === "average" ? "bg-purple-500/15 text-purple-400 border border-purple-500/20" : "text-slate-500"}`}
                         >
                           Ex 1: Smooth Data (averageThreeSamples)
                         </button>
                         <button
                           type="button"
                           onClick={() => setActiveFuncExample("buzzer")}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeFuncExample === "buzzer" ? "bg-purple-500/15 text-purple-400 border border-purple-500/20" : "text-slate-505"}`}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${activeFuncExample === "buzzer" ? "bg-purple-500/15 text-purple-400 border border-purple-500/20" : "text-slate-500"}`}
                         >
                           Ex 2: Sound Alarm (beepBuzzer)
                         </button>
@@ -2341,7 +2473,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Left Side: Interactive controls & schematic */}
-                      <div className="space-y-4 bg-slate-900/20 p-4 rounded-xl border border-slate-900 flex flex-col justify-between">
+                      <div className="space-y-4 bg-slate-900/20 p-4 rounded-xl border border-slate-900 flex flex-col justify-between order-2 md:order-2">
                         <div>
                           <span className="font-mono text-[9px] uppercase tracking-wider text-slate-550 block font-bold mb-2">Configure Function Arguments:</span>
 
@@ -2362,7 +2494,8 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                                   max="100" 
                                   value={sampleVal1}
                                   onChange={(e) => setSampleVal1(parseInt(e.target.value))}
-                                  className="w-full accent-purple-500 cursor-pointer"
+                                  className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-purple-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-purple-500 [&::-moz-range-thumb]:shadow-md"
+                                  style={getProgressStyle(sampleVal1, 0, 100, "#a855f7")}
                                 />
 
                                 <div className="flex justify-between text-[11px] pt-1">
@@ -2375,7 +2508,8 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                                   max="100" 
                                   value={sampleVal2}
                                   onChange={(e) => setSampleVal2(parseInt(e.target.value))}
-                                  className="w-full accent-purple-500 cursor-pointer"
+                                  className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-purple-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-purple-500 [&::-moz-range-thumb]:shadow-md"
+                                  style={getProgressStyle(sampleVal2, 0, 100, "#a855f7")}
                                 />
 
                                 <div className="flex justify-between text-[11px] pt-1">
@@ -2388,7 +2522,8 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                                   max="100" 
                                   value={sampleVal3}
                                   onChange={(e) => setSampleVal3(parseInt(e.target.value))}
-                                  className="w-full accent-purple-500 cursor-pointer"
+                                  className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-purple-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-purple-500 [&::-moz-range-thumb]:shadow-md"
+                                  style={getProgressStyle(sampleVal3, 0, 100, "#a855f7")}
                                 />
                               </div>
                             </div>
@@ -2410,7 +2545,8 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                                   step="50"
                                   value={buzzerPitchHz}
                                   onChange={(e) => setBuzzerPitchHz(parseInt(e.target.value))}
-                                  className="w-full accent-purple-500 cursor-pointer"
+                                  className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-purple-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-purple-500 [&::-moz-range-thumb]:shadow-md"
+                                  style={getProgressStyle(buzzerPitchHz, 200, 1200, "#a855f7")}
                                 />
                                 <div className="flex justify-between text-[9px] text-slate-500">
                                   <span>200 Hz (Low Bass Beep)</span>
@@ -2481,23 +2617,23 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                       </div>
 
                       {/* Right Side: Translation display Text-to-Block Side-by-Side */}
-                      <div className="space-y-3 flex flex-col justify-between">
+                      <div className="space-y-3 flex flex-col justify-between order-1 md:order-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-505 font-bold">Code Format:</span>
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">Code Format:</span>
                           <div className="flex gap-1 bg-slate-950 p-1 border border-slate-900 rounded-lg">
                             <button
                               type="button"
-                              onClick={() => setFunctionsCodeMode("block")}
-                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${functionsCodeMode === "block" ? "bg-purple-500/20 text-purple-400 border border-purple-500/20" : "text-slate-505 hover:text-slate-300"}`}
+                              onClick={() => setFunctionsCodeMode("text")}
+                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${functionsCodeMode === "text" ? "bg-purple-500/20 text-purple-400 border border-purple-500/20" : "text-slate-500 hover:text-slate-300"}`}
                             >
-                              Block-Based Code
+                              Text C++ Code
                             </button>
                             <button
                               type="button"
-                              onClick={() => setFunctionsCodeMode("text")}
-                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${functionsCodeMode === "text" ? "bg-purple-500/20 text-purple-400 border border-purple-500/20" : "text-slate-505 hover:text-slate-300"}`}
+                              onClick={() => setFunctionsCodeMode("block")}
+                              className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${functionsCodeMode === "block" ? "bg-purple-500/20 text-purple-400 border border-purple-500/20" : "text-slate-500 hover:text-slate-300"}`}
                             >
-                              Text C++ Code
+                              Block-Based Code
                             </button>
                           </div>
                         </div>
@@ -2624,127 +2760,184 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
                       </div>
                     </div>
 
-                    {/* The 4 pillars grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Pillar A: Syntax Rules */}
-                      <div className="bg-slate-950/45 border border-slate-900 p-4 rounded-2xl space-y-3">
-                        <span className="font-mono text-[8px] text-violet-400 font-extrabold tracking-widest block uppercase">SYNTAX LAWS</span>
-                        <h5 className="font-sans font-extrabold text-slate-100 text-xs uppercase">Semicolons & Curly Braces</h5>
-                        <p className="font-sans text-xs text-slate-400 leading-relaxed font-sans">
-                          Just like writing human language requires punctuation, computer microchips require exact syntax rules:
+                    {/* Core Programming Concepts Structured Explorer */}
+                    <div className="space-y-6">
+                      
+                      {/* 1. Variables Guide */}
+                      <div className="bg-slate-950/40 border border-slate-900 p-5 rounded-2xl space-y-3 relative overflow-hidden text-left">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500/80" />
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[8px] bg-indigo-950 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-md font-extrabold tracking-widest uppercase">SECTION 1</span>
+                          <h5 className="font-sans font-extrabold text-slate-100 text-xs sm:text-sm uppercase">Variables & Storage Registers</h5>
+                        </div>
+                        <p className="font-sans text-xs text-slate-400 leading-relaxed">
+                          Variables serve as named compartments in the microcontroller's electrical RAM cabinet. You must declare what type of information they store so the compiler allocates correct register widths:
                         </p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1.5 font-sans text-xs text-slate-350">
+                            <div className="grid grid-cols-4 border-b border-slate-900/40 pb-1.5 pt-1.5">
+                              <span className="font-mono font-black text-indigo-400">int</span>
+                              <span className="col-span-3 text-slate-300">Integers (-32k to +32K). Good for indexes and integer readings.</span>
+                            </div>
+                            <div className="grid grid-cols-4 border-b border-slate-900/40 pb-1.5">
+                              <span className="font-mono font-black text-pink-405 text-pink-400">float</span>
+                              <span className="col-span-3 text-slate-300">Float fractional values with decimal points. Best for math averages and LDR lux ranges.</span>
+                            </div>
+                            <div className="grid grid-cols-4 border-b border-slate-900/40 pb-1.5">
+                              <span className="font-mono font-black text-emerald-400">bool</span>
+                              <span className="col-span-3 text-slate-300">Logical binary values (only `true` or `false`). Flags sensory beam alerts.</span>
+                            </div>
+                          </div>
+
+                          <div className="bg-slate-950/90 p-3 rounded-xl border border-slate-900 font-mono text-[9.5px] text-slate-300 space-y-1 leading-normal self-start">
+                            <span className="text-slate-550 italic">// Variable assignments</span>
+                            <p><span className="text-indigo-400">int</span> proximityLimit = <span className="text-amber-400">30</span>;</p>
+                            <p><span className="text-pink-400">float</span> targetCelcius = <span className="text-amber-400">22.5</span>;</p>
+                            <p><span className="text-emerald-400">bool</span> backupActive = <span className="text-[#38bdf8]">false</span>;</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 2. Inputs Guide */}
+                      <div className="bg-slate-950/40 border border-slate-900 p-5 rounded-2xl space-y-3 relative overflow-hidden text-left">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-pink-500/80" />
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[8px] bg-pink-950 text-pink-400 border border-pink-500/20 px-2 py-0.5 rounded-md font-extrabold tracking-widest uppercase">SECTION 2</span>
+                          <h5 className="font-sans font-extrabold text-slate-100 text-xs sm:text-sm uppercase">Sensory Inputs (Digital & Analog)</h5>
+                        </div>
+                        <p className="font-sans text-xs text-slate-400 leading-relaxed">
+                          Microchips gain self-awareness of environments through inputs. Digital inputs read flat binary voltages (binary state 1 or 0), whereas Analog inputs convert continuous resistance changes into scaled counts:
+                        </p>
+
                         <div className="bg-[#020617] p-3 rounded-xl border border-slate-900 font-mono text-[9.5px] text-slate-300 space-y-1.5 leading-normal">
-                          <p><span className="text-emerald-500">// Semicolon ends every command line:</span></p>
-                          <p><span className="text-slate-200">int pinNumber = 13;</span></p>
-                          <p className="pt-1"><span className="text-[#a855f7]">if</span> (<span className="text-slate-200">sensorActive</span>) &#123;</p>
-                          <p className="pl-4 text-emerald-500">// Braces group blocks together</p>
-                          <p className="pl-4 text-slate-200">digitalWrite(13, HIGH);</p>
-                          <p>&#125; <span className="text-emerald-505 text-emerald-400">// closes the if-block</span></p>
+                          <p><span className="text-emerald-500">// Configure hardware pins once in firmware boot setup():</span></p>
+                          <p><span className="text-[#a855f7]">pinMode</span>(A0, <span className="text-amber-400">INPUT</span>); <span className="text-slate-500">// Sets pin A0 to capture incoming light volts</span></p>
+                          <p className="pt-2"><span className="text-emerald-505 text-slate-500">// Continuous read functions during action cycles:</span></p>
+                          <p><span className="text-indigo-400">int</span> ldrRaw = <span className="text-[#38bdf8]">analogRead</span>(A0); <span className="text-slate-500">// converts voltage signal to 0 - 1023 LDR scale</span></p>
+                          <p><span className="text-indigo-400">int</span> trigger = <span className="text-[#38bdf8]">digitalRead</span>(2); <span className="text-slate-500">// returns HIGH or LOW state directly from sensor</span></p>
                         </div>
                       </div>
 
-                      {/* Pillar B: Variables Dictionary */}
-                      <div className="bg-slate-950/45 border border-slate-900 p-4 rounded-2xl space-y-3">
-                        <span className="font-mono text-[8px] text-sky-450 font-extrabold tracking-widest block uppercase">PHYSICAL MEMORY</span>
-                        <h5 className="font-sans font-extrabold text-slate-100 text-xs uppercase">Microchip Variables Cabinet</h5>
-                        <p className="font-sans text-xs text-slate-400 leading-relaxed font-sans">
-                          Variables store data in physical memory modules. You must declare what type of data you are containing:
-                        </p>
-                        <div className="space-y-1 text-xs">
-                          <div className="grid grid-cols-3 border-b border-slate-900/60 pb-1.5 text-[10.5px] pt-1.5">
-                            <span className="font-mono font-bold text-sky-450">int</span>
-                            <span className="col-span-2 text-slate-300">Whole integers (pin index, loop counts)</span>
-                          </div>
-                          <div className="grid grid-cols-3 border-b border-slate-900/60 pb-1.5 text-[10.5px]">
-                            <span className="font-mono font-bold text-pink-400">float</span>
-                            <span className="col-span-2 text-slate-300">Decimals (voltages, calculated distance)</span>
-                          </div>
-                          <div className="grid grid-cols-3 border-b border-slate-900/60 pb-1.5 text-[10.5px]">
-                            <span className="font-mono font-bold text-violet-400">bool</span>
-                            <span className="col-span-2 text-slate-300">True/False logic (HIGH / LOW pulse flags)</span>
-                          </div>
+                      {/* 3. Conditions Guide */}
+                      <div className="bg-slate-950/40 border border-slate-900 p-5 rounded-2xl space-y-3 relative overflow-hidden text-left">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-sky-500/80" />
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[8px] bg-sky-950 text-sky-400 border border-sky-500/20 px-2 py-0.5 rounded-md font-extrabold tracking-widest uppercase">SECTION 3</span>
+                          <h5 className="font-sans font-extrabold text-[#f1f5f9] text-xs sm:text-sm uppercase">Control Decision Paths (If / Else)</h5>
                         </div>
-                      </div>
-
-                      {/* Pillar C: Control Decision Paths */}
-                      <div className="bg-slate-950/45 border border-slate-900 p-4 rounded-2xl space-y-3">
-                        <span className="font-mono text-[8px] text-emerald-410 font-extrabold tracking-widest block uppercase text-emerald-400">DECISION LOGIC</span>
-                        <h5 className="font-sans font-extrabold text-slate-100 text-xs uppercase">If/Else Logical Pathways</h5>
-                        <p className="font-sans text-xs text-slate-400 leading-relaxed font-sans">
-                          Conditionals guide the processor to branching paths like train track switches. Only ONE path fires:
+                        <p className="font-sans text-xs text-slate-400 leading-relaxed">
+                          Conditionals guide the chip down binary branching logic pathways based on physical environmental thresholds. Only one matching branch executes:
                         </p>
+
                         <div className="bg-[#020617] p-3 rounded-xl border border-slate-900 font-mono text-[9.5px] text-slate-300 space-y-1 leading-normal">
-                          <p><span className="text-[#a855f7]">if</span> (dist &lt; <span className="text-amber-400">15.0</span>) &#123;</p>
-                          <p className="pl-4 text-slate-400">steerLeft(); <span className="text-[8.5px] text-slate-500">// Too close bounds</span></p>
-                          <p>&#125; <span className="text-[#a855f7]">else if</span> (dist &gt; <span className="text-amber-400">100</span>) &#123;</p>
-                          <p className="pl-4 text-slate-400">stopSearch(); <span className="text-[8.5px] text-slate-500">// Limit out</span></p>
+                          <p><span className="text-[#a855f7]">if</span> (ambientLight &lt; <span className="text-amber-400">400</span>) &#123;</p>
+                          <p className="pl-4 text-[#38bdf8]">digitalWrite(streetlampLED, HIGH); <span className="text-[8.5px] text-slate-500">// Activates lamp (Night triggered)</span></p>
+                          <p>&#125; <span className="text-[#a855f7]">else if</span> (ambientLight &gt; <span className="text-amber-400">900</span>) &#123;</p>
+                          <p className="pl-4 text-[#38bdf8]">shutdownSiren(); <span className="text-[8.5px] text-slate-500">// Safeguard limit threshold reached</span></p>
                           <p>&#125; <span className="text-[#a855f7]">else</span> &#123;</p>
-                          <p className="pl-4 text-slate-400">driveForward(); <span className="text-[8.5px] text-slate-500">// Safe clear path</span></p>
+                          <p className="pl-4 text-[#38bdf8]">digitalWrite(streetlampLED, LOW); <span className="text-[8.5px] text-slate-500">// Default steady standby during clear day</span></p>
                           <p>&#125;</p>
                         </div>
                       </div>
 
-                      {/* Pillar D: Loop Lifecycles */}
-                      <div className="bg-slate-950/45 border border-slate-900 p-4 rounded-2xl space-y-3">
-                        <span className="font-mono text-[8px] text-orange-400 font-extrabold tracking-widest block uppercase">REPETITION LOOP</span>
-                        <h5 className="font-sans font-extrabold text-slate-100 text-xs uppercase">The Continuous Loop Cycle</h5>
-                        <p className="font-sans text-xs text-slate-400 leading-relaxed font-sans">
-                          Robotics processors continuously scan registers and refresh outputs over and over again in an infinite loop:
+                      {/* 4. Loops Guide */}
+                      <div className="bg-slate-950/40 border border-slate-900 p-5 rounded-2xl space-y-3 relative overflow-hidden text-left">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500/80" />
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[8px] bg-emerald-950 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md font-extrabold tracking-widest uppercase">SECTION 4</span>
+                          <h5 className="font-sans font-extrabold text-[#f1f5f9] text-xs sm:text-sm uppercase">Robot Movement & Autonomous Loops</h5>
+                        </div>
+                        <p className="font-sans text-xs text-slate-400 leading-relaxed">
+                          Loops handle heavy processing repetitions. Use a `for` loop to step actuators (like a sweeping servo axis degree-by-degree) and a `while` loop to hold critical safety states (like reversing motors until a proximity threat is clear):
                         </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-slate-950/95 p-3 rounded-xl border border-slate-900 font-mono text-[9.5px] text-slate-300 space-y-0.5 leading-normal">
+                            <span className="text-slate-500 italic block mb-1.5">// FOR Loop (Servo Sweep Action)</span>
+                            <p><span className="text-[#a855f7]">for</span> (<span className="text-indigo-400">int</span> deg = <span className="text-amber-400">0</span>; deg &lt;= <span className="text-amber-400">180</span>; deg += <span className="text-amber-400">15</span>) &#123;</p>
+                            <p className="pl-4 text-slate-400">servoMotor.write(deg);</p>
+                            <p className="pl-4 text-violet-400">delay(<span className="text-amber-400">15</span>); <span className="text-slate-550 text-[8px] italic">// holds degrees steady</span></p>
+                            <p>&#125;</p>
+                          </div>
+
+                          <div className="bg-slate-950/95 p-3 rounded-xl border border-slate-900 font-mono text-[9.5px] text-slate-300 space-y-0.5 leading-normal">
+                            <span className="text-slate-500 italic block mb-1.5">// WHILE Loop (Emergency Safety Override)</span>
+                            <p><span className="text-[#a855f7]">while</span> (proximityDistance &lt; <span className="text-amber-400">30</span>) &#123;</p>
+                            <p className="pl-4 text-emerald-400">reverseMotorTracks();</p>
+                            <p className="pl-4 text-indigo-400">proximityDistance = readUltrasonic();</p>
+                            <p>&#125;</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 5. Functions Guide */}
+                      <div className="bg-slate-950/40 border border-slate-900 p-5 rounded-2xl space-y-3 relative overflow-hidden text-left">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-purple-500/80" />
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[8px] bg-purple-950 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-md font-extrabold tracking-widest uppercase">SECTION 5</span>
+                          <h5 className="font-sans font-extrabold text-[#f1f5f9] text-xs sm:text-sm uppercase">Custom Functions (Algorithms Blocks)</h5>
+                        </div>
+                        <p className="font-sans text-xs text-slate-400 leading-relaxed">
+                          Functions package long execution workflows into distinct, named modules. This keeps your central loops sleek, reduces memory duplication, and allows calculations using configurable input arguments before returning calculated assets:
+                        </p>
+
                         <div className="bg-[#020617] p-3 rounded-xl border border-slate-900 font-mono text-[9.5px] text-slate-300 space-y-1.5 leading-normal">
-                          <p><span className="text-[#f43f5e] font-bold">void</span> <span className="text-sky-300 font-bold">loop</span>() &#123;</p>
-                          <p className="pl-4 text-slate-350">readSensorValues(); <span className="text-emerald-450 text-[8.5px] font-sans">// Runs continuously</span></p>
-                          <p className="pl-4 text-slate-350">controlActuators(); <span className="text-emerald-450 text-[8.5px] font-sans">// Updates in order</span></p>
-                          <p className="pl-4 text-slate-355">delay(<span className="text-indigo-400">10</span>); <span className="text-slate-500 text-[8.5px] font-sans">// clock cycle hold</span></p>
+                          <p><span className="text-slate-500 italic">// Definition: takes three integer variables, returns a precise decimal result</span></p>
+                          <p><span className="text-pink-400">float</span> <span className="text-[#38bdf8]">averageThreeSamples</span>(<span className="text-indigo-400">int</span> varA, <span className="text-indigo-400">int</span> varB, <span className="text-indigo-400">int</span> varC) &#123;</p>
+                          <p className="pl-4 text-slate-200"><span className="text-[#a855f7]">return</span> (varA + varB + varC) / <span className="text-pink-400">3.0</span>;</p>
                           <p>&#125;</p>
                         </div>
                       </div>
+
                     </div>
 
-                    {/* Best Practice Tips */}
-                    <div className="rounded-2xl border border-slate-900 bg-[#04081c]/30 p-5 space-y-4">
-                      <span className="font-mono text-[8.5px] text-amber-400 font-black tracking-widest uppercase flex items-center gap-1.5 select-none text-left">
-                        <Terminal className="w-3.5 h-3.5 text-amber-400" />
-                        BEGINNER DEBUGGING HANDBOOK: HOW TO THINK LIKE A CODER
+                    {/* Important Notes Banner and Section */}
+                    <div className="rounded-2xl border border-slate-900 bg-[#04081c]/10 p-5 space-y-4">
+                      <span className="font-mono text-[8.5px] text-amber-500 font-black tracking-widest uppercase flex items-center gap-1.5 select-none text-left">
+                        <Terminal className="w-3.5 h-3.5 text-amber-500" />
+                        ⚠️ CRITICAL CODER MANUAL: IMPORTANT NOTES & PHYSICAL PROTOCOLS
                       </span>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-                        <div className="space-y-3 animate-fadeIn">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                        <div className="space-y-4">
                           <div className="flex gap-2.5 items-start">
-                            <span className="w-5 h-5 rounded-full bg-slate-900 text-amber-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">A</span>
+                            <span className="w-5 h-5 rounded-full bg-slate-900 border border-slate-800 text-amber-500 font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">01</span>
                             <div>
-                              <h5 className="font-sans font-extrabold text-slate-200 text-xs">Print Telemetry Always</h5>
+                              <h5 className="font-sans font-extrabold text-slate-200 text-xs uppercase">Declare PinModes Explicitly</h5>
                               <p className="font-sans text-[11px] text-slate-400 leading-normal mt-0.5">
-                                You write variable values to physical registers, but you cannot see them physically. Use <code className="font-mono text-[10px] px-1 bg-slate-100 px-1.5 py-0.5 rounded-md bg-slate-950 text-slate-300 text-[9.5px]">Serial.println(distance)</code> to stream values onto your screen.
+                                A sensor pin that isn't configured in code enters a fluctuating, unpredictable "floating state." This results in chaotic noise values registering on the CPU. Always explicitly call <code className="font-mono px-1 bg-slate-950 text-slate-320 text-[9.5px] rounded">pinMode(sensorPin, INPUT)</code>.
                               </p>
                             </div>
                           </div>
+                          
                           <div className="flex gap-2.5 items-start">
-                            <span className="w-5 h-5 rounded-full bg-slate-900 text-amber-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">B</span>
+                            <span className="w-5 h-5 rounded-full bg-slate-900 border border-slate-800 text-amber-500 font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">02</span>
                             <div>
-                              <h5 className="font-sans font-extrabold text-slate-200 text-xs">Compile and Verify Early</h5>
+                              <h5 className="font-sans font-extrabold text-slate-200 text-xs uppercase">Beware CPU-Locking Delay Blocks</h5>
                               <p className="font-sans text-[11px] text-slate-400 leading-normal mt-0.5">
-                                Do not write 100 lines of code before hitting compile. Write 5 lines, build successfully, resolve syntax problems, then continue. This prevents compound errors.
+                                Standard <code className="font-mono px-1 bg-slate-950 text-slate-320 text-[9.5px] rounded">delay(1000)</code> commands completely freeze the microcontroller's CPU. While frozen, the chip cannot read safety tripwires or process distance buffers! Real-time robotics should prefer timer interval registers over direct lockup delays.
                               </p>
                             </div>
                           </div>
                         </div>
 
-                        <div className="space-y-3 animate-fadeIn">
+                        <div className="space-y-4">
                           <div className="flex gap-2.5 items-start">
-                            <span className="w-5 h-5 rounded-full bg-slate-900 text-amber-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">C</span>
+                            <span className="w-5 h-5 rounded-full bg-slate-900 border border-slate-800 text-amber-500 font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">03</span>
                             <div>
-                              <h5 className="font-sans font-extrabold text-slate-200 text-xs">Beware of Semicolon Traps</h5>
+                              <h5 className="font-sans font-extrabold text-slate-200 text-xs uppercase">Respect Hardware Memory Saturation</h5>
                               <p className="font-sans text-[11px] text-slate-400 leading-normal mt-0.5">
-                                The absolute most common syntax errors are missing semicolons <code className="font-mono text-[10px] px-1 bg-slate-100 px-1.5 py-0.5 rounded-md bg-slate-950 text-rose-300 text-[9.5px]">;</code>. Read compiler feedback warnings bottom-to-top to find precise line matches.
+                                Microcontroller microchips have tiny execution memories (typically just 2KB of dynamic RAM). Allocate conservative variables to conserve program limits—prefer a structured <code className="font-mono px-1 bg-slate-950 text-slate-320 text-[9.5px] rounded">byte</code> sensor loop index rather than oversized integers.
                               </p>
                             </div>
                           </div>
+
                           <div className="flex gap-2.5 items-start">
-                            <span className="w-5 h-5 rounded-full bg-slate-900 text-amber-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">D</span>
+                            <span className="w-5 h-5 rounded-full bg-slate-900 border border-slate-800 text-amber-500 font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">04</span>
                             <div>
-                              <h5 className="font-sans font-extrabold text-slate-200 text-xs">Comment Your Intentions</h5>
+                              <h5 className="font-sans font-extrabold text-slate-200 text-xs uppercase">Establish Logical Escape Routes</h5>
                               <p className="font-sans text-[11px] text-slate-400 leading-normal mt-0.5">
-                                Use <code className="font-mono text-[10px] px-1 bg-slate-100 px-1.5 py-0.5 rounded-md bg-slate-950 text-emerald-400 text-[9.5px]">// comments</code> to outline your core sequence logic in plain English before drafting microchip commands.
+                                An infinite loop is incredibly dangerous in physical actuators. If an ultrasonic wire disconnected while inside a <code className="font-mono px-1 bg-slate-950 text-slate-320 text-[9.5px] rounded">while(dist &lt; 30)</code> loop, the motors could drive forward forever! Always integrate logic escape timeout flags.
                               </p>
                             </div>
                           </div>
@@ -3704,7 +3897,7 @@ delay(250); // Pause execution`)}
                 </p>
               </div>
 
-              <div className="space-y-3 pt-2 border-t border-slate-900">
+              <div className="relative space-y-3 pt-2 border-t border-slate-900 pl-3.5">
                 {([
                   { id: "ohms", label: "Ohm's Law (V = I * R)", desc: "Interact with Voltage, Resistance, and Amperage limits", icon: Sliders },
                   { id: "circuits", label: "Circuits (Series vs Parallel)", desc: "Build connections and break wire routes to see behaviors", icon: Layers },
@@ -3726,25 +3919,25 @@ delay(250); // Pause execution`)}
                           }, 120);
                         }
                       }}
-                      className={`w-full text-left p-4 rounded-xl border transition-all duration-300 cursor-pointer flex gap-4 items-center relative overflow-hidden group ${
+                      className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex gap-4 items-center relative overflow-hidden group ${
                         isCur 
-                          ? "border-emerald-500 bg-emerald-500/[0.06] shadow-[0_0_20px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/30" 
-                          : "border-slate-800 hover:border-slate-700 bg-slate-900/10 hover:bg-slate-900/40 hover:shadow-inner"
+                          ? "border-amber-500 bg-amber-500/[0.05] shadow-[0_0_20px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/35" 
+                          : "border-slate-800 hover:border-slate-705 bg-slate-900/10 hover:bg-slate-900/40 hover:shadow-inner"
                       }`}
                     >
                       {isCur && (
-                        <div className="absolute top-0 right-0 bg-emerald-500/15 border-l border-b border-emerald-500/20 text-emerald-400 font-mono text-[7px] uppercase tracking-wide px-2 py-0.5 rounded-bl font-extrabold select-none">
+                        <div className="absolute top-0 right-0 bg-amber-500/15 border-l border-b border-amber-500/20 text-amber-400 font-mono text-[7px] uppercase tracking-wide px-2.5 py-1 rounded-bl font-black select-none">
                           Active Workstation
                         </div>
                       )}
-                      <div className={`p-2 rounded-lg transition-colors ${
-                        isCur ? "bg-emerald-500/15 text-emerald-400" : "bg-slate-900 text-slate-500 group-hover:text-slate-300"
+                      <div className={`p-2.5 rounded-lg transition-colors ${
+                        isCur ? "bg-amber-500/15 text-amber-400" : "bg-slate-900 text-slate-500 group-hover:text-slate-300"
                       }`}>
-                        <sub.icon className="w-4.5 h-4.5 shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                        <sub.icon className="w-5 h-5 shrink-0 transition-transform duration-300 group-hover:scale-110" />
                       </div>
                       <div>
-                        <h4 className={`font-sans font-extrabold text-xs transition-colors ${isCur ? "text-white" : "text-slate-200 group-hover:text-white"}`}>{sub.label}</h4>
-                        <p className={`font-sans text-[10px] leading-tight transition-colors ${isCur ? "text-slate-300" : "text-slate-400 group-hover:text-slate-300"}`}>{sub.desc}</p>
+                        <h4 className={`font-sans font-black text-sm transition-colors ${isCur ? "text-white" : "text-slate-200 group-hover:text-white"}`}>{sub.label}</h4>
+                        <p className={`font-sans text-[11px] leading-snug transition-colors ${isCur ? "text-slate-300" : "text-slate-400 group-hover:text-slate-300"}`}>{sub.desc}</p>
                       </div>
                     </button>
                   );
@@ -3804,7 +3997,8 @@ delay(250); // Pause execution`)}
                               step="0.5"
                               value={ohmsVoltage}
                               onChange={(e) => setOhmsVoltage(parseFloat(e.target.value))}
-                              className="w-full accent-indigo-500 cursor-pointer h-2 bg-slate-950 rounded-lg"
+                              className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-indigo-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-indigo-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-indigo-500 [&::-moz-range-thumb]:shadow-md"
+                              style={getProgressStyle(ohmsVoltage, 1.0, 12.0, "#6366f1")}
                             />
                             <div className="flex justify-between font-mono text-[8px] text-slate-500">
                               <span>1.0 V (Weak)</span>
@@ -3826,7 +4020,8 @@ delay(250); // Pause execution`)}
                               step="20"
                               value={ohmsResistance}
                               onChange={(e) => setOhmsResistance(parseInt(e.target.value))}
-                              className="w-full accent-emerald-500 cursor-pointer h-2 bg-slate-950 rounded-lg"
+                              className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-emerald-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-emerald-500 [&::-moz-range-thumb]:shadow-md"
+                              style={getProgressStyle(ohmsResistance, 100, 1000, "#10b981")}
                             />
                             <div className="flex justify-between font-mono text-[8px] text-slate-500">
                               <span>100 Ω (Wide Open)</span>
@@ -4400,64 +4595,66 @@ delay(250); // Pause execution`)}
                     {/* Classic Oscilloscope Wave View */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {/* Left Workspace Controllers */}
-                        <div className="space-y-4 bg-slate-900/10 p-4 rounded-xl border border-slate-900">
-                          {/* Signal Type Selector Buttons */}
-                          <div className="space-y-2">
-                            <span className="font-mono text-[8px] text-slate-500 tracking-wider block uppercase font-bold">Choose Signal Waveform:</span>
-                            <div className="grid grid-cols-2 gap-2">
-                              {(["sine", "square"] as const).map((t) => {
-                                const active = signalType === t;
-                                return (
-                                  <button
-                                    key={t}
-                                    onClick={() => setSignalType(t)}
-                                    type="button"
-                                    className={`px-2 py-2 font-mono text-[9px] border transition-all rounded-lg font-bold cursor-pointer uppercase text-center ${
-                                      active
-                                        ? "bg-purple-950/20 border-purple-500 text-purple-400"
-                                        : "bg-slate-950 border-slate-900 text-slate-400 hover:text-slate-200"
-                                    }`}
-                                  >
-                                    {t === "sine" ? "Sine (Analog)" : "Square (Digital)"}
-                                  </button>
-                                );
-                              })}
-                            </div>
+                      <div className="space-y-4 bg-slate-900/10 p-4 rounded-xl border border-slate-900">
+                        {/* Signal Type Selector Buttons - Styled emerald matching Basic Electronics theme */}
+                        <div className="space-y-2">
+                          <span className="font-mono text-[8px] text-slate-550 tracking-wider block uppercase font-bold text-slate-400">Choose Signal Waveform:</span>
+                          <div className="grid grid-cols-2 gap-2">
+                            {(["sine", "square"] as const).map((t) => {
+                              const active = signalType === t;
+                              return (
+                                <button
+                                  key={t}
+                                  onClick={() => setSignalType(t)}
+                                  type="button"
+                                  className={`px-2 py-2 font-mono text-[9px] border transition-all rounded-lg font-bold cursor-pointer uppercase text-center ${
+                                    active
+                                      ? "bg-emerald-950/20 border-emerald-500 text-emerald-450 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                                      : "bg-slate-950 border-slate-900 text-slate-400 hover:text-slate-200"
+                                  }`}
+                                >
+                                  {t === "sine" ? "Sine (Analog)" : "Square (Digital)"}
+                                </button>
+                              );
+                            })}
                           </div>
+                        </div>
 
-                          {/* Amplitude Slider */}
-                          <div className="space-y-1.5 pt-3 border-t border-slate-900/60">
-                            <div className="flex justify-between text-xs font-sans">
-                              <span className="text-slate-300 font-bold">Signal Amplitude (Voltage Height):</span>
-                              <span className="font-mono text-[#a855f7] font-extrabold">{signalAmplitude.toFixed(1)} V</span>
-                            </div>
-                            <input 
-                              type="range" 
-                              min="1.0" 
-                              max="5.0" 
-                              step="0.5"
-                              value={signalAmplitude}
-                              onChange={(e) => setSignalAmplitude(parseFloat(e.target.value))}
-                              className="w-full accent-purple-500 cursor-pointer"
-                            />
+                        {/* Amplitude Slider */}
+                        <div className="space-y-1.5 pt-3 border-t border-slate-900/60">
+                          <div className="flex justify-between text-xs font-sans">
+                            <span className="text-slate-300 font-bold">Signal Amplitude (Voltage Height):</span>
+                            <span className="font-mono text-[#a855f7] font-extrabold">{signalAmplitude.toFixed(1)} V</span>
                           </div>
+                          <input 
+                            type="range" 
+                            min="1.0" 
+                            max="5.0" 
+                            step="0.5"
+                            value={signalAmplitude}
+                            onChange={(e) => setSignalAmplitude(parseFloat(e.target.value))}
+                            className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-purple-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-purple-500 [&::-moz-range-thumb]:shadow-md"
+                            style={getProgressStyle(signalAmplitude, 1.0, 5.0, "#a855f7")}
+                          />
+                        </div>
 
-                          {/* Frequency Slider */}
-                          <div className="space-y-1.5 pt-3 border-t border-slate-900/60">
-                            <div className="flex justify-between text-xs font-sans">
-                              <span className="text-slate-300 font-bold">Signal Frequency (Hz Cycle rate):</span>
-                              <span className="font-mono text-[#a855f7] font-extrabold">{signalFrequency} Hz</span>
-                            </div>
-                            <input 
-                              type="range" 
-                              min="1" 
-                              max="5" 
-                              step="1"
-                              value={signalFrequency}
-                              onChange={(e) => setSignalFrequency(parseInt(e.target.value))}
-                              className="w-full accent-purple-500 cursor-pointer"
-                            />
+                        {/* Frequency Slider */}
+                        <div className="space-y-1.5 pt-3 border-t border-slate-900/60">
+                          <div className="flex justify-between text-xs font-sans">
+                            <span className="text-slate-300 font-bold">Signal Frequency (Hz Cycle rate):</span>
+                            <span className="font-mono text-[#a855f7] font-extrabold">{signalFrequency} Hz</span>
                           </div>
+                          <input 
+                            type="range" 
+                            min="1" 
+                            max="5" 
+                            step="1"
+                            value={signalFrequency}
+                            onChange={(e) => setSignalFrequency(parseInt(e.target.value))}
+                            className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-purple-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-purple-500 [&::-moz-range-thumb]:shadow-md"
+                            style={getProgressStyle(signalFrequency, 1, 5, "#a855f7")}
+                          />
+                        </div>
 
                           {/* Noise Toggle Switch */}
                           <div className="flex justify-between items-center bg-[#070b13] p-2 rounded-lg border border-slate-900">
@@ -4837,8 +5034,8 @@ delay(250); // Pause execution`)}
                                   type="button"
                                   className={`px-1 py-1.5 rounded font-mono text-[8.5px] font-black uppercase text-center cursor-pointer border transition-all hover:scale-110 active:scale-95 duration-150 ${
                                     isCur
-                                      ? "bg-sky-950 border-sky-450 text-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.35)] font-black animate-pulse"
-                                      : "bg-slate-950 border-slate-900 text-slate-400 hover:text-slate-200 hover:border-slate-700 hover:bg-slate-900"
+                                      ? "bg-emerald-950/20 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.35)] font-black animate-pulse"
+                                      : "bg-slate-950 border-slate-950/60 text-slate-400 hover:text-slate-200 hover:border-slate-700 hover:bg-slate-900"
                                   }`}
                                 >
                                   {g}
@@ -5120,7 +5317,8 @@ delay(250); // Pause execution`)}
                                 step="0.1"
                                 value={pidSetpoint}
                                 onChange={(e) => setPidSetpoint(parseFloat(e.target.value))}
-                                className="w-full accent-emerald-500 cursor-pointer"
+                                className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-emerald-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-emerald-500 [&::-moz-range-thumb]:shadow-md"
+                                style={getProgressStyle(pidSetpoint, 0.5, 1.5, "#10b981")}
                               />
                             </div>
 
@@ -5139,14 +5337,15 @@ delay(250); // Pause execution`)}
                                     step="0.1"
                                     value={pidKp}
                                     onChange={(e) => setPidKp(parseFloat(e.target.value))}
-                                    className="w-full accent-rose-500 cursor-pointer"
+                                    className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-rose-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-rose-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-rose-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-rose-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-rose-500 [&::-moz-range-thumb]:shadow-md"
+                                    style={getProgressStyle(pidKp, 0.0, 10.0, "#f43f5e")}
                                   />
                                 </div>
 
                                 {/* Ki Slider */}
                                 <div className="space-y-1">
                                   <div className="flex justify-between items-center text-xs">
-                                    <span className="text-amber-350 text-amber-400 font-bold font-mono text-[9.5px]">Integral Gain (Ki):</span>
+                                    <span className="text-amber-305 text-amber-400 font-bold font-mono text-[9.5px]">Integral Gain (Ki):</span>
                                     <span className="font-mono text-amber-400 font-bold text-[10px]">{pidKi.toFixed(1)}</span>
                                   </div>
                                   <input 
@@ -5156,7 +5355,8 @@ delay(250); // Pause execution`)}
                                     step="0.1"
                                     value={pidKi}
                                     onChange={(e) => setPidKi(parseFloat(e.target.value))}
-                                    className="w-full accent-amber-500 cursor-pointer"
+                                    className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md"
+                                    style={getProgressStyle(pidKi, 0.0, 5.0, "#f59e0b")}
                                   />
                                 </div>
 
@@ -5173,7 +5373,8 @@ delay(250); // Pause execution`)}
                                     step="0.05"
                                     value={pidKd}
                                     onChange={(e) => setPidKd(parseFloat(e.target.value))}
-                                    className="w-full accent-cyan-500 cursor-pointer"
+                                    className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-cyan-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-cyan-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-cyan-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-cyan-500 [&::-moz-range-thumb]:shadow-md"
+                                    style={getProgressStyle(pidKd, 0.0, 5.0, "#06b6d4")}
                                   />
                                 </div>
                               </div>
@@ -6800,13 +7001,13 @@ delay(250); // Pause execution`)}
 
                         {/* Interactive Slide Controls */}
                         <div className="bg-slate-950 p-4 border border-slate-900 rounded-2xl space-y-3">
-                          <span className="text-[8px] text-slate-505 text-slate-550 text-slate-500 font-extrabold uppercase tracking-wider block font-mono">Interactive Swivel Controls</span>
+                          <span className="text-[8px] text-slate-500 font-extrabold uppercase tracking-wider block font-mono">Interactive Swivel Controls</span>
                           
                           <div className="space-y-2 text-xs">
                             {/* Control Master Switch */}
                             <div className="flex items-center justify-between bg-[#040813] p-2 rounded-xl border border-slate-900">
                               <div className="text-left font-sans">
-                                <h5 className="font-bold text-[10.5px] text-slate-101 text-slate-200">MAIN SW / SOURCE CABLE</h5>
+                                <h5 className="font-bold text-[10.5px] text-slate-200">MAIN SW / SOURCE CABLE</h5>
                                 <p className="text-[8px] text-slate-500 font-mono leading-none">Sits in series; cuts all paths</p>
                               </div>
                               <button
@@ -6824,7 +7025,7 @@ delay(250); // Pause execution`)}
                             {/* Control Branch A */}
                             <div className="flex items-center justify-between bg-[#040813] p-2 rounded-xl border border-slate-900">
                               <div className="text-left font-sans">
-                                <h5 className="font-bold text-[10.5px] text-slate-101 text-slate-200">BRANCH SW-A (TOP)</h5>
+                                <h5 className="font-bold text-[10.5px] text-slate-200">BRANCH SW-A (TOP)</h5>
                                 <p className="text-[8px] text-slate-500 font-mono leading-none">Controls Branch A parallel node</p>
                               </div>
                               <button
@@ -6842,7 +7043,7 @@ delay(250); // Pause execution`)}
                             {/* Control Branch B */}
                             <div className="flex items-center justify-between bg-[#040813] p-2 rounded-xl border border-slate-900">
                               <div className="text-left font-sans">
-                                <h5 className="font-bold text-[10.5px] text-slate-101 text-slate-200">BRANCH SW-B (BOTTOM)</h5>
+                                <h5 className="font-bold text-[10.5px] text-slate-200">BRANCH SW-B (BOTTOM)</h5>
                                 <p className="text-[8px] text-slate-500 font-mono leading-none">Controls Branch B parallel node</p>
                               </div>
                               <button
@@ -7027,7 +7228,8 @@ delay(250); // Pause execution`)}
                         step="0.5"
                         value={ohmsVoltage}
                         onChange={(e) => setOhmsVoltage(parseFloat(e.target.value))}
-                        className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-sky-400"
+                        className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-sky-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-sky-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-sky-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-sky-500 [&::-moz-range-thumb]:shadow-md"
+                        style={getProgressStyle(ohmsVoltage, 1.0, 12.0, "#38bdf8")}
                       />
                       <div className="p-3 bg-sky-950/10 border border-sky-900/25 rounded-xl space-y-1">
                         <span className="font-mono text-[8px] text-sky-400 tracking-wider font-extrabold uppercase">How Voltage Works:</span>
@@ -7051,7 +7253,8 @@ delay(250); // Pause execution`)}
                         step="20"
                         value={ohmsResistance}
                         onChange={(e) => setOhmsResistance(parseInt(e.target.value))}
-                        className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-emerald-505 accent-emerald-500"
+                        className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-emerald-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-emerald-500 [&::-moz-range-thumb]:shadow-md"
+                        style={getProgressStyle(ohmsResistance, 100, 1000, "#10b981")}
                       />
                       <div className="p-3 bg-emerald-950/10 border border-emerald-900/25 rounded-xl space-y-1">
                         <span className="font-mono text-[8px] text-emerald-400 tracking-wider font-extrabold uppercase">How Resistance Works:</span>
@@ -7404,7 +7607,8 @@ delay(250); // Pause execution`)}
                         step="1"
                         value={signalFrequency}
                         onChange={(e) => setSignalFrequency(parseInt(e.target.value))}
-                        className="w-full accent-purple-500 cursor-pointer"
+                        className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-purple-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-purple-500 [&::-moz-range-thumb]:shadow-md"
+                        style={getProgressStyle(signalFrequency, 1, 5, "#a855f7")}
                       />
                     </div>
                   ) : (
@@ -7420,7 +7624,8 @@ delay(250); // Pause execution`)}
                         step="0.05"
                         value={manualSampleValue}
                         onChange={(e) => setManualSampleValue(parseFloat(e.target.value))}
-                        className="w-full accent-purple-500 cursor-pointer"
+                        className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-purple-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-purple-500 [&::-moz-range-thumb]:shadow-md"
+                        style={getProgressStyle(manualSampleValue, 0.0, 5.0, "#a855f7")}
                       />
                     </div>
                   )}
@@ -7438,7 +7643,8 @@ delay(250); // Pause execution`)}
                       step="1"
                       value={samplingFrequency}
                       onChange={(e) => setSamplingFrequency(parseInt(e.target.value))}
-                      className="w-full accent-purple-500 cursor-pointer"
+                      className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-purple-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-purple-500 [&::-moz-range-thumb]:shadow-md"
+                      style={getProgressStyle(samplingFrequency, 1, 10, "#a855f7")}
                     />
                     <p className="font-mono text-[8px] text-slate-500 uppercase leading-tight pt-0.5">
                       Samples the analog track is partitioned horizontally to create step staircase points.

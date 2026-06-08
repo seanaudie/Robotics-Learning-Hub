@@ -304,7 +304,7 @@ export const SevenSegInteractiveModal: React.FC<SevenSegInteractiveModalProps> =
           >
             {/* Glowing Ambient Background Circles */}
             <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-cyan-500/5 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-32 -right-32 w-80 h-80 rounded-full bg-indigo-505/5 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-32 -right-32 w-80 h-80 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
 
             {/* Title Bar */}
             <div className="relative flex items-center justify-between border-b border-slate-900 pb-3">
@@ -364,7 +364,7 @@ export const SevenSegInteractiveModal: React.FC<SevenSegInteractiveModalProps> =
                           }}
                           className={`py-2 rounded-lg border text-center transition-all flex flex-col items-center justify-center cursor-pointer select-none ${
                             bVal
-                              ? "bg-cyan-550/15 border-cyan-500 text-cyan-300 shadow-[0_0_6px_rgba(6,182,212,0.2)]"
+                              ? "bg-cyan-500/15 border-cyan-500 text-cyan-300 shadow-[0_0_6px_rgba(6,182,212,0.2)]"
                               : "bg-slate-950/60 border-slate-900 text-slate-500 hover:border-slate-800"
                           }`}
                         >
@@ -483,7 +483,7 @@ export const SevenSegInteractiveModal: React.FC<SevenSegInteractiveModalProps> =
                         className={`p-3.5 rounded-xl border transition-all duration-300 flex flex-col space-y-2.5 ${
                           isActive 
                             ? "bg-[#0b132e]/55 border-cyan-500/25 shadow-[0_0_15px_rgba(34,211,238,0.04)]" 
-                            : "bg-[#030611] border-slate-905 border-slate-900/80"
+                            : "bg-[#030611] border-slate-900/80"
                         }`}
                       >
                         {/* Row Header */}
@@ -519,7 +519,7 @@ export const SevenSegInteractiveModal: React.FC<SevenSegInteractiveModalProps> =
                           {/* Output status indicator badge */}
                           <div className={`px-2 py-0.5 rounded font-mono text-[9px] font-black uppercase text-center border mr-1 self-start sm:self-center ${
                             isActive
-                              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-450 text-emerald-400 animate-pulse"
+                              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 animate-pulse"
                               : "bg-slate-950 border-slate-900 text-slate-500"
                           }`}>
                             {isActive ? "1 HIGH (GLOW)" : "0 LOW (OFF)"}

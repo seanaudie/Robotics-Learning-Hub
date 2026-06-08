@@ -6,6 +6,14 @@ interface ControlSystemsLabProps {
   onOpenModal: (type: "closed" | "open") => void;
 }
 
+const getProgressStyle = (val: number, min: number, max: number, color: string) => {
+  const percent = ((val - min) / (max - min)) * 100;
+  return {
+    background: `linear-gradient(to right, ${color} ${percent}%, #02050f ${percent}%)`,
+    height: "6px"
+  };
+};
+
 export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed" | "open") => void }) => {
   const [activeStation, setActiveStation] = useState<"voltage" | "pendulum">("voltage");
   const [isZNModalOpen, setIsZNModalOpen] = useState<boolean>(false);
@@ -239,59 +247,61 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
           </p>
         </div>
         
-        {/* Diagram details decoder widgets */}
-        <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full md:w-auto">
+         {/* Diagram details decoder widgets */}
+        <div className="flex flex-col sm:flex-row gap-4.5 shrink-0 w-full md:w-auto">
           <button
             type="button"
             onClick={() => onOpenModal("open")}
-            className="flex-1 md:w-48 text-left bg-[#0b0e14] hover:bg-[#121824] border-2 border-slate-700 hover:border-amber-500 p-3 rounded-xl transition-all duration-200 group cursor-pointer focus:outline-none shadow-[0_4px_12px_rgba(0,0,0,0.6)] hover:shadow-[0_4px_20px_rgba(245,158,11,0.2)] hover:scale-[1.02] active:scale-[0.98]"
+            className="flex-1 md:w-56 text-left bg-[#0b0e14] hover:bg-[#121824] border border-slate-800 hover:border-violet-500 p-4.5 rounded-2xl transition-all duration-200 group cursor-pointer focus:outline-none shadow-[0_4px_12px_rgba(0,0,0,0.6)] hover:shadow-[0_4px_20px_rgba(139,92,246,0.25)] hover:scale-[1.02] active:scale-[0.98]"
             title="Click to view Open-Loop characteristics"
           >
             <div className="flex items-center justify-between pointer-events-none mb-1">
-              <span className="font-mono font-black text-amber-500 block uppercase text-[8.5px] tracking-wider">Open-Loop Control</span>
-              <span className="font-mono text-[8.5px] text-amber-400 font-extrabold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/25 animate-pulse">DECODE 💡</span>
+              <span className="font-mono font-black text-violet-400 block uppercase text-[9px] tracking-wider">Open-Loop Control</span>
+              <span className="font-mono text-[9px] text-violet-300 font-extrabold bg-violet-500/10 px-2 py-0.5 rounded border border-violet-500/25 animate-pulse">DECODE 💡</span>
             </div>
-            <p className="text-[10px] text-slate-300 leading-snug pointer-events-none">Pure command output. Disconnects sensors; ignores error deviation.</p>
+            <p className="text-[11px] text-slate-300 leading-snug pointer-events-none">Pure command output. Disconnects sensors; ignores error deviation.</p>
           </button>
           
           <button
             type="button"
             onClick={() => onOpenModal("closed")}
-            className="flex-1 md:w-48 text-left bg-[#081229]/80 lg:bg-[#081229]/60 hover:bg-[#0fdff]/15 hover:bg-[#0d1c3a] border-2 border-slate-700 hover:border-sky-400 p-3 rounded-xl transition-all duration-200 group cursor-pointer focus:outline-none shadow-[0_4px_12px_rgba(0,0,0,0.6)] hover:shadow-[0_4px_20px_rgba(56,189,248,0.25)] hover:scale-[1.02] active:scale-[0.98]"
+            className="flex-1 md:w-56 text-left bg-[#081229]/80 lg:bg-[#081229]/60 hover:bg-[#0d1c3a] border border-slate-800 hover:border-violet-500 p-4.5 rounded-2xl transition-all duration-200 group cursor-pointer focus:outline-none shadow-[0_4px_12px_rgba(0,0,0,0.6)] hover:shadow-[0_4px_20px_rgba(139,92,246,0.25)] hover:scale-[1.02] active:scale-[0.98]"
             title="Click to view Closed-Loop characteristics"
           >
             <div className="flex items-center justify-between pointer-events-none mb-1">
-              <span className="font-mono font-black text-sky-400 block uppercase text-[8.5px] tracking-wider">Closed-Loop control</span>
-              <span className="font-mono text-[8.5px] text-sky-400 font-extrabold bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-400/25 animate-pulse">DECODE 💡</span>
+              <span className="font-mono font-black text-violet-400 block uppercase text-[9px] tracking-wider">Closed-Loop control</span>
+              <span className="font-mono text-[9px] text-violet-300 font-extrabold bg-violet-500/10 px-2 py-0.5 rounded border border-violet-500/25 animate-pulse">DECODE 💡</span>
             </div>
-            <p className="text-[10px] text-slate-300 leading-snug pointer-events-none">Pipes output back to input as feedback, dynamically minimizing error.</p>
+            <p className="text-[11px] text-slate-300 leading-snug pointer-events-none">Pipes output back to input as feedback, dynamically minimizing error.</p>
           </button>
         </div>
       </div>
 
       {/* 2. Station Navigation Toggle */}
       <div className="lg:col-span-12 flex justify-start pb-1">
-        <div className="flex bg-[#030712] p-1.5 rounded-2xl border-2 border-slate-700 shadow-xl select-none">
-          <button
-            onClick={() => setActiveStation("voltage")}
-            className={`font-mono text-[9px] uppercase tracking-wider font-extrabold px-5 py-3 rounded-xl transition-all duration-250 cursor-pointer ${
-              activeStation === "voltage"
-                ? "bg-amber-500/15 text-amber-400 border-2 border-amber-500/40 font-black shadow-[0_0_12px_rgba(245,158,11,0.15)] scale-[1.03]"
-                : "text-slate-400 hover:text-amber-300 hover:bg-slate-900 border-2 border-transparent hover:border-slate-800"
-            }`}
-          >
-            Station 01: Voltage PID Response Lab
-          </button>
-          <button
-            onClick={() => setActiveStation("pendulum")}
-            className={`font-mono text-[9px] uppercase tracking-wider font-extrabold px-5 py-3 rounded-xl transition-all duration-250 cursor-pointer ${
-              activeStation === "pendulum"
-                ? "bg-amber-500/15 text-amber-400 border-2 border-amber-500/40 font-black shadow-[0_0_12px_rgba(245,158,11,0.15)] scale-[1.03]"
-                : "text-slate-400 hover:text-amber-300 hover:bg-slate-900 border-2 border-transparent hover:border-slate-800"
-            }`}
-          >
-            Station 02: Inverted Cart-Pole Pendulum
-          </button>
+        <div className="flex flex-col bg-[#030712] p-2 rounded-2xl border border-slate-800 shadow-xl select-none w-full sm:w-auto">
+          <div className="flex w-full">
+            <button
+              onClick={() => setActiveStation("voltage")}
+              className={`font-mono text-xs uppercase tracking-wider font-extrabold px-6 py-4.5 rounded-2xl transition-all duration-250 cursor-pointer ${
+                activeStation === "voltage"
+                  ? "bg-violet-500/15 text-violet-400 border border-violet-500/40 font-black shadow-[0_0_12px_rgba(139,92,246,0.15)] scale-[1.03]"
+                  : "text-slate-400 hover:text-violet-300 hover:bg-slate-900 border border-transparent hover:border-slate-800"
+              }`}
+            >
+              Station 01: Voltage PID Response Lab
+            </button>
+            <button
+              onClick={() => setActiveStation("pendulum")}
+              className={`font-mono text-xs uppercase tracking-wider font-extrabold px-6 py-4.5 rounded-2xl transition-all duration-250 cursor-pointer ${
+                activeStation === "pendulum"
+                  ? "bg-violet-500/15 text-violet-400 border border-violet-500/40 font-black shadow-[0_0_12px_rgba(139,92,246,0.15)] scale-[1.03]"
+                  : "text-slate-400 hover:text-violet-300 hover:bg-slate-900 border border-transparent hover:border-slate-800"
+              }`}
+            >
+              Station 02: Inverted Cart-Pole Pendulum
+            </button>
+          </div>
         </div>
       </div>
 
@@ -341,7 +351,8 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                     step="0.1"
                     value={pidSetpoint}
                     onChange={(e) => setPidSetpoint(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+                    className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md"
+                    style={getProgressStyle(pidSetpoint, 0.2, 2.0, "#f59e0b")}
                   />
                   <span className="font-sans text-[8.5px] text-slate-500 leading-tight block mt-0.5">The desired reference output target voltage of the physical drive node.</span>
                 </div>
@@ -355,28 +366,16 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                     <span className="text-amber-400 font-extrabold bg-amber-400/5 border border-amber-500/20 px-2 py-0.5 rounded text-[10px]">{pidKp.toFixed(1)}</span>
                   </div>
                   
-                  {/* Progressive indicator line & Range slider container */}
-                  <div className="relative w-full h-5 flex items-center select-none">
-                    {/* Track Background */}
-                    <div className="absolute inset-x-0 h-1 bg-slate-950 rounded-full pointer-events-none" />
-                    
-                    {/* Dynamic gold-colored filled track segment */}
-                    <div 
-                      className="absolute left-0 h-1 bg-amber-500 rounded-full pointer-events-none transition-all duration-75 shadow-[0_0_6px_rgba(245,158,11,0.4)]"
-                      style={{ width: `${(pidKp / 12) * 100}%` }}
-                    />
-
-                    {/* Native slider with styled thumb and transparent track */}
-                    <input
-                      type="range"
-                      min="0"
-                      max="12"
-                      step="0.2"
-                      value={pidKp}
-                      onChange={(e) => setPidKp(parseFloat(e.target.value))}
-                      className="absolute inset-x-0 w-full h-5 appearance-none bg-transparent cursor-pointer focus:outline-none [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:bg-transparent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:transition-transform [&::-moz-range-thumb]:hover:scale-125"
-                    />
-                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="12"
+                    step="0.2"
+                    value={pidKp}
+                    onChange={(e) => setPidKp(parseFloat(e.target.value))}
+                    className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md"
+                    style={getProgressStyle(pidKp, 0, 12, "#f59e0b")}
+                  />
                   <span className="font-sans text-[8.5px] text-slate-500 leading-tight block"><strong>P (Proportional) - The Muscle:</strong> Reacts to size of current error. Higher strength corrects faster, but causes wild overshoot and rapid swing.</span>
                 </div>
 
@@ -387,28 +386,16 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                     <span className="text-amber-400 font-extrabold bg-amber-400/5 border border-amber-500/20 px-2 py-0.5 rounded text-[10px]">{pidKi.toFixed(2)}</span>
                   </div>
                   
-                  {/* Progressive indicator line & Range slider container */}
-                  <div className="relative w-full h-5 flex items-center select-none">
-                    {/* Track Background */}
-                    <div className="absolute inset-x-0 h-1 bg-slate-950 rounded-full pointer-events-none" />
-                    
-                    {/* Dynamic gold-colored filled track segment */}
-                    <div 
-                      className="absolute left-0 h-1 bg-amber-500 rounded-full pointer-events-none transition-all duration-75 shadow-[0_0_6px_rgba(245,158,11,0.4)]"
-                      style={{ width: `${(pidKi / 5) * 100}%` }}
-                    />
-
-                    {/* Native slider with styled thumb and transparent track */}
-                    <input
-                      type="range"
-                      min="0"
-                      max="5"
-                      step="0.1"
-                      value={pidKi}
-                      onChange={(e) => setPidKi(parseFloat(e.target.value))}
-                      className="absolute inset-x-0 w-full h-5 appearance-none bg-transparent cursor-pointer focus:outline-none [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:bg-transparent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:transition-transform [&::-moz-range-thumb]:hover:scale-125"
-                    />
-                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={pidKi}
+                    onChange={(e) => setPidKi(parseFloat(e.target.value))}
+                    className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md"
+                    style={getProgressStyle(pidKi, 0, 5, "#f59e0b")}
+                  />
                   <span className="font-sans text-[8.5px] text-slate-500 leading-tight block"><strong>I (Integral) - The Memory:</strong> Accumulates historical errors over time to eliminate steady displacement offset, but too much memory causes slow swinging.</span>
                 </div>
 
@@ -419,28 +406,16 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                     <span className="text-amber-400 font-extrabold bg-amber-400/5 border border-amber-500/20 px-2 py-0.5 rounded text-[10px]">{pidKd.toFixed(2)}</span>
                   </div>
                   
-                  {/* Progressive indicator line & Range slider container */}
-                  <div className="relative w-full h-5 flex items-center select-none">
-                    {/* Track Background */}
-                    <div className="absolute inset-x-0 h-1 bg-slate-950 rounded-full pointer-events-none" />
-                    
-                    {/* Dynamic gold-colored filled track segment */}
-                    <div 
-                      className="absolute left-0 h-1 bg-amber-500 rounded-full pointer-events-none transition-all duration-75 shadow-[0_0_6px_rgba(245,158,11,0.4)]"
-                      style={{ width: `${(pidKd / 3) * 100}%` }}
-                    />
-
-                    {/* Native slider with styled thumb and transparent track */}
-                    <input
-                      type="range"
-                      min="0"
-                      max="3"
-                      step="0.05"
-                      value={pidKd}
-                      onChange={(e) => setPidKd(parseFloat(e.target.value))}
-                      className="absolute inset-x-0 w-full h-5 appearance-none bg-transparent cursor-pointer focus:outline-none [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:bg-transparent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:transition-transform [&::-moz-range-thumb]:hover:scale-125"
-                    />
-                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="3"
+                    step="0.05"
+                    value={pidKd}
+                    onChange={(e) => setPidKd(parseFloat(e.target.value))}
+                    className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md"
+                    style={getProgressStyle(pidKd, 0, 3, "#f59e0b")}
+                  />
                   <span className="font-sans text-[8.5px] text-slate-500 leading-tight block"><strong>D (Derivative) - The Braking:</strong> Monitors error change rates to act as a prediction brake, smothering fast oscillations and dampening overshoot.</span>
                 </div>
               </div>
@@ -669,69 +644,69 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                     <button
                       type="button"
                       onClick={() => setSelectedParam("risetime")}
-                      className="bg-[#0b0e17] p-3.5 rounded-xl border-2 border-slate-700 hover:border-amber-500 hover:bg-[#111624] text-left flex flex-col justify-between cursor-pointer transition-all duration-200 group relative overflow-hidden select-none outline-none focus:ring-2 focus:ring-amber-500/40 hover:scale-[1.03] active:scale-[0.97] shadow-[0_4px_10px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.2)]"
+                      className="bg-[#0b0e17] p-4.5 rounded-2xl border border-slate-800 hover:border-violet-500 hover:bg-[#111624] text-left flex flex-col justify-between cursor-pointer transition-all duration-200 group relative overflow-hidden select-none outline-none focus:ring-2 focus:ring-violet-550 hover:scale-[1.03] active:scale-[0.97] shadow-[0_4px_10px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_25px_rgba(139,92,246,0.2)]"
                       title="Click to view detailed Rise Time (Tr) information"
                     >
                       <div className="flex items-center justify-between w-full">
-                        <span className="font-mono text-[8px] text-slate-400 group-hover:text-amber-400 uppercase font-extrabold block leading-none transition-colors">Rise Time (Tr)</span>
-                        <Info className="w-3 h-3 text-slate-500 group-hover:text-amber-400 transition-colors shrink-0" />
+                        <span className="font-mono text-[9px] text-slate-400 group-hover:text-violet-400 uppercase font-black block leading-none transition-colors">Rise Time (Tr)</span>
+                        <Info className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 transition-colors shrink-0" />
                       </div>
                       <span className="font-mono text-sm text-white font-black mt-3 block">
                         {riseTime ? `${riseTime.toFixed(2)}s` : isPidClosedLoop ? "Fast <0.2s" : "Infinite"}
                       </span>
                       <div className="flex items-center justify-between w-full mt-2 pt-1 border-t border-slate-900/40">
-                        <span className="font-mono text-[6.5px] text-amber-500/70 group-hover:text-amber-400 group-hover:animate-pulse uppercase font-black tracking-wider">TAP TO ANALYZE 🔬</span>
+                        <span className="font-mono text-[7px] text-violet-400/85 group-hover:text-violet-400 group-hover:animate-pulse uppercase font-black tracking-wider">TAP TO ANALYZE 🔬</span>
                       </div>
-                      <div className="absolute bottom-0 inset-x-0 h-[2px] bg-amber-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-200" />
+                      <div className="absolute bottom-0 inset-x-0 h-[2px] bg-violet-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-200" />
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setSelectedParam("overshoot")}
-                      className="bg-[#0b0e17] p-3.5 rounded-xl border-2 border-slate-700 hover:border-amber-500 hover:bg-[#111624] text-left flex flex-col justify-between cursor-pointer transition-all duration-200 group relative overflow-hidden select-none outline-none focus:ring-2 focus:ring-amber-500/40 hover:scale-[1.03] active:scale-[0.97] shadow-[0_4px_10px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.2)]"
+                      className="bg-[#0b0e17] p-4.5 rounded-2xl border border-slate-800 hover:border-violet-500 hover:bg-[#111624] text-left flex flex-col justify-between cursor-pointer transition-all duration-200 group relative overflow-hidden select-none outline-none focus:ring-2 focus:ring-violet-550 hover:scale-[1.03] active:scale-[0.97] shadow-[0_4px_10px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_25px_rgba(139,92,246,0.2)]"
                       title="Click to view detailed Overshoot (Mp) information"
                     >
                       <div className="flex items-center justify-between w-full">
-                        <span className="font-mono text-[8px] text-slate-400 group-hover:text-amber-400 uppercase font-extrabold block leading-none transition-colors">Overshoot (Mp)</span>
-                        <Info className="w-3 h-3 text-slate-500 group-hover:text-amber-400 transition-colors shrink-0" />
+                        <span className="font-mono text-[9px] text-slate-400 group-hover:text-violet-400 uppercase font-black block leading-none transition-colors">Overshoot (Mp)</span>
+                        <Info className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 transition-colors shrink-0" />
                       </div>
-                      <span className={`font-mono text-sm font-black mt-3 block ${overshootPct > 20 ? "text-rose-400 animate-pulse font-black" : overshootPct > 0.1 ? "text-amber-400" : "text-emerald-400"}`}>
+                      <span className={`font-mono text-sm font-black mt-3 block ${overshootPct > 20 ? "text-rose-400 animate-pulse font-black" : overshootPct > 0.1 ? "text-[#a78bfa]" : "text-emerald-400"}`}>
                         {overshootPct.toFixed(1)}%
                       </span>
                       <div className="flex items-center justify-between w-full mt-2 pt-1 border-t border-slate-900/40">
-                        <span className="font-mono text-[6.5px] text-amber-500/70 group-hover:text-amber-400 group-hover:animate-pulse uppercase font-black tracking-wider">TAP TO ANALYZE 🔬</span>
+                        <span className="font-mono text-[7px] text-violet-400/85 group-hover:text-violet-400 group-hover:animate-pulse uppercase font-black tracking-wider">TAP TO ANALYZE 🔬</span>
                       </div>
-                      <div className="absolute bottom-0 inset-x-0 h-[2px] bg-amber-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-200" />
+                      <div className="absolute bottom-0 inset-x-0 h-[2px] bg-violet-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-200" />
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setSelectedParam("steadystate")}
-                      className="bg-[#0b0e17] p-3.5 rounded-xl border-2 border-slate-700 hover:border-amber-500 hover:bg-[#111624] text-left flex flex-col justify-between cursor-pointer transition-all duration-200 group relative overflow-hidden select-none outline-none focus:ring-2 focus:ring-amber-500/40 hover:scale-[1.03] active:scale-[0.97] shadow-[0_4px_10px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.2)]"
+                      className="bg-[#0b0e17] p-4.5 rounded-2xl border border-slate-800 hover:border-violet-500 hover:bg-[#111624] text-left flex flex-col justify-between cursor-pointer transition-all duration-200 group relative overflow-hidden select-none outline-none focus:ring-2 focus:ring-violet-550 hover:scale-[1.03] active:scale-[0.97] shadow-[0_4px_10px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_25px_rgba(139,92,246,0.2)]"
                       title="Click to view detailed Steady State Error information"
                     >
                       <div className="flex items-center justify-between w-full">
-                        <span className="font-mono text-[8px] text-slate-400 group-hover:text-amber-400 uppercase font-extrabold block leading-none transition-colors">Steady State Error</span>
-                        <Info className="w-3 h-3 text-slate-500 group-hover:text-amber-400 transition-colors shrink-0" />
+                        <span className="font-mono text-[9px] text-slate-400 group-hover:text-violet-400 uppercase font-black block leading-none transition-colors">Steady State Error</span>
+                        <Info className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 transition-colors shrink-0" />
                       </div>
                       <span className={`font-mono text-sm font-black mt-3 block ${steadyStateErr > 0.05 ? "text-rose-450 text-rose-400" : "text-emerald-400"}`}>
                         {steadyStateErr.toFixed(3)}V
                       </span>
                       <div className="flex items-center justify-between w-full mt-2 pt-1 border-t border-slate-900/40">
-                        <span className="font-mono text-[6.5px] text-amber-500/70 group-hover:text-amber-400 group-hover:animate-pulse uppercase font-black tracking-wider">TAP TO ANALYZE 🔬</span>
+                        <span className="font-mono text-[7px] text-violet-400/85 group-hover:text-violet-400 group-hover:animate-pulse uppercase font-black tracking-wider">TAP TO ANALYZE 🔬</span>
                       </div>
-                      <div className="absolute bottom-0 inset-x-0 h-[2px] bg-amber-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-200" />
+                      <div className="absolute bottom-0 inset-x-0 h-[2px] bg-violet-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-200" />
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setSelectedParam("stability")}
-                      className="bg-[#0b0e17] p-3.5 rounded-xl border-2 border-slate-700 hover:border-amber-500 hover:bg-[#111624] text-left flex flex-col justify-between cursor-pointer transition-all duration-200 group relative overflow-hidden select-none outline-none focus:ring-2 focus:ring-amber-500/40 hover:scale-[1.03] active:scale-[0.97] shadow-[0_4px_10px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.2)]"
+                      className="bg-[#0b0e17] p-4.5 rounded-2xl border border-slate-800 hover:border-violet-500 hover:bg-[#111624] text-left flex flex-col justify-between cursor-pointer transition-all duration-200 group relative overflow-hidden select-none outline-none focus:ring-2 focus:ring-violet-550 hover:scale-[1.03] active:scale-[0.97] shadow-[0_4px_10px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_25px_rgba(139,92,246,0.2)]"
                       title="Click to view detailed System Stability State information"
                     >
                       <div className="flex items-center justify-between w-full">
-                        <span className="font-mono text-[8px] text-slate-400 group-hover:text-amber-400 uppercase font-extrabold block leading-none transition-colors">Stability State</span>
-                        <Info className="w-3 h-3 text-slate-500 group-hover:text-amber-400 transition-colors shrink-0" />
+                        <span className="font-mono text-[9px] text-slate-400 group-hover:text-violet-400 uppercase font-black block leading-none transition-colors">Stability State</span>
+                        <Info className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 transition-colors shrink-0" />
                       </div>
                       <span className={`font-mono text-[10px] uppercase font-black mt-3 block ${
                         steadyStateErr > 0.3 ? "text-rose-400" :
@@ -864,23 +839,13 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                     <span className="text-amber-400 font-extrabold bg-amber-400/5 border border-amber-500/20 px-2 py-0.5 rounded text-[10px]">{kp.toFixed(1)}</span>
                   </div>
 
-                  {/* Progressive indicator line & Range slider container */}
-                  <div className={`relative w-full h-5 flex items-center select-none ${loopType === "open" ? "opacity-40" : ""}`}>
-                    {/* Track Background */}
-                    <div className="absolute inset-x-0 h-1 bg-slate-950 rounded-full pointer-events-none" />
-                    
-                    {/* Dynamic gold-colored filled track segment */}
-                    <div 
-                      className="absolute left-0 h-1 bg-amber-500 rounded-full pointer-events-none transition-all duration-75 shadow-[0_0_6px_rgba(245,158,11,0.4)]"
-                      style={{ width: `${(kp / 15) * 100}%` }}
-                    />
-
-                    {/* Native slider with styled thumb and transparent track */}
+                  <div className={`relative w-full flex items-center select-none ${loopType === "open" ? "opacity-40" : ""}`}>
                     <input 
                       type="range" min="0" max="15" step="0.2" value={kp} 
                       onChange={(e) => setKp(parseFloat(e.target.value))}
                       disabled={loopType === "open"}
-                      className="absolute inset-x-0 w-full h-5 appearance-none bg-transparent cursor-pointer focus:outline-none [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:bg-transparent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:transition-transform [&::-moz-range-thumb]:hover:scale-125 disabled:cursor-not-allowed"
+                      className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md disabled:cursor-not-allowed"
+                      style={getProgressStyle(kp, 0, 15, "#f59e0b")}
                     />
                   </div>
                   <span className="font-sans text-[8.5px] text-slate-500 leading-tight block">{getPExplanation()}</span>
@@ -893,23 +858,13 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                     <span className="text-amber-400 font-extrabold bg-amber-400/5 border border-amber-500/20 px-2 py-0.5 rounded text-[10px]">{ki.toFixed(2)}</span>
                   </div>
 
-                  {/* Progressive indicator line & Range slider container */}
-                  <div className={`relative w-full h-5 flex items-center select-none ${loopType === "open" ? "opacity-40" : ""}`}>
-                    {/* Track Background */}
-                    <div className="absolute inset-x-0 h-1 bg-slate-950 rounded-full pointer-events-none" />
-                    
-                    {/* Dynamic gold-colored filled track segment */}
-                    <div 
-                      className="absolute left-0 h-1 bg-amber-500 rounded-full pointer-events-none transition-all duration-75 shadow-[0_0_6px_rgba(245,158,11,0.4)]"
-                      style={{ width: `${(ki / 4) * 100}%` }}
-                    />
-
-                    {/* Native slider with styled thumb and transparent track */}
+                  <div className={`relative w-full flex items-center select-none ${loopType === "open" ? "opacity-40" : ""}`}>
                     <input 
                       type="range" min="0" max="4" step="0.05" value={ki} 
                       onChange={(e) => setKi(parseFloat(e.target.value))}
                       disabled={loopType === "open"}
-                      className="absolute inset-x-0 w-full h-5 appearance-none bg-transparent cursor-pointer focus:outline-none [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:bg-transparent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:transition-transform [&::-moz-range-thumb]:hover:scale-125 disabled:cursor-not-allowed"
+                      className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md disabled:cursor-not-allowed"
+                      style={getProgressStyle(ki, 0, 4, "#f59e0b")}
                     />
                   </div>
                   <span className="font-sans text-[8.5px] text-slate-500 leading-tight block">{getIExplanation()}</span>
@@ -922,23 +877,13 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                     <span className="text-amber-400 font-extrabold bg-amber-400/5 border border-amber-500/20 px-2 py-0.5 rounded text-[10px]">{kd.toFixed(1)}</span>
                   </div>
 
-                  {/* Progressive indicator line & Range slider container */}
-                  <div className={`relative w-full h-5 flex items-center select-none ${loopType === "open" ? "opacity-40" : ""}`}>
-                    {/* Track Background */}
-                    <div className="absolute inset-x-0 h-1 bg-slate-950 rounded-full pointer-events-none" />
-                    
-                    {/* Dynamic gold-colored filled track segment */}
-                    <div 
-                      className="absolute left-0 h-1 bg-amber-500 rounded-full pointer-events-none transition-all duration-75 shadow-[0_0_6px_rgba(245,158,11,0.4)]"
-                      style={{ width: `${(kd / 6) * 100}%` }}
-                    />
-
-                    {/* Native slider with styled thumb and transparent track */}
+                  <div className={`relative w-full flex items-center select-none ${loopType === "open" ? "opacity-40" : ""}`}>
                     <input 
                       type="range" min="0" max="6" step="0.1" value={kd} 
                       onChange={(e) => setKd(parseFloat(e.target.value))}
                       disabled={loopType === "open"}
-                      className="absolute inset-x-0 w-full h-5 appearance-none bg-transparent cursor-pointer focus:outline-none [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:bg-transparent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:transition-transform [&::-moz-range-thumb]:hover:scale-125 disabled:cursor-not-allowed"
+                      className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md disabled:cursor-not-allowed"
+                      style={getProgressStyle(kd, 0, 6, "#f59e0b")}
                     />
                   </div>
                   <span className="font-sans text-[8.5px] text-slate-500 leading-tight block">{getDExplanation()}</span>
@@ -1224,7 +1169,8 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                       <input 
                         type="range" min="1" max="25" step="0.2" value={calcKu} 
                         onChange={(e) => setCalcKu(parseFloat(e.target.value))}
-                        className="w-full h-1.5 bg-slate-900 rounded appearance-none cursor-pointer accent-emerald-500"
+                        className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-emerald-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-emerald-500 [&::-moz-range-thumb]:shadow-md"
+                        style={getProgressStyle(calcKu, 1, 25, "#10b981")}
                       />
                     </div>
 
@@ -1239,7 +1185,8 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                       <input 
                         type="range" min="0.5" max="5.0" step="0.1" value={calcPu} 
                         onChange={(e) => setCalcPu(parseFloat(e.target.value))}
-                        className="w-full h-1.5 bg-slate-900 rounded appearance-none cursor-pointer accent-emerald-500"
+                        className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-emerald-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-emerald-500 [&::-moz-range-thumb]:shadow-md"
+                        style={getProgressStyle(calcPu, 0.5, 5.0, "#10b981")}
                       />
                     </div>
                   </div>

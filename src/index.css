@@ -59,3 +59,43 @@
   animation: synapticPulse 0.9s linear infinite;
 }
 
+/* Custom slider design matching mechatronics lab aesthetic */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #02050f;
+  outline: none;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2.5px solid #22d3ee;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.8), inset 0 0 2px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s ease-in-out, background-color 0.1s ease-in-out;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.35);
+  background: #e0f2fe;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2.5px solid #22d3ee;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.8), inset 0 0 2px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s ease-in-out, background-color 0.1s ease-in-out;
+}
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.35);
+  background: #e0f2fe;
+}
+

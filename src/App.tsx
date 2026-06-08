@@ -11,11 +11,14 @@ import RoboticsGuide from "./components/RoboticsGuide";
 import { ControlSystemsLab } from "./components/ControlSystemsLab";
 import AIChatTutor from "./components/AIChatTutor";
 import RoboticsFlowSystem from "./components/RoboticsFlowSystem";
+import RoboticsManipulators from "./components/RoboticsManipulators";
+import RoboticArmIcon from "./components/RoboticArmIcon";
+import RobotTypesSection from "./components/RobotTypesSection";
 import AIOutputRenderer from "./components/AIOutputRenderer";
 import HomePage from "./components/HomePage";
 import PremiumLogo from "./components/PremiumLogo";
 import { CreatorProfileModal } from "./components/CreatorProfileCard";
-import { Cpu, Zap, Eye, HelpCircle, HardDrive, Compass, BookOpen, Clock, Activity, Settings, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Terminal, Radio, Layers, Info, Sliders, Database, Code2, Network, X, Brain, Check, RefreshCw } from "lucide-react";
+import { Cpu, Zap, Eye, HelpCircle, HardDrive, Compass, BookOpen, Clock, Activity, Settings, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Terminal, Radio, Layers, Info, Sliders, Database, Code2, Network, X, Brain, Check, RefreshCw, Bot } from "lucide-react";
 import { motion } from "motion/react";
 
 interface SignalDetails {
@@ -169,7 +172,7 @@ const getSignalInfo = (partId: string, partCategory: string, hotspotId?: string 
 
 export default function App() {
   const [isStarted, setIsStarted] = useState(false);
-  const [activeTab, setActiveTab] = useState<"foundations" | "explorer" | "programming" | "electronics" | "control" | "ai" | "chat">("foundations");
+  const [activeTab, setActiveTab] = useState<"foundations" | "explorer" | "programming" | "electronics" | "control" | "ai" | "chat" | "manipulators" | "types">("foundations");
   const [explorerSection, setExplorerSection] = useState<"catalog" | "control" | "ai">("catalog");
   const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
   const [controlLoopModalType, setControlLoopModalType] = useState<"closed" | "open" | null>(null);
@@ -208,9 +211,15 @@ export default function App() {
       } else if (hash === "#electronics") {
         setIsStarted(true);
         setActiveTab("electronics");
+      } else if (hash === "#manipulators") {
+        setIsStarted(true);
+        setActiveTab("manipulators");
       } else if (hash === "#chat") {
         setIsStarted(true);
         setActiveTab("chat");
+      } else if (hash === "#types") {
+        setIsStarted(true);
+        setActiveTab("types");
       }
     };
 
@@ -394,7 +403,9 @@ export default function App() {
                 { id: "programming", label: "Learn Programming", icon: Code2 },
                 { id: "electronics", label: "Learn Electronics", icon: Zap },
                 { id: "control", label: "Control Systems", icon: Sliders },
+                { id: "manipulators", label: "Robotic Manipulators", icon: RoboticArmIcon },
                 { id: "ai", label: "AI Robotics Systems", icon: Sparkles },
+                { id: "types", label: "Robot Types", icon: Bot },
                 { id: "explorer", label: "Component Diagnostics", icon: Compass },
                 { id: "chat", label: "Advisor", icon: MessageSquare },
               ].map((tab) => {
@@ -470,7 +481,7 @@ export default function App() {
 
             {/* Primary Header Interface */}
             <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md relative z-10 select-none">
-              <div className="max-w-7xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="max-w-5xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
                 {/* Logo Name block */}
                 <button
                   onClick={() => { window.location.hash = "home"; }}
@@ -504,7 +515,7 @@ export default function App() {
             </header>
 
             {/* Central Screen Platform Segment Controls */}
-            <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 pb-24 md:pb-6 flex flex-col gap-6 relative z-10">
+            <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 pb-24 md:pb-6 flex flex-col gap-6 relative z-10">
               <div className="grid lg:grid-cols-12 gap-6 items-stretch">
                 {/* Active Tab Core Foundations Overview */}
                 {activeTab === "foundations" && (
@@ -1072,10 +1083,24 @@ export default function App() {
                   </div>
                 )}
 
+                {/* Active Tab Robotics Manipulators Content layout */}
+                {activeTab === "manipulators" && (
+                  <div className="lg:col-span-12 space-y-6 animate-fadeIn">
+                    <RoboticsManipulators />
+                  </div>
+                )}
+
                 {/* Active Tab Advisor Chat layout */}
                 {activeTab === "chat" && (
                   <div className="lg:col-span-12 max-w-3xl mx-auto w-full">
                     <AIChatTutor onSendMessage={handleSendMessage} loading={chatLoading} />
+                  </div>
+                )}
+
+                {/* Active Tab Robot Types & Applications layout */}
+                {activeTab === "types" && (
+                  <div className="lg:col-span-12 space-y-6">
+                    <RobotTypesSection />
                   </div>
                 )}
 
@@ -1089,7 +1114,9 @@ export default function App() {
                 { id: "programming", label: "Program", icon: Code2 },
                 { id: "electronics", label: "Electronics", icon: Zap },
                 { id: "control", label: "Control", icon: Sliders },
+                { id: "manipulators", label: "Manipulators", icon: RoboticArmIcon },
                 { id: "ai", label: "AI Core", icon: Sparkles },
+                { id: "types", label: "Robot Types", icon: Bot },
                 { id: "explorer", label: "Diag", icon: Compass },
                 { id: "chat", label: "Advisor", icon: MessageSquare },
               ].map((tab) => {
@@ -1118,7 +1145,7 @@ export default function App() {
 
             {/* Primary Footer */}
             <footer className="border-t border-slate-800 bg-slate-950/40 text-center py-6 font-mono text-[11px] text-slate-400 relative z-10 select-none mt-12 bg-[#020617]">
-              <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p>Robotics Learning Hub © 2026 — Developed in Dubai, UAE by Sean Buscano</p>
                 <div className="flex items-center gap-4 text-slate-500 font-mono text-[9px]">
                   <button 
@@ -2299,58 +2326,82 @@ const RoboticsAiCore = () => {
         </p>
 
         {/* Types of Machine Learning - Selectors */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             onClick={() => handleSelectParadigm("supervised")}
-            className={`p-3 text-left rounded-xl border transition-all duration-300 group cursor-pointer ${
+            className={`p-5 text-left rounded-2xl border transition-all duration-300 transform group cursor-pointer relative overflow-hidden flex flex-col justify-between min-h-[145px] ${
               activeParadigm === "supervised"
-                ? "border-cyan-500 bg-cyan-950/15 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.1)]"
-                : "border-slate-800 bg-slate-950/40 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                ? "border-cyan-500 bg-gradient-to-b from-cyan-950/30 via-cyan-950/10 to-slate-950/90 text-cyan-400 shadow-[0_0_25px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/30 scale-[1.02]"
+                : "border-slate-800 bg-slate-950/50 text-slate-400 hover:border-cyan-500/30 hover:bg-slate-950/80 hover:text-slate-200 hover:-translate-y-1"
             }`}
           >
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-mono text-[8px] font-black tracking-widest text-slate-500 uppercase group-hover:text-slate-400">TYPE 01 / LABELED</span>
-              <div className={`w-1.5 h-1.5 rounded-full ${activeParadigm === "supervised" ? "bg-cyan-400 animate-ping" : "bg-slate-700"}`} />
+            {/* Subtle light reflex accent */}
+            <div className={`absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl transition-opacity duration-350 ${activeParadigm === "supervised" ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} />
+            
+            <div>
+              <div className="flex justify-between items-center mb-2.5">
+                <span className="font-mono text-[8px] font-black tracking-widest text-slate-500 uppercase group-hover:text-slate-400">TYPE 01 / LABELED</span>
+                <div className="flex items-center gap-1.5">
+                  <span className={`font-mono text-[7px] font-extrabold px-1.5 py-0.5 rounded ${activeParadigm === "supervised" ? "bg-cyan-500/20 text-cyan-300" : "bg-slate-900 text-slate-500"}`}>CLASSIFIER</span>
+                  <div className={`w-2 h-2 rounded-full ${activeParadigm === "supervised" ? "bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" : "bg-slate-700"}`} />
+                </div>
+              </div>
+              <h4 className={`font-sans font-black text-sm transition-colors duration-200 ${activeParadigm === "supervised" ? "text-cyan-300" : "text-slate-200 group-hover:text-cyan-300"}`}>Supervised Learning</h4>
             </div>
-            <h4 className="font-sans font-black text-sm text-slate-200 group-hover:text-cyan-300 mb-1">Supervised Learning</h4>
-            <p className="text-[10px] text-slate-400 group-hover:text-slate-350 leading-relaxed">
-              Trains using matched input-label pairs. Perfect for classification, sensor mapping, and species prediction.
+            <p className="text-[10.5px] text-slate-400 group-hover:text-slate-350 leading-relaxed mt-2 z-10">
+              Trains using matched input-label pairs. Perfect for classification, sensor mapping, and species prediction. Implements neural classification models.
             </p>
           </button>
 
           <button
             onClick={() => handleSelectParadigm("unsupervised")}
-            className={`p-3 text-left rounded-xl border transition-all duration-300 group cursor-pointer ${
+            className={`p-5 text-left rounded-2xl border transition-all duration-300 transform group cursor-pointer relative overflow-hidden flex flex-col justify-between min-h-[145px] ${
               activeParadigm === "unsupervised"
-                ? "border-pink-500 bg-pink-950/15 text-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.1)]"
-                : "border-slate-800 bg-slate-950/40 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                ? "border-pink-500 bg-gradient-to-b from-pink-950/30 via-pink-950/10 to-slate-950/90 text-pink-400 shadow-[0_0_25px_rgba(236,72,153,0.15)] ring-1 ring-pink-500/30 scale-[1.02]"
+                : "border-slate-800 bg-slate-950/50 text-slate-400 hover:border-pink-500/30 hover:bg-slate-950/80 hover:text-slate-200 hover:-translate-y-1"
             }`}
           >
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-mono text-[8px] font-black tracking-widest text-slate-500 uppercase group-hover:text-slate-400">TYPE 02 / UNLABELED</span>
-              <div className={`w-1.5 h-1.5 rounded-full ${activeParadigm === "unsupervised" ? "bg-pink-400 animate-ping" : "bg-slate-700"}`} />
+            {/* Subtle light reflex accent */}
+            <div className={`absolute top-0 right-0 w-24 h-24 bg-pink-500/10 rounded-full blur-2xl transition-opacity duration-350 ${activeParadigm === "unsupervised" ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} />
+
+            <div>
+              <div className="flex justify-between items-center mb-2.5">
+                <span className="font-mono text-[8px] font-black tracking-widest text-slate-500 uppercase group-hover:text-slate-400">TYPE 02 / UNLABELED</span>
+                <div className="flex items-center gap-1.5">
+                  <span className={`font-mono text-[7px] font-extrabold px-1.5 py-0.5 rounded ${activeParadigm === "unsupervised" ? "bg-pink-500/20 text-pink-300" : "bg-slate-900 text-slate-500"}`}>CLUSTERING</span>
+                  <div className={`w-2 h-2 rounded-full ${activeParadigm === "unsupervised" ? "bg-pink-400 animate-pulse shadow-[0_0_8px_rgba(236,72,153,0.8)]" : "bg-slate-700"}`} />
+                </div>
+              </div>
+              <h4 className={`font-sans font-black text-sm transition-colors duration-200 ${activeParadigm === "unsupervised" ? "text-pink-300" : "text-slate-200 group-hover:text-pink-300"}`}>Unsupervised Learning</h4>
             </div>
-            <h4 className="font-sans font-black text-sm text-slate-200 group-hover:text-pink-300 mb-1">Unsupervised Learning</h4>
-            <p className="text-[10px] text-slate-400 group-hover:text-slate-350 leading-relaxed">
-              Discovers latent groupings from raw unlabelled telemetry vectors, identifying dynamic patterns automatically.
+            <p className="text-[10.5px] text-slate-400 group-hover:text-slate-350 leading-relaxed mt-2 z-10">
+              Discovers latent groupings from raw unlabelled telemetry vectors, identifying clusters and patterns automatically over physical states.
             </p>
           </button>
 
           <button
             onClick={() => handleSelectParadigm("reinforcement")}
-            className={`p-3 text-left rounded-xl border transition-all duration-300 group cursor-pointer ${
+            className={`p-5 text-left rounded-2xl border transition-all duration-300 transform group cursor-pointer relative overflow-hidden flex flex-col justify-between min-h-[145px] ${
               activeParadigm === "reinforcement"
-                ? "border-purple-500 bg-purple-950/15 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.1)]"
-                : "border-slate-800 bg-slate-950/40 text-slate-400 hover:border-slate-705 hover:text-slate-200"
+                ? "border-purple-500 bg-gradient-to-b from-purple-950/30 via-purple-950/10 to-slate-950/90 text-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.15)] ring-1 ring-purple-500/30 scale-[1.02]"
+                : "border-slate-800 bg-slate-950/50 text-slate-400 hover:border-purple-500/30 hover:bg-slate-950/80 hover:text-slate-200 hover:-translate-y-1"
             }`}
           >
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-mono text-[8px] font-black tracking-widest text-slate-500 uppercase group-hover:text-slate-400">TYPE 03 / TRIAL & ERROR</span>
-              <div className={`w-1.5 h-1.5 rounded-full ${activeParadigm === "reinforcement" ? "bg-purple-400 animate-ping" : "bg-slate-700"}`} />
+            {/* Subtle light reflex accent */}
+            <div className={`absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl transition-opacity duration-350 ${activeParadigm === "reinforcement" ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} />
+
+            <div>
+              <div className="flex justify-between items-center mb-2.5">
+                <span className="font-mono text-[8px] font-black tracking-widest text-slate-500 uppercase group-hover:text-slate-400">TYPE 03 / TRIAL & ERROR</span>
+                <div className="flex items-center gap-1.5">
+                  <span className={`font-mono text-[7px] font-extrabold px-1.5 py-0.5 rounded ${activeParadigm === "reinforcement" ? "bg-purple-500/20 text-purple-300" : "bg-slate-900 text-slate-500"}`}>REWARDS</span>
+                  <div className={`w-2 h-2 rounded-full ${activeParadigm === "reinforcement" ? "bg-purple-400 animate-pulse shadow-[0_0_8px_rgba(168,85,247,0.8)]" : "bg-slate-700"}`} />
+                </div>
+              </div>
+              <h4 className={`font-sans font-black text-sm transition-colors duration-200 ${activeParadigm === "reinforcement" ? "text-purple-300" : "text-slate-200 group-hover:text-purple-300"}`}>Reinforcement Learning</h4>
             </div>
-            <h4 className="font-sans font-black text-sm text-slate-200 group-hover:text-purple-300 mb-1">Reinforcement Learning</h4>
-            <p className="text-[10px] text-slate-400 group-hover:text-slate-350 leading-relaxed">
-              Teaches strategies via feedback trial rewards, shaping motor controls for balancing cart pendulums.
+            <p className="text-[10.5px] text-slate-400 group-hover:text-slate-350 leading-relaxed mt-2 z-10">
+              Teaches optimal behavioral policy via live feedback rewards, shaping real-time motor controls for physical action balance.
             </p>
           </button>
         </div>
@@ -2709,7 +2760,7 @@ const RoboticsAiCore = () => {
                     Hello, Operator! Let's Connect.
                   </h4>
                   <p className="text-[11px] text-slate-350 leading-relaxed font-medium">
-                    "I am the holographic core guide. Our AI robotics system is currently idling. To unlock and launch the real-time simulation circuits, <strong className="text-cyan-400">select any of the three Machine Learning types</strong> in the block above! Try clicking one to toggle it, and click it again to return here."
+                    "Hi! I'm NEURO_V2, your core AI guide. Let's get started: <strong className="text-cyan-400">select any Machine Learning type above</strong> to run real-time simulations. Click a type again to return here!"
                   </p>
                 </div>
               </div>
@@ -2729,7 +2780,7 @@ const RoboticsAiCore = () => {
                     <div>
                       <h5 className="font-sans font-black text-xs text-slate-200">Input Layer (Sensing)</h5>
                       <p className="text-[10px] text-slate-400 leading-normal mt-0.5">
-                        This layer accepts parameters representing environmental observations (such as an animal's weight, the player's Actions-Per-Minute, or pendulum coordinate deviation vectors). It decodes these variables into normalized mathematical data vectors.
+                        Takes raw environmental data—like sensor readings, angles, or coordinates—and turns them into numbers that the neural network can process.
                       </p>
                     </div>
                   </div>
@@ -2740,9 +2791,9 @@ const RoboticsAiCore = () => {
                       HID
                     </div>
                     <div>
-                      <h5 className="font-sans font-black text-xs text-slate-200">Hidden Layers (Computing Pattern Spaces)</h5>
+                      <h5 className="font-sans font-black text-xs text-slate-200">Hidden Layers (Thinking)</h5>
                       <p className="text-[10px] text-slate-400 leading-normal mt-0.5">
-                        Interconnected synaptic matrices process raw signals. By applying mathematical weights (strengths of synapses) and non-linear activation biases, these node grids extract high-level patterns and draw boundaries between categories.
+                        The brain portion. Highly connected nodes process inputs, adjust mathematical weights, and form pattern recognition networks to make smart decisions.
                       </p>
                     </div>
                   </div>
@@ -2753,9 +2804,9 @@ const RoboticsAiCore = () => {
                       OUT
                     </div>
                     <div>
-                      <h5 className="font-sans font-black text-xs text-slate-200">Output Layer (Acting / Classifying)</h5>
+                      <h5 className="font-sans font-black text-xs text-slate-200">Output Layer (Deciding)</h5>
                       <p className="text-[10px] text-slate-400 leading-normal mt-0.5">
-                        The final computation layer registers the desired output. It infers probability lists (such as Feline classification percentages) or continuously maps analog kinetic joint movements and motorized pendulum motor forces.
+                        Delivers the final decision. This could be categorizing objects, choosing the best route, or commanding a motorized part to turn.
                       </p>
                     </div>
                   </div>
@@ -2836,32 +2887,32 @@ const RoboticsAiCore = () => {
               {/* Interactive Feeders */}
               <div className="mb-4">
                 <span className="font-mono text-[7px] text-slate-500 uppercase block mb-1.5 font-bold tracking-wider">INTERACTIVE RAW DATA FEEDS</span>
-                <div className="grid grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-3 gap-3">
                   <button
                     type="button"
                     onClick={() => handleFeedAnimal("cat")}
-                    className="p-2 text-left bg-cyan-950/15 hover:bg-cyan-950/30 border border-cyan-500/20 hover:border-cyan-500/40 rounded-xl flex flex-col justify-between transition-all text-sm group cursor-pointer relative overflow-hidden"
+                    className="p-3.5 text-left bg-cyan-950/15 hover:bg-cyan-950/30 border border-cyan-500/20 hover:border-cyan-500/40 rounded-2xl flex flex-col justify-between transition-all text-sm group cursor-pointer relative overflow-hidden"
                   >
-                    <div className="font-mono text-[7px] text-cyan-450 block font-bold leading-none mb-1">FEED SIGNAL</div>
-                    <span className="font-sans font-extrabold text-[11px] text-[#edf2f7] group-hover:text-cyan-300">Cat 🐱</span>
+                    <div className="font-mono text-[8pt] text-cyan-400 block font-bold leading-none mb-1">FEED SIGNAL</div>
+                    <span className="font-sans font-black text-xs text-[#edf2f7] group-hover:text-cyan-300">Cat 🐱</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleFeedAnimal("dog")}
-                    className="p-2 text-left bg-amber-950/15 hover:bg-amber-950/30 border border-amber-500/20 hover:border-amber-500/40 rounded-xl flex flex-col justify-between transition-all text-sm group cursor-pointer relative overflow-hidden"
+                    className="p-3.5 text-left bg-amber-950/15 hover:bg-amber-950/30 border border-amber-500/20 hover:border-amber-500/40 rounded-2xl flex flex-col justify-between transition-all text-sm group cursor-pointer relative overflow-hidden"
                   >
-                    <div className="font-mono text-[7px] text-amber-450 block font-bold leading-none mb-1">FEED SIGNAL</div>
-                    <span className="font-sans font-extrabold text-[11px] text-[#edf2f7] group-hover:text-amber-400">Dog 🐶</span>
+                    <div className="font-mono text-[8pt] text-amber-400 block font-bold leading-none mb-1">FEED SIGNAL</div>
+                    <span className="font-sans font-black text-xs text-[#edf2f7] group-hover:text-amber-400">Dog 🐶</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleFeedAnimal("rabbit")}
-                    className="p-2 text-left bg-emerald-950/15 hover:bg-emerald-950/30 border border-emerald-500/20 hover:border-emerald-500/40 rounded-xl flex flex-col justify-between transition-all text-sm group cursor-pointer relative overflow-hidden"
+                    className="p-3.5 text-left bg-emerald-950/15 hover:bg-emerald-950/30 border border-emerald-500/20 hover:border-emerald-500/40 rounded-2xl flex flex-col justify-between transition-all text-sm group cursor-pointer relative overflow-hidden"
                   >
-                    <div className="font-mono text-[7px] text-emerald-450 block font-bold leading-none mb-1">FEED SIGNAL</div>
-                    <span className="font-sans font-extrabold text-[11px] text-[#edf2f7] group-hover:text-emerald-300">Rabbit 🐰</span>
+                    <div className="font-mono text-[8pt] text-emerald-400 block font-bold leading-none mb-1">FEED SIGNAL</div>
+                    <span className="font-sans font-black text-xs text-[#edf2f7] group-hover:text-emerald-300">Rabbit 🐰</span>
                   </button>
                 </div>
               </div>
@@ -3105,15 +3156,15 @@ const RoboticsAiCore = () => {
 
             {/* Clustering Actions */}
             <div className="mt-5 border-t border-slate-900 pt-3.5 flex flex-col gap-3 font-mono">
-              <div className="bg-slate-950/40 p-3 border border-slate-900 rounded-xl">
-                <span className="font-mono text-[7px] block text-slate-500 uppercase mb-1.5 font-bold">Unsupervised Learning Switch</span>
-                <div className="flex gap-2">
+              <div className="bg-slate-950/40 p-4.5 border border-slate-900 rounded-2xl">
+                <span className="font-mono text-[9px] block text-slate-500 uppercase mb-2 font-black">Unsupervised Learning Switch</span>
+                <div className="flex gap-3.5">
                   <button
                     type="button"
                     onClick={() => handleUnsupervisedModeChange("untrained")}
-                    className={`flex-1 py-2 font-mono text-[8.5px] font-bold rounded border transition-all cursor-pointer ${
+                    className={`flex-1 py-3.5 font-mono text-xs font-black uppercase rounded-2xl border transition-all cursor-pointer ${
                       unsupervisedTrainingState === "untrained"
-                        ? "border-[#ef4444] bg-[#ef4444]/15 text-[#ef4444] shadow-[0_0_10px_rgba(239,68,68,0.1)]"
+                        ? "border-[#ef4444] bg-[#ef4444]/15 text-[#ef4444] shadow-[0_0_12px_rgba(239,68,68,0.15)]"
                         : "border-slate-850 bg-slate-950/45 text-slate-400 hover:text-slate-300"
                     }`}
                   >
@@ -3122,9 +3173,9 @@ const RoboticsAiCore = () => {
                   <button
                     type="button"
                     onClick={() => handleUnsupervisedModeChange("trained")}
-                    className={`flex-1 py-2 font-mono text-[8.5px] font-bold rounded border transition-all cursor-pointer ${
+                    className={`flex-1 py-3.5 font-mono text-xs font-black uppercase rounded-2xl border transition-all cursor-pointer ${
                       unsupervisedTrainingState === "trained"
-                        ? "border-[#10b981] bg-[#10b981]/15 text-[#10b981] shadow-[0_0_10px_rgba(16,185,129,0.1)]"
+                        ? "border-[#10b981] bg-[#10b981]/15 text-[#10b981] shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                         : "border-slate-850 bg-slate-950/45 text-slate-400 hover:text-slate-300"
                     }`}
                   >
@@ -3162,10 +3213,10 @@ const RoboticsAiCore = () => {
               </div>
 
               {/* Selector for Episode Stages */}
-              <div className="flex gap-1.5 mb-3 font-mono text-[8px]">
+              <div className="flex gap-2.5 mb-3 font-mono text-xs">
                 <button
                   onClick={() => changeRlStage("low")}
-                  className={`flex-1 py-1.5 rounded-lg border uppercase font-extrabold tracking-wider transition-all select-none cursor-pointer ${
+                  className={`flex-1 py-3.5 rounded-2xl border uppercase font-black tracking-wider transition-all select-none cursor-pointer ${
                     rlStage === "low" 
                       ? "border-red-500 bg-red-950/20 text-red-400" 
                       : "border-slate-800 bg-slate-950/50 text-slate-500 hover:bg-slate-900"
@@ -3177,7 +3228,7 @@ const RoboticsAiCore = () => {
 
                 <button
                   onClick={() => changeRlStage("medium")}
-                  className={`flex-1 py-1.5 rounded-lg border uppercase font-extrabold tracking-wider transition-all select-none cursor-pointer ${
+                  className={`flex-1 py-3.5 rounded-2xl border uppercase font-black tracking-wider transition-all select-none cursor-pointer ${
                     rlStage === "medium" 
                       ? "border-sky-500 bg-sky-950/20 text-sky-400" 
                       : "border-slate-800 bg-slate-950/50 text-slate-500 hover:bg-slate-900"
@@ -3189,7 +3240,7 @@ const RoboticsAiCore = () => {
 
                 <button
                   onClick={() => changeRlStage("high")}
-                  className={`flex-1 py-1.5 rounded-lg border uppercase font-extrabold tracking-wider transition-all select-none cursor-pointer ${
+                  className={`flex-1 py-3.5 rounded-2xl border uppercase font-black tracking-wider transition-all select-none cursor-pointer ${
                     rlStage === "high" 
                       ? "border-emerald-500 bg-emerald-950/20 text-emerald-400" 
                       : "border-slate-800 bg-slate-950/50 text-slate-500 hover:bg-slate-900"
@@ -3260,10 +3311,10 @@ const RoboticsAiCore = () => {
               </div>
 
               {/* Interactive disrupter section */}
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-900 text-left font-mono text-[9px] text-slate-400 leading-normal mt-3">
-                <span className="text-[7.5px] font-extrabold text-purple-400 uppercase block mb-1">INTERACTIVE INSTANT DISRUPTER</span>
-                <p className="text-[8px] text-slate-500 block mb-2 leading-none">Inject horizontal pulse load momentum directly into the reinforcement agent:</p>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="p-4.5 bg-slate-950 rounded-2xl border border-slate-900 text-left font-mono text-[9px] text-slate-400 leading-normal mt-3">
+                <span className="text-[8px] font-black text-purple-450 uppercase block mb-1">INTERACTIVE INSTANT DISRUPTER</span>
+                <p className="text-[10px] text-slate-450 block mb-3 leading-snug">Inject horizontal pulse load momentum directly into the reinforcement agent:</p>
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => {
@@ -3271,7 +3322,7 @@ const RoboticsAiCore = () => {
                       setRlLeftPulseActive(false);
                       setTimeout(() => setRlLeftPulseActive(true), 15);
                     }}
-                    className="bg-slate-900 border border-slate-800 text-[8px] text-slate-300 py-1 font-bold rounded uppercase hover:bg-slate-850 cursor-pointer overflow-hidden relative font-mono"
+                    className="bg-slate-900 border border-slate-800 text-xs text-slate-200 py-3 rounded-2xl font-black uppercase hover:bg-slate-850 cursor-pointer overflow-hidden relative font-mono"
                   >
                     <span className="relative z-10">&lt;&lt; Push Left</span>
                     {rlLeftPulseActive && (
@@ -3293,7 +3344,7 @@ const RoboticsAiCore = () => {
                       setRlRightPulseActive(false);
                       setTimeout(() => setRlRightPulseActive(true), 15);
                     }}
-                    className="bg-slate-900 border border-slate-800 text-[8px] text-slate-300 py-1 font-bold rounded uppercase hover:bg-slate-850 cursor-pointer overflow-hidden relative font-mono"
+                    className="bg-slate-900 border border-slate-800 text-xs text-slate-200 py-3 rounded-2xl font-black uppercase hover:bg-slate-850 cursor-pointer overflow-hidden relative font-mono"
                   >
                     <span className="relative z-10">Push Right &gt;&gt;</span>
                     {rlRightPulseActive && (
@@ -3327,10 +3378,10 @@ const RoboticsAiCore = () => {
             <button
               type="button"
               onClick={toggleRlSimulation}
-              className={`w-full mt-3.5 py-2 font-mono text-[9px] font-bold rounded-lg border uppercase transition-all cursor-pointer ${
+              className={`w-full mt-3.5 py-4 font-mono text-xs font-black rounded-2xl border uppercase transition-all duration-300 cursor-pointer ${
                 isRlRunning 
-                  ? "border-red-500/50 bg-red-950/10 text-rose-300 shadow-[0_0_12px_rgba(239,68,68,0.1)]" 
-                  : "border-purple-500/35 bg-slate-950/90 text-purple-400 hover:text-white"
+                  ? "border-red-500/50 bg-red-950/10 text-rose-300 shadow-[0_0_12px_rgba(239,68,68,0.15)]" 
+                  : "border-purple-500/35 bg-slate-950/90 text-purple-450 hover:text-white"
               }`}
             >
               {isRlRunning ? "STOP BALANCE LOGGING TRIAL" : "ENGAGE PENDULUM BALANCING TRIAL"}

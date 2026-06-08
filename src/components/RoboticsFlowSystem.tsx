@@ -668,9 +668,9 @@ export default function RoboticsFlowSystem() {
         </p>
       </div>
 
-      {/* MAIN MONITOR: Aspect Ratio 16:9 on Desktop, auto flow size adaptation on Mobile */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto mb-8">
-        <div className="w-full rounded-2xl md:rounded-3xl bg-[#01050e] border border-slate-850/80 p-5 md:p-8 flex flex-col justify-between relative overflow-hidden shadow-[inset_0_4px_50px_rgba(0,0,0,0.95)] animate-fadeIn aspect-auto md:aspect-video min-h-auto md:min-h-0 gap-6">
+      {/* MAIN MONITOR: Dynamic Aspect Ratio adaptation to prevent cropping when active examples are opened */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto mb-8">
+        <div className="w-full rounded-2xl md:rounded-3xl bg-[#01050e] border border-slate-850/80 p-5 md:p-8 flex flex-col justify-between relative overflow-hidden shadow-[inset_0_4px_50px_rgba(0,0,0,0.95)] animate-fadeIn aspect-auto md:aspect-auto min-h-auto md:min-h-0 gap-6">
           
           {/* Top telemetry state title metrics */}
           <div className="flex items-center justify-between z-10 text-[9px] font-mono select-none">
@@ -821,7 +821,7 @@ export default function RoboticsFlowSystem() {
                     <Sparkles className="w-2.5 h-2.5 text-sky-400 animate-pulse" />
                     <span className="font-mono text-[8px] text-sky-400 uppercase tracking-wider font-extrabold">Active Examples:</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-1.5 text-center">
+                  <div className="grid grid-cols-3 gap-2.5 text-center">
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -830,15 +830,15 @@ export default function RoboticsFlowSystem() {
                         setActiveSensorEx("camera");
                         setSelectedExample("camera");
                       }}
-                      className={`flex items-center justify-center gap-1.5 p-1 px-1.5 rounded-lg transition-all border cursor-pointer select-none ${
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all border cursor-pointer select-none text-xs ${
                         activeSensorEx === "camera" 
-                          ? "bg-sky-500/20 border-sky-400 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
-                          : "bg-slate-950/25 border-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-950/45"
+                          ? "bg-sky-500/20 border-sky-500 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
+                          : "bg-slate-950/25 border-slate-805 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-950/45 hover:border-sky-500/50"
                       }`}
                       title="View Camera Specs & Details"
                     >
-                      {activeSensorEx === "camera" && <Camera className="w-3 h-3 text-sky-400 animate-pulse" />}
-                      <span className="font-sans text-[8.5px] uppercase">Camera</span>
+                      {activeSensorEx === "camera" && <Camera className="w-3.5 h-3.5 text-sky-400 animate-pulse" />}
+                      <span className="font-sans text-[11px] font-bold uppercase tracking-wide">Camera</span>
                     </button>
                     <button 
                       onClick={(e) => {
@@ -848,15 +848,15 @@ export default function RoboticsFlowSystem() {
                         setActiveSensorEx("humidity");
                         setSelectedExample("humidity");
                       }}
-                      className={`flex items-center justify-center gap-1.5 p-1 px-1.5 rounded-lg transition-all border cursor-pointer select-none ${
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all border cursor-pointer select-none text-xs ${
                         activeSensorEx === "humidity" 
-                          ? "bg-sky-500/20 border-sky-400 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
-                          : "bg-slate-950/25 border-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-950/45"
+                          ? "bg-sky-500/20 border-sky-500 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
+                          : "bg-slate-950/25 border-slate-805 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-950/45 hover:border-sky-500/50"
                       }`}
                       title="View Temp & Humidity Specs & Details"
                     >
-                      {activeSensorEx === "humidity" ? <Droplet className="w-3 h-3 text-sky-400 animate-pulse" /> : <Thermometer className="w-3 h-3 text-slate-400" />}
-                      <span className="font-sans text-[8.5px] uppercase">Humidity</span>
+                      {activeSensorEx === "humidity" ? <Droplet className="w-3.5 h-3.5 text-sky-400 animate-pulse" /> : <Thermometer className="w-3.5 h-3.5 text-slate-400" />}
+                      <span className="font-sans text-[11px] font-bold uppercase tracking-wide">Humidity</span>
                     </button>
                     <button 
                       onClick={(e) => {
@@ -866,15 +866,15 @@ export default function RoboticsFlowSystem() {
                         setActiveSensorEx("ultrasonic");
                         setSelectedExample("ultrasonic");
                       }}
-                      className={`flex items-center justify-center gap-1.5 p-1 px-1.5 rounded-lg transition-all border cursor-pointer select-none ${
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all border cursor-pointer select-none text-xs ${
                         activeSensorEx === "ultrasonic" 
-                          ? "bg-sky-500/20 border-sky-400 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
-                          : "bg-slate-950/25 border-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-950/45"
+                          ? "bg-sky-500/20 border-sky-500 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
+                          : "bg-slate-950/25 border-slate-805 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-950/45 hover:border-sky-500/50"
                       }`}
                       title="View Ultrasonic Specs & Details"
                     >
-                      {activeSensorEx === "ultrasonic" ? <Radar className="w-3 h-3 text-sky-400 animate-pulse" /> : <Radar className="w-3 h-3 text-slate-400" />}
-                      <span className="font-sans text-[8.5px] uppercase">Ultrasonic</span>
+                      {activeSensorEx === "ultrasonic" ? <Radar className="w-3.5 h-3.5 text-sky-400 animate-pulse" /> : <Radar className="w-3.5 h-3.5 text-slate-400" />}
+                      <span className="font-sans text-[11px] font-bold uppercase tracking-wide">Ultrasonic</span>
                     </button>
                   </div>
                 </div>
@@ -1028,7 +1028,7 @@ export default function RoboticsFlowSystem() {
                     <Sparkles className="w-2.5 h-2.5 text-indigo-400 animate-pulse" />
                     <span className="font-mono text-[8px] text-indigo-400 uppercase tracking-wider font-extrabold">Active Examples:</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-1.5 text-center">
+                  <div className="grid grid-cols-3 gap-2.5 text-center">
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -1037,15 +1037,15 @@ export default function RoboticsFlowSystem() {
                         setActiveControllerEx("arduino");
                         setSelectedExample("arduino");
                       }}
-                      className={`flex items-center justify-center gap-1.5 p-1 px-1.5 rounded-lg transition-all border cursor-pointer select-none ${
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all border cursor-pointer select-none text-xs ${
                         activeControllerEx === "arduino" 
-                          ? "bg-indigo-500/20 border-indigo-500 text-white font-extrabold shadow-[0_0_12px_rgba(99,102,241,0.2)]" 
-                          : "bg-slate-950/25 border-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-950/45"
+                          ? "bg-sky-500/20 border-sky-500 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
+                          : "bg-slate-950/25 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-950/45 hover:border-sky-500/50"
                       }`}
                       title="View Arduino Specs & Details"
                     >
-                      {activeControllerEx === "arduino" && <Cpu className="w-3 h-3 text-indigo-400 animate-pulse" />}
-                      <span className="font-sans text-[8.5px] uppercase">Arduino</span>
+                      {activeControllerEx === "arduino" && <Cpu className="w-3.5 h-3.5 text-sky-400 animate-pulse" />}
+                      <span className="font-sans text-[11px] font-bold uppercase tracking-wide">Arduino</span>
                     </button>
                     <button 
                       onClick={(e) => {
@@ -1055,15 +1055,15 @@ export default function RoboticsFlowSystem() {
                         setActiveControllerEx("esp32");
                         setSelectedExample("esp32");
                       }}
-                      className={`flex items-center justify-center gap-1.5 p-1 px-1.5 rounded-lg transition-all border cursor-pointer select-none ${
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all border cursor-pointer select-none text-xs ${
                         activeControllerEx === "esp32" 
-                          ? "bg-indigo-500/20 border-indigo-500 text-white font-extrabold shadow-[0_0_12px_rgba(99,102,241,0.2)]" 
-                          : "bg-slate-950/25 border-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-950/45"
+                          ? "bg-sky-500/20 border-sky-500 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
+                          : "bg-slate-950/25 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-950/45 hover:border-sky-500/50"
                       }`}
                       title="View ESP32 Specs & Details"
                     >
-                      {activeControllerEx === "esp32" && <Wifi className="w-3 h-3 text-indigo-400" />}
-                      <span className="font-sans text-[8.5px] uppercase">ESP32</span>
+                      {activeControllerEx === "esp32" && <Wifi className="w-3.5 h-3.5 text-sky-400" />}
+                      <span className="font-sans text-[11px] font-bold uppercase tracking-wide">ESP32</span>
                     </button>
                     <button 
                       onClick={(e) => {
@@ -1073,15 +1073,15 @@ export default function RoboticsFlowSystem() {
                         setActiveControllerEx("raspberrypi");
                         setSelectedExample("raspberrypi");
                       }}
-                      className={`flex items-center justify-center gap-1.5 p-1 px-1.5 rounded-lg transition-all border cursor-pointer select-none ${
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all border cursor-pointer select-none text-xs ${
                         activeControllerEx === "raspberrypi" 
-                          ? "bg-indigo-500/20 border-indigo-500 text-white font-extrabold shadow-[0_0_12px_rgba(99,102,241,0.2)]" 
-                          : "bg-slate-950/25 border-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-950/45"
+                          ? "bg-sky-500/20 border-sky-500 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
+                          : "bg-slate-950/25 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-950/45 hover:border-sky-500/50"
                       }`}
                       title="View Raspberry Pi Specs & Details"
                     >
-                      {activeControllerEx === "raspberrypi" && <Terminal className="w-3 h-3 text-indigo-400" />}
-                      <span className="font-sans text-[8.5px] uppercase">Rasp. Pi</span>
+                      {activeControllerEx === "raspberrypi" && <Terminal className="w-3.5 h-3.5 text-sky-400" />}
+                      <span className="font-sans text-[11px] font-bold uppercase tracking-wide">Rasp. Pi</span>
                     </button>
                   </div>
                 </div>
@@ -1249,7 +1249,7 @@ export default function RoboticsFlowSystem() {
                     <Sparkles className="w-2.5 h-2.5 text-emerald-400 animate-pulse" />
                     <span className="font-mono text-[8px] text-emerald-400 uppercase tracking-wider font-extrabold">Active Examples:</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-1.5 text-center">
+                  <div className="grid grid-cols-3 gap-2.5 text-center">
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -1258,15 +1258,15 @@ export default function RoboticsFlowSystem() {
                         setActiveActuatorEx("servo");
                         setSelectedExample("servo");
                       }}
-                      className={`flex items-center justify-center gap-1.5 p-1 px-1 text-center rounded-lg transition-all border cursor-pointer select-none ${
+                      className={`flex items-center justify-center gap-2 py-2.5 px-2 text-center rounded-xl transition-all border cursor-pointer select-none text-xs ${
                         activeActuatorEx === "servo" 
-                          ? "bg-emerald-500/20 border-emerald-500 text-white font-extrabold shadow-[0_0_12px_rgba(16,185,129,0.2)]" 
-                          : "bg-slate-950/25 border-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-950/45"
+                          ? "bg-sky-500/20 border-sky-500 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
+                          : "bg-slate-950/25 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-950/45 hover:border-sky-500/50"
                       }`}
                       title="View Servo Specs & Details"
                     >
-                      {activeActuatorEx === "servo" && <Play className="w-3 h-3 text-emerald-400 animate-pulse" />}
-                      <span className="font-sans text-[8.5px] uppercase">Servo</span>
+                      {activeActuatorEx === "servo" && <Play className="w-3.5 h-3.5 text-sky-400 animate-pulse" />}
+                      <span className="font-sans text-[11px] font-bold uppercase tracking-wide">Servo</span>
                     </button>
                     <button 
                       onClick={(e) => {
@@ -1276,15 +1276,15 @@ export default function RoboticsFlowSystem() {
                         setActiveActuatorEx("dc-motor");
                         setSelectedExample("dc-motor");
                       }}
-                      className={`flex items-center justify-center gap-1.5 p-1 px-1 text-center rounded-lg transition-all border cursor-pointer select-none ${
+                      className={`flex items-center justify-center gap-2 py-2.5 px-2 text-center rounded-xl transition-all border cursor-pointer select-none text-xs ${
                         activeActuatorEx === "dc-motor" 
-                          ? "bg-emerald-500/20 border-emerald-500 text-white font-extrabold shadow-[0_0_12px_rgba(16,185,129,0.2)]" 
-                          : "bg-slate-950/25 border-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-950/45"
+                          ? "bg-sky-500/20 border-sky-500 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
+                          : "bg-slate-950/25 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-950/45 hover:border-sky-500/50"
                       }`}
                       title="View DC Motor Specs & Details"
                     >
-                      {activeActuatorEx === "dc-motor" && <RefreshCw className="w-3 h-3 text-emerald-400 animate-spin" />}
-                      <span className="font-sans text-[8.5px] uppercase">DC Motor</span>
+                      {activeActuatorEx === "dc-motor" && <RefreshCw className="w-3.5 h-3.5 text-sky-400 animate-spin" />}
+                      <span className="font-sans text-[11px] font-bold uppercase tracking-wide">DC Motor</span>
                     </button>
                     <button 
                       onClick={(e) => {
@@ -1294,15 +1294,15 @@ export default function RoboticsFlowSystem() {
                         setActiveActuatorEx("buzzer");
                         setSelectedExample("buzzer");
                       }}
-                      className={`flex items-center justify-center gap-1.5 p-1 px-1 text-center rounded-lg transition-all border cursor-pointer select-none ${
+                      className={`flex items-center justify-center gap-2 py-2.5 px-2 text-center rounded-xl transition-all border cursor-pointer select-none text-xs ${
                         activeActuatorEx === "buzzer" 
-                          ? "bg-emerald-500/20 border-emerald-500 text-white font-extrabold shadow-[0_0_12px_rgba(16,185,129,0.2)]" 
-                          : "bg-slate-950/25 border-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-950/45"
+                          ? "bg-sky-500/20 border-sky-500 text-white font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.2)]" 
+                          : "bg-slate-950/25 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-950/45 hover:border-sky-500/50"
                       }`}
                       title="View Buzzer Specs & Details"
                     >
-                      {activeActuatorEx === "buzzer" && <Volume2 className="w-3 h-3 text-emerald-400" />}
-                      <span className="font-sans text-[8.5px] uppercase">Buzzer</span>
+                      {activeActuatorEx === "buzzer" && <Volume2 className="w-3.5 h-3.5 text-sky-400" />}
+                      <span className="font-sans text-[11px] font-bold uppercase tracking-wide">Buzzer</span>
                     </button>
                   </div>
                 </div>
@@ -2510,15 +2510,15 @@ export default function RoboticsFlowSystem() {
                                 </div>
                                 <div className="flex items-center gap-2 pt-1">
                                   <span className="font-mono text-[9px] text-slate-500 font-extrabold uppercase shrink-0">MASS SPEC:</span>
-                                  <div className="flex gap-1">
+                                  <div className="flex gap-1.5">
                                     {[50, 120, 250].map((mass) => (
                                       <button
                                         key={mass}
                                         onClick={() => setPayloadMassGrams(mass)}
-                                        className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-black border transition-all cursor-pointer ${
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-black border transition-all cursor-pointer ${
                                           payloadMassGrams === mass
-                                            ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300 ring-1 ring-emerald-500/20"
-                                            : "bg-slate-900 border-slate-900 text-slate-500 hover:text-white"
+                                            ? "bg-sky-500/20 border-sky-500 text-sky-400 ring-1 ring-sky-500/20"
+                                            : "bg-slate-900 border-slate-800 text-slate-500 hover:text-white hover:border-sky-500/50"
                                         }`}
                                       >
                                         {mass}g
@@ -2597,7 +2597,7 @@ export default function RoboticsFlowSystem() {
       </div>
 
       {/* THE ROBOT EXAMPLES PRESENTS */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto border-t border-slate-900/40 pt-6">
+      <div className="relative z-10 w-full max-w-7xl mx-auto border-t border-slate-900/40 pt-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pl-0.5">
           <div className="flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-sky-450 text-sky-400" />
@@ -2621,10 +2621,10 @@ export default function RoboticsFlowSystem() {
                   }
                 }, 50);
               }}
-              className="font-mono text-[9px] text-cyan-400 font-extrabold tracking-wider hover:text-cyan-300 transition-colors uppercase cursor-pointer flex items-center gap-1.5 bg-cyan-950/45 border border-cyan-500/20 px-2.5 py-1 rounded-md animate-pulse"
+              className="font-mono text-xs text-sky-450 text-sky-400 font-extrabold tracking-wider hover:text-sky-300 transition-colors uppercase cursor-pointer flex items-center gap-2 bg-sky-950/45 border border-slate-800 hover:border-sky-500 px-4 py-2 rounded-xl animate-pulse"
               title="Activate full loop synchronization, highlighting all 3 basic robotics components together"
             >
-              <Activity className="w-2.5 h-2.5 text-cyan-455 text-cyan-400" />
+              <Activity className="w-3 h-3 text-sky-400" />
               Sync Co-System Loop
             </button>
 
@@ -2635,9 +2635,9 @@ export default function RoboticsFlowSystem() {
                   setActiveId(null);
                   setActiveStep("sensors");
                 }}
-                className="font-mono text-[9px] text-sky-450 text-sky-400 font-black tracking-wider hover:text-sky-300 transition-colors uppercase cursor-pointer flex items-center gap-1.5 bg-sky-950/40 border border-sky-400/10 px-2.5 py-1 rounded-md animate-fadeIn"
+                className="font-mono text-xs text-sky-400 font-black tracking-wider hover:text-sky-300 transition-colors uppercase cursor-pointer flex items-center gap-2 bg-sky-950/40 border border-slate-800 hover:border-sky-500 px-4 py-2 rounded-xl animate-fadeIn"
               >
-                <RefreshCw className="w-2.5 h-2.5" />
+                <RefreshCw className="w-3 h-3" />
                 Reset Flow
               </button>
             )}
