@@ -47,10 +47,11 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
   const [rightPulseActive, setRightPulseActive] = useState(false);
 
   // Cart-pole physical states
-  const [theta, setTheta] = useState(0.18); 
+  const [theta, setTheta] = useState(0.0); 
   const [thetaDot, setThetaDot] = useState(0.0);
   const [cartX, setCartX] = useState(0.0); 
   const [cartXDot, setCartXDot] = useState(0.0);
+  const [dropFrame, setDropFrame] = useState<number | null>(null);
 
   const [errorSum, setErrorSum] = useState(0.0);
   const [history, setHistory] = useState<{ t: number; val: number; sp: number }[]>([]);
@@ -62,15 +63,23 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
     setHistory([]);
     setTimeStep(0);
     setIsRunning(false);
-    setTheta(0.18);
+    setTheta(0.0);
     setThetaDot(0.0);
     setCartX(0.0);
     setCartXDot(0.0);
+    setDropFrame(null);
   };
 
   // Pulse disturb for Cart-pole
   const handlePerturb = (direction: "left" | "right") => {
-    if (!isRunning) setIsRunning(true);
+    if (!isRunning) {
+      setIsRunning(true);
+      setTheta(0.18);
+      setThetaDot(0.0);
+      setCartX(0.0);
+      setCartXDot(0.0);
+      setErrorSum(0.0);
+    }
     const pulseSign = direction === "left" ? -1 : 1;
     setThetaDot((prev) => prev + pulseSign * 1.8);
   };
@@ -80,7 +89,7 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
     if (!isRunning) {
       if (history.length === 0) {
         const initialPoints = [];
-        const baseAngleDeg = 0.18 * (180 / Math.PI);
+        const baseAngleDeg = theta * (180 / Math.PI);
 
         for (let i = 0; i < 60; i++) {
           initialPoints.push({ t: i, val: baseAngleDeg, sp: 0 });
@@ -92,6 +101,36 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
 
     const interval = setInterval(() => {
       const dt = 0.03; 
+
+      if (dropFrame !== null) {
+        const nextFrame = dropFrame + 1;
+        let currentTheta = 0.0;
+        if (nextFrame >= 30) {
+          setDropFrame(null);
+          setTheta(Math.PI);
+          setThetaDot(0.0);
+          currentTheta = Math.PI;
+        } else {
+          setDropFrame(nextFrame);
+          const t = nextFrame / 30;
+          const angle = Math.PI * (1 - Math.cos(t * Math.PI)) / 2;
+          setTheta(angle);
+          setThetaDot(0.0);
+          currentTheta = angle;
+        }
+        setCartX(0.0);
+        setCartXDot(0.0);
+
+        const degreeValue = currentTheta * (180 / Math.PI);
+        setHistory((prev) => {
+          const updated = [...prev, { t: timeStep, val: Math.round(degreeValue * 10) / 10, sp: 0 }];
+          if (updated.length > 60) updated.shift();
+          return updated;
+        });
+
+        setTimeStep((prev) => prev + 1);
+        return;
+      }
       
       const g = 9.81;
       const L = 1.0;
@@ -146,7 +185,7 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
     }, 30);
 
     return () => clearInterval(interval);
-  }, [isRunning, kp, ki, kd, loopType, timeStep, history.length, errorSum, theta, thetaDot, cartX, cartXDot]);
+  }, [isRunning, kp, ki, kd, loopType, timeStep, history.length, errorSum, theta, thetaDot, cartX, cartXDot, dropFrame]);
 
   // Sync Suggestion values when station changes
   useEffect(() => {
@@ -193,9 +232,9 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
       setPidKi(targetKi);
       setPidKd(targetKd);
     } else {
-      const targetKp = Math.max(0, Math.min(15, Math.round(gains.kp * 10) / 10));
-      const targetKi = Math.max(0, Math.min(4, Math.round(gains.ki * 100) / 100));
-      const targetKd = Math.max(0, Math.min(6, Math.round(gains.kd * 10) / 10));
+      const targetKp = Math.max(0, Math.min(200, Math.round(gains.kp * 10) / 10));
+      const targetKi = Math.max(0, Math.min(50, Math.round(gains.ki * 100) / 100));
+      const targetKd = Math.max(0, Math.min(50, Math.round(gains.kd * 10) / 10));
       
       setKp(targetKp);
       setKi(targetKi);
@@ -205,8 +244,8 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
 
   const thetaDegrees = theta * (180 / Math.PI);
   const isStabilized = isRunning && Math.abs(thetaDegrees) < 2.5 && Math.abs(thetaDot) < 0.15;
-  const isLossOfControl = Math.abs(thetaDegrees) > 60;
-  const isFallen = Math.abs(thetaDegrees) > 60;
+  const isLossOfControl = isRunning && Math.abs(thetaDegrees) > 60;
+  const isFallen = isRunning && Math.abs(thetaDegrees) > 60;
 
   const getPExplanation = () => "Reacts to the size of the current error. Higher strength corrects faster, but causes wild overshoot and wobbling.";
   const getIExplanation = () => "Accumulates historical errors over time to eliminate steady displacement offset, but too much memory causes slow swinging.";
@@ -215,6 +254,7 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
   const getStat1Label = () => "ANGULAR DEVIATION";
   const getStat1Value = () => `${thetaDegrees.toFixed(1)}°`;
   const getStat1Color = () => {
+    if (!isRunning) return "text-slate-400";
     const val = Math.abs(thetaDegrees);
     return val <= 15 ? "text-emerald-400" : val > 37.5 ? "text-rose-400 animate-pulse font-extrabold" : "text-amber-400";
   };
@@ -222,6 +262,7 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
   const getStat2Value = () => `${thetaDot.toFixed(2)} r/s`;
   const getStat3Value = () => `${(cartX / 10).toFixed(1)} cm`;
   const getStat4Value = () => {
+    if (!isRunning) return "STANDBY";
     if (loopType === "open") return "FEEDBACK OFF";
     if (isFallen) return "FALLEN / CRASHED";
     if (isLossOfControl) return "LIMIT DIVERGENCY";
@@ -773,13 +814,29 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                   onClick={() => {
                     const nextRunning = !isRunning;
                     setIsRunning(nextRunning);
+                    if (nextRunning) {
+                      // Begin the smooth dropping/swinging release animation from upright (0) to bottom (PI) before PID engages
+                      setDropFrame(0);
+                      setTheta(0.0);
+                      setThetaDot(0.0);
+                      setCartX(0.0);
+                      setCartXDot(0.0);
+                      setErrorSum(0.0);
+                    } else {
+                      // Retract back to vertical standby position
+                      setTheta(0.0);
+                      setThetaDot(0.0);
+                      setCartX(0.0);
+                      setCartXDot(0.0);
+                      setDropFrame(null);
+                    }
                     if (nextRunning && window.innerWidth < 1024) {
                       setTimeout(() => {
                         pendulumVisualizerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
                       }, 100);
                     }
                   }}
-                  className={`flex-1 py-2.5 px-4 font-mono text-[10px] font-bold uppercase rounded-lg border-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  className={`flex-1 py-3.5 px-5 font-mono text-[11px] h-[48px] font-black uppercase rounded-xl border-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${
                     isRunning 
                       ? "border-red-500/40 bg-red-500/10 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.2)] font-extrabold" 
                       : "border-amber-500/50 bg-[#020716] text-amber-400 hover:text-white shadow-[0_0_12px_rgba(245,158,11,0.15)] font-bold"
@@ -791,7 +848,7 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                 
                 <button
                   onClick={handleResetPendulum}
-                  className="px-3.5 border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200 rounded-lg text-xs cursor-pointer select-none transition-colors"
+                  className="px-5 py-3.5 h-[48px] border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200 rounded-xl text-xs font-mono uppercase font-black cursor-pointer select-none transition-colors flex items-center justify-center"
                   title="Reset simulation parameters"
                 >
                   Reset
@@ -805,7 +862,7 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setLoopType("closed")}
-                    className={`p-2 rounded-lg border font-mono text-[8.5px] font-black text-center transition-all cursor-pointer ${
+                    className={`py-3.5 px-3 min-h-[44px] rounded-lg border font-mono text-[9px] font-black text-center transition-all cursor-pointer flex items-center justify-center ${
                       loopType === "closed"
                         ? "border-amber-500 bg-amber-500/15 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.15)]"
                         : "border-slate-800 bg-slate-950/40 text-slate-500 hover:text-slate-300"
@@ -819,7 +876,7 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                       setLoopType("open");
                       setErrorSum(0);
                     }}
-                    className={`p-2 rounded-lg border font-mono text-[8.5px] font-black text-center transition-all cursor-pointer ${
+                    className={`py-3.5 px-3 min-h-[44px] rounded-lg border font-mono text-[9px] font-black text-center transition-all cursor-pointer flex items-center justify-center ${
                       loopType === "open"
                         ? "border-amber-500 bg-amber-500/15 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.15)]"
                         : "border-slate-800 bg-slate-950/40 text-slate-500 hover:text-slate-350"
@@ -841,11 +898,11 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
 
                   <div className={`relative w-full flex items-center select-none ${loopType === "open" ? "opacity-40" : ""}`}>
                     <input 
-                      type="range" min="0" max="15" step="0.2" value={kp} 
+                      type="range" min="0" max="200" step="0.5" value={kp} 
                       onChange={(e) => setKp(parseFloat(e.target.value))}
                       disabled={loopType === "open"}
                       className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md disabled:cursor-not-allowed"
-                      style={getProgressStyle(kp, 0, 15, "#f59e0b")}
+                      style={getProgressStyle(kp, 0, 200, "#f59e0b")}
                     />
                   </div>
                   <span className="font-sans text-[8.5px] text-slate-500 leading-tight block">{getPExplanation()}</span>
@@ -860,11 +917,11 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
 
                   <div className={`relative w-full flex items-center select-none ${loopType === "open" ? "opacity-40" : ""}`}>
                     <input 
-                      type="range" min="0" max="4" step="0.05" value={ki} 
+                      type="range" min="0" max="50" step="0.1" value={ki} 
                       onChange={(e) => setKi(parseFloat(e.target.value))}
                       disabled={loopType === "open"}
                       className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md disabled:cursor-not-allowed"
-                      style={getProgressStyle(ki, 0, 4, "#f59e0b")}
+                      style={getProgressStyle(ki, 0, 50, "#f59e0b")}
                     />
                   </div>
                   <span className="font-sans text-[8.5px] text-slate-500 leading-tight block">{getIExplanation()}</span>
@@ -879,11 +936,11 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
 
                   <div className={`relative w-full flex items-center select-none ${loopType === "open" ? "opacity-40" : ""}`}>
                     <input 
-                      type="range" min="0" max="6" step="0.1" value={kd} 
+                      type="range" min="0" max="50" step="0.1" value={kd} 
                       onChange={(e) => setKd(parseFloat(e.target.value))}
                       disabled={loopType === "open"}
                       className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-amber-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-amber-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-amber-500 [&::-moz-range-thumb]:shadow-md disabled:cursor-not-allowed"
-                      style={getProgressStyle(kd, 0, 6, "#f59e0b")}
+                      style={getProgressStyle(kd, 0, 50, "#f59e0b")}
                     />
                   </div>
                   <span className="font-sans text-[8.5px] text-slate-500 leading-tight block">{getDExplanation()}</span>
@@ -900,7 +957,7 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                         setLeftPulseActive(false);
                         setTimeout(() => setLeftPulseActive(true), 15);
                       }}
-                      className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-700 text-[9px] text-amber-400 hover:text-slate-950 py-2.5 font-bold rounded-lg uppercase hover:from-amber-400 hover:to-amber-500 hover:border-amber-300 cursor-pointer overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.5)] active:scale-95 duration-100 transition-all select-none"
+                      className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-700 text-[9px] text-amber-400 hover:text-slate-950 py-3.5 font-bold rounded-lg uppercase hover:from-amber-400 hover:to-amber-500 hover:border-amber-300 cursor-pointer overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.5)] active:scale-95 duration-100 transition-all select-none min-h-[44px] flex items-center justify-center"
                     >
                       <span className="relative z-10 font-black">&lt;&lt; Shock Left</span>
                       {leftPulseActive && (
@@ -921,7 +978,7 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
                         setRightPulseActive(false);
                         setTimeout(() => setRightPulseActive(true), 15);
                       }}
-                      className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-700 text-[9px] text-amber-400 hover:text-slate-950 py-2.5 font-bold rounded-lg uppercase hover:from-amber-400 hover:to-amber-500 hover:border-amber-300 cursor-pointer overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.5)] active:scale-95 duration-100 transition-all select-none"
+                      className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-700 text-[9px] text-amber-400 hover:text-slate-950 py-3.5 font-bold rounded-lg uppercase hover:from-amber-400 hover:to-amber-500 hover:border-amber-300 cursor-pointer overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.5)] active:scale-95 duration-100 transition-all select-none min-h-[44px] flex items-center justify-center"
                     >
                       <span className="relative z-10 font-black font-mono">Shock Right &gt;&gt;</span>
                       {rightPulseActive && (

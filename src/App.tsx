@@ -172,7 +172,7 @@ const getSignalInfo = (partId: string, partCategory: string, hotspotId?: string 
 
 export default function App() {
   const [isStarted, setIsStarted] = useState(false);
-  const [activeTab, setActiveTab] = useState<"foundations" | "explorer" | "programming" | "electronics" | "control" | "ai" | "chat" | "manipulators" | "types">("foundations");
+  const [activeTab, setActiveTab] = useState<"foundations" | "diagnostics" | "advisor" | "programming" | "electronics" | "control" | "ai" | "manipulators" | "types">("foundations");
   const [explorerSection, setExplorerSection] = useState<"catalog" | "control" | "ai">("catalog");
   const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
   const [controlLoopModalType, setControlLoopModalType] = useState<"closed" | "open" | null>(null);
@@ -201,9 +201,9 @@ export default function App() {
       } else if (hash === "#ai" || hash === "#explorer-ai") {
         setIsStarted(true);
         setActiveTab("ai");
-      } else if (hash.startsWith("#explorer")) {
+      } else if (hash === "#diagnostics" || hash.startsWith("#explorer")) {
         setIsStarted(true);
-        setActiveTab("explorer");
+        setActiveTab("diagnostics");
         setExplorerSection("catalog");
       } else if (hash === "#programming") {
         setIsStarted(true);
@@ -214,9 +214,9 @@ export default function App() {
       } else if (hash === "#manipulators") {
         setIsStarted(true);
         setActiveTab("manipulators");
-      } else if (hash === "#chat") {
+      } else if (hash === "#advisor" || hash === "#chat") {
         setIsStarted(true);
-        setActiveTab("chat");
+        setActiveTab("advisor");
       } else if (hash === "#types") {
         setIsStarted(true);
         setActiveTab("types");
@@ -256,6 +256,8 @@ export default function App() {
       }
     }
   }, []);
+
+
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [selectedPartId, setSelectedPartId] = useState<string>("controller_arduino");
   const [sandboxResponse, setSandboxResponse] = useState<string | null>(null);
@@ -406,8 +408,8 @@ export default function App() {
                 { id: "manipulators", label: "Robotic Manipulators", icon: RoboticArmIcon },
                 { id: "ai", label: "AI Robotics Systems", icon: Sparkles },
                 { id: "types", label: "Robot Types", icon: Bot },
-                { id: "explorer", label: "Component Diagnostics", icon: Compass },
-                { id: "chat", label: "Advisor", icon: MessageSquare },
+                { id: "diagnostics", label: "Robot Diagnostics", icon: Activity },
+                { id: "advisor", label: "AI Advisor", icon: MessageSquare },
               ].map((tab) => {
                 const IconComp = tab.icon;
                 const isSelected = activeTab === tab.id;
@@ -481,7 +483,7 @@ export default function App() {
 
             {/* Primary Header Interface */}
             <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md relative z-10 select-none">
-              <div className="max-w-5xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="max-w-7xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
                 {/* Logo Name block */}
                 <button
                   onClick={() => { window.location.hash = "home"; }}
@@ -515,7 +517,7 @@ export default function App() {
             </header>
 
             {/* Central Screen Platform Segment Controls */}
-            <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 pb-24 md:pb-6 flex flex-col gap-6 relative z-10">
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 pb-24 md:pb-6 flex flex-col gap-6 relative z-10">
               <div className="grid lg:grid-cols-12 gap-6 items-stretch">
                 {/* Active Tab Core Foundations Overview */}
                 {activeTab === "foundations" && (
@@ -524,13 +526,13 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Active Tab Explorer Content layout */}
-                {activeTab === "explorer" && (
+                {/* Active Tab Diagnostics Content layout */}
+                {activeTab === "diagnostics" && (
                   <div className="lg:col-span-12 flex flex-col gap-6 w-full animate-fadeIn">
                     
                     {explorerSection === "catalog" && (
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full animate-fadeIn">
-                    <div className="lg:col-span-4 flex flex-col gap-4">
+                    <div className="lg:col-span-4 flex flex-col gap-4 pb-12 lg:pb-0">
                       <div className="bg-[#050C1C]/90 border border-slate-800/80 rounded-xl p-4 flex flex-col gap-4 backdrop-blur-md relative overflow-hidden group">
                         {/* Interactive scanline beam glow */}
                         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-sky-500/20 to-transparent pointer-events-none" />
@@ -693,7 +695,7 @@ export default function App() {
                     </div>
                     
                     {/* Column 2: Diagnostic Stage (Center Interactive Schematic) */}
-                    <div id="station-diag-section" className="lg:col-span-8 flex flex-col gap-4">
+                    <div id="station-diag-section" className="lg:col-span-8 flex flex-col gap-4 pb-12 lg:pb-0">
                       {/* Interactive Diagram Container with premium corner brackets */}
                       <div className="bg-[#050C1C]/90 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between backdrop-blur-md relative overflow-hidden group/stage min-h-[460px]">
                         {/* Interactive scanline beam glow */}
@@ -1051,9 +1053,17 @@ export default function App() {
                     </div>
                   </div>
                 )}
-
               </div>
             )}
+
+                {/* Active Tab AI Advisor Page */}
+                {activeTab === "advisor" && (
+                  <div className="lg:col-span-12 flex flex-col gap-6 w-full animate-fadeIn max-w-4xl mx-auto min-h-[550px]">
+                    <div className="flex-1 flex flex-col">
+                      <AIChatTutor onSendMessage={handleSendMessage} loading={chatLoading} className="min-h-[550px] flex-1 h-full" />
+                    </div>
+                  </div>
+                )}
 
             {/* Active Tab Control Systems Content layout */}
             {activeTab === "control" && (
@@ -1068,6 +1078,7 @@ export default function App() {
                 <RoboticsAiCore />
               </div>
             )}
+
 
                 {/* Active Tab Programming Guide Content layout */}
                 {activeTab === "programming" && (
@@ -1090,12 +1101,7 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Active Tab Advisor Chat layout */}
-                {activeTab === "chat" && (
-                  <div className="lg:col-span-12 max-w-3xl mx-auto w-full">
-                    <AIChatTutor onSendMessage={handleSendMessage} loading={chatLoading} />
-                  </div>
-                )}
+
 
                 {/* Active Tab Robot Types & Applications layout */}
                 {activeTab === "types" && (
@@ -1115,10 +1121,10 @@ export default function App() {
                 { id: "electronics", label: "Electronics", icon: Zap },
                 { id: "control", label: "Control", icon: Sliders },
                 { id: "manipulators", label: "Manipulators", icon: RoboticArmIcon },
-                { id: "ai", label: "AI Core", icon: Sparkles },
-                { id: "types", label: "Robot Types", icon: Bot },
-                { id: "explorer", label: "Diag", icon: Compass },
-                { id: "chat", label: "Advisor", icon: MessageSquare },
+                { id: "ai", label: "ML", icon: Sparkles },
+                { id: "types", label: "Robots", icon: Bot },
+                { id: "diagnostics", label: "Diag", icon: Activity },
+                { id: "advisor", label: "Advisor", icon: MessageSquare },
               ].map((tab) => {
                 const IconComp = tab.icon;
                 const isSelected = activeTab === tab.id;
@@ -1145,7 +1151,7 @@ export default function App() {
 
             {/* Primary Footer */}
             <footer className="border-t border-slate-800 bg-slate-950/40 text-center py-6 font-mono text-[11px] text-slate-400 relative z-10 select-none mt-12 bg-[#020617]">
-              <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p>Robotics Learning Hub © 2026 — Developed in Dubai, UAE by Sean Buscano</p>
                 <div className="flex items-center gap-4 text-slate-500 font-mono text-[9px]">
                   <button 

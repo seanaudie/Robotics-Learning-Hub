@@ -18,6 +18,7 @@ import {
   GraduationCap,
   Cog,
   MessageSquare,
+  Network,
   Bot
 } from 'lucide-react';
 import { CreatorProfileCard } from './CreatorProfileCard';
@@ -215,7 +216,7 @@ export default function HomePage({
       borderColor: "border-cyan-500/30",
       btnGlow: "shadow-[0_0_25px_rgba(34,211,238,0.4)] hover:shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:bg-cyan-400/20",
       diagnosticCode: "SYS_TAXONOMY_07",
-      recommendedTime: "Week 12 Recommended",
+      recommendedTime: "Week 11-12 Recommended",
       techSpecs: [
         { label: "BRANCHES", value: "8 Key Robotics Classes" },
         { label: "EXPERIMENT", value: "Interactive Live Kinematics" },
@@ -224,32 +225,83 @@ export default function HomePage({
       icon: <Bot className="w-5 h-5 text-cyan-400" />
     },
     {
-      id: "ph-8",
+      id: "ph-diagnostics",
       phaseNum: "PHASE 08",
-      name: "Diagnostics",
-      concept: "Deep signal inspection & oscilloscope probes",
-      subTitle: "Electronic failure tracking & analysis",
-      desc: "Use advanced hardware probes and virtual oscilloscopes. Inspect pin voltages, analyze continuous wave flows, capture signal integrity, and perform deep microchip stress-testing.",
-      targetTab: "explorer" as const,
-      color: "fuchsia",
-      badgeColor: "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/25",
-      glowColor: "rgba(217, 70, 239, 0.4)",
-      shadowColor: "shadow-[0_0_20px_rgba(217,70,239,0.2)]",
-      bgColor: "bg-fuchsia-500/5",
-      borderColor: "border-fuchsia-500/30",
-      btnGlow: "shadow-[0_0_25px_rgba(217, 70, 239, 0.4)] hover:shadow-[0_0_40px_rgba(217, 70, 239, 0.7)] hover:bg-fuchsia-400/20",
-      diagnosticCode: "SYS_DIAG_WAV_08",
-      recommendedTime: "Week 13+ Recommended",
+      name: "Component Diagnostics",
+      concept: "Live hardware signal trace & schematics",
+      subTitle: "Live interactive schematic error inspection",
+      desc: "Analyze cybernetic component specifications, inspect active circuitry connections, trace hardware failures, and troubleshoot component pin layout signals.",
+      targetTab: "diagnostics" as any,
+      color: "emerald",
+      badgeColor: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+      glowColor: "rgba(16, 185, 129, 0.4)",
+      shadowColor: "shadow-[0_0_20px_rgba(16,185,129,0.2)]",
+      bgColor: "bg-emerald-500/5",
+      borderColor: "border-emerald-500/30",
+      btnGlow: "shadow-[0_0_25px_rgba(16,185,129,0.4)] hover:shadow-[0_0_40px_rgba(16,185,129,0.7)] hover:bg-emerald-400/20",
+      diagnosticCode: "SYS_DIAG_08",
+      recommendedTime: "Week 13 Recommended",
       techSpecs: [
-        { label: "PROBE INDEX", value: "Multi-point Voltage Probe" },
-        { label: "OSCILLOSCOPE", value: "Signal Waveform Sandbox" },
-        { label: "LANDMARKS", value: "Full Cross-Section Anatomy" }
+        { label: "DIAGNOSTICS", value: "Hardware Signal Trace" },
+        { label: "SCHEMATICS", value: "Interactive State Inspection" },
+        { label: "VOLTAGE STATE", value: "Pin Telemetry Validation" }
       ],
-      icon: <Compass className="w-5 h-5 text-fuchsia-400" />
+      icon: <Activity className="w-5 h-5 text-emerald-400" />
     }
   ];
 
   const currentPhase = activePhaseIndex !== null ? roadmapPhases[activePhaseIndex] : null;
+
+  // Arrow key navigation for Phase (stage channel) selection
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in inputs or other text fields
+      const activeEl = document.activeElement;
+      if (activeEl) {
+        const tag = activeEl.tagName.toLowerCase();
+        if (
+          tag === "input" ||
+          tag === "textarea" ||
+          tag === "select" ||
+          activeEl.hasAttribute("contenteditable") ||
+          activeEl.classList.contains("monaco-editor")
+        ) {
+          return;
+        }
+      }
+
+      // Ignore if a modal popup starts on screen
+      const hasModalOpen = !!document.querySelector('.fixed.inset-0, [class*="fixed inset-0"], [id*="-modal"]');
+      if (hasModalOpen) {
+        return;
+      }
+
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setActivePhaseIndex((prev) => {
+          if (prev === null) return 0;
+          return (prev + 1) % roadmapPhases.length;
+        });
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setActivePhaseIndex((prev) => {
+          if (prev === null) return roadmapPhases.length - 1;
+          return (prev - 1 + roadmapPhases.length) % roadmapPhases.length;
+        });
+      } else if (e.key === "Enter") {
+        if (activePhaseIndex !== null) {
+          e.preventDefault();
+          const target = roadmapPhases[activePhaseIndex];
+          if (target) {
+            onEnter(target.targetTab);
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activePhaseIndex, onEnter]);
 
   // Render individual animated visualizer schematics for each Roadmap index
   const renderPhaseVisualizer = (idx: number) => {
@@ -710,119 +762,176 @@ export default function HomePage({
         );
       case 6: // Robot Types & Applications (index 6)
         return (
-          <div className="w-full h-full flex flex-col justify-between p-3 relative bg-slate-950/45 rounded-xl border border-slate-900 overflow-hidden">
-            <span className="font-mono text-[7px] text-cyan-400 font-extrabold pb-2 uppercase border-b border-cyan-950/40 block">ROBOT CLASSIFICATION ENGINE // COMPILED</span>
+          <div className="w-full h-full flex flex-col justify-between p-3 relative bg-slate-950/45 rounded-xl border border-slate-900 overflow-hidden text-left">
+            <span className="font-mono text-[7px] text-cyan-400 font-extrabold pb-2 uppercase border-b border-cyan-950/40 block">ROBOT CLASSIFICATION SCANNER // ENGAGED</span>
             
             <div className="flex-1 flex flex-col justify-center items-center py-2 relative">
               <svg viewBox="0 0 300 100" className="w-full h-24">
-                {/* Orbit track */}
-                <ellipse cx="150" cy="50" rx="90" ry="30" fill="none" stroke="#1e293b" strokeWidth="1" strokeDasharray="3,3" />
-                <ellipse cx="150" cy="50" rx="50" ry="16" fill="none" stroke="#22d3ee" strokeWidth="0.5" className="opacity-30" />
+                {/* Concentric diagnostic radar rings */}
+                <circle cx="150" cy="50" r="42" fill="none" stroke="#10182c" strokeWidth="1" />
+                <circle cx="150" cy="50" r="28" fill="none" stroke="#11253e" strokeWidth="0.8" strokeDasharray="2,3" />
+                <circle cx="150" cy="50" r="14" fill="none" stroke="#22d3ee" strokeWidth="0.5" className="opacity-15" />
                 
-                {/* Core base node */}
-                <circle cx="150" cy="50" r="10" fill="#0f172a" stroke="#22d3ee" strokeWidth="1.5" />
-                <circle cx="150" cy="50" r="4" fill="#06b6d4" className="animate-pulse" />
-                
-                {/* Rotating category dots */}
+                {/* Central radar axis point */}
+                <circle cx="150" cy="50" r="3.5" fill="#08b6d4" />
+                <circle cx="150" cy="50" r="1" fill="#fff" />
+
+                {/* Radar grid axis helper lines */}
+                <line x1="150" y1="5" x2="150" y2="95" stroke="#083344" strokeWidth="0.5" strokeDasharray="2,2" />
+                <line x1="95" y1="50" x2="205" y2="50" stroke="#083344" strokeWidth="0.5" strokeDasharray="2,2" />
+
+                {/* Rotating Sweeper Ray */}
+                <motion.line
+                  x1="150"
+                  y1="50"
+                  x2="200"
+                  y2="50"
+                  stroke="#22d3ee"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  style={{ originX: "150px", originY: "50px" }}
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 4.5, repeat: Infinity, ease: "linear" }}
+                />
+
+                {/* Quadrant Target Highlights: AMR, Arm, Quadcopter, Human */}
+                {/* AMR target top-left */}
                 <g>
-                  {/* Drone dot at angle 1 */}
-                  <circle cx="110" cy="40" r="4" fill="#38bdf8" stroke="#fff" strokeWidth="0.5" />
-                  {/* Hexapod dot at angle 2 */}
-                  <circle cx="190" cy="60" r="4.5" fill="#a855f7" stroke="#fff" strokeWidth="0.5" />
+                   <circle cx="110" cy="25" r="2.5" fill="#38bdf8" />
+                   <motion.circle
+                     cx="110"
+                     cy="25"
+                     r="6"
+                     fill="none"
+                     stroke="#38bdf8"
+                     strokeWidth="0.5"
+                     animate={{ scale: [1, 2], opacity: [0.8, 0] }}
+                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+                   />
+                   <text x="110" y="15" fill="#38bdf8" className="font-mono text-[5.5px] font-bold" textAnchor="middle">WHEELED_AMR</text>
                 </g>
-                
-                <text x="150" y="24" fill="#22d3ee" className="font-mono text-[6.5px] font-black uppercase text-center" textAnchor="middle">
-                  COGNITIVE MORPHOLOGY MESH
-                </text>
+
+                {/* ARM target top-right */}
+                <g>
+                   <circle cx="190" cy="25" r="2.5" fill="#fbbf24" />
+                   <motion.circle
+                     cx="190"
+                     cy="25"
+                     r="6"
+                     fill="none"
+                     stroke="#fbbf24"
+                     strokeWidth="0.5"
+                     animate={{ scale: [1, 2], opacity: [0.8, 0] }}
+                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.38 }}
+                   />
+                   <text x="190" y="15" fill="#fbbf24" className="font-mono text-[5.5px] font-bold" textAnchor="middle">JOINT_ARM</text>
+                </g>
+
+                {/* QUADROTOR target bottom-right */}
+                <g>
+                   <circle cx="190" cy="75" r="2.5" fill="#818cf8" />
+                   <motion.circle
+                     cx="190"
+                     cy="75"
+                     r="6"
+                     fill="none"
+                     stroke="#818cf8"
+                     strokeWidth="0.5"
+                     animate={{ scale: [1, 2], opacity: [0.8, 0] }}
+                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.75 }}
+                   />
+                   <text x="190" y="87" fill="#818cf8" className="font-mono text-[5.5px] font-bold" textAnchor="middle">UAV_DRONE</text>
+                </g>
+
+                {/* BIPED target bottom-left */}
+                <g>
+                   <circle cx="110" cy="75" r="2.5" fill="#f43f5e" />
+                   <motion.circle
+                     cx="110"
+                     cy="75"
+                     r="6"
+                     fill="none"
+                     stroke="#f43f5e"
+                     strokeWidth="0.5"
+                     animate={{ scale: [1, 2], opacity: [0.8, 0] }}
+                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 1.12 }}
+                   />
+                   <text x="110" y="87" fill="#f43f5e" className="font-mono text-[5.5px] font-bold" textAnchor="middle">HUMANOID</text>
+                </g>
               </svg>
               
               <div className="flex gap-2 justify-around w-full font-mono text-[6.5px] text-slate-500 uppercase mt-1">
-                <span>[01] EDUCATIONAL</span>
-                <span>[04] DRONES</span>
-                <span>[06] HUMANOID</span>
-                <span>[08] SWARM</span>
+                <span>[SCAN] WHEELS</span>
+                <span>[SCAN] TRAJECTORY</span>
+                <span>[SCAN] IMU</span>
+                <span>[SCAN] DEG. FREEDOM</span>
               </div>
             </div>
 
             <div className="flex justify-between text-[7px] font-mono text-slate-500 pt-1 border-t border-slate-900 uppercase">
-              <span>Taxonomical scale active</span>
-              <span className="text-cyan-400 font-extrabold uppercase animate-pulse">8 Core Branches Map</span>
+              <span>ACTIVE SWEEPING RINGS TRACER</span>
+              <span className="text-cyan-400 font-extrabold uppercase animate-pulse">4 MORPHOLOGY MATCH</span>
             </div>
           </div>
         );
-      case 7: // Diagnostics
+      case 7: // Component Diagnostics (index 7)
         return (
-          <div className="w-full h-full flex flex-col justify-between p-3 relative bg-slate-950/45 rounded-xl border border-slate-900">
-            <span className="font-mono text-[7px] text-emerald-500 font-extrabold pb-2 uppercase border-b border-emerald-950/40 block">SIGNAL INTEGRITY PROBE // LIVE ANALYSIS</span>
-            <div className="flex-1 flex flex-col justify-center items-center py-4">
-              <div className="w-full grid grid-cols-2 gap-3 mb-2 font-mono text-[8px]">
-                <div className="p-2 rounded bg-slate-950 border border-slate-900 text-left">
-                  <span className="text-slate-500 uppercase block text-[6px]">V_PEAK</span>
-                  <span className="text-emerald-400 font-bold text-[10px] animate-pulse">4.98 V</span>
-                </div>
-                <div className="p-2 rounded bg-slate-950 border border-slate-900 text-left">
-                  <span className="text-slate-500 uppercase block text-[6px]">HARMONIC NOISE</span>
-                  <span className="text-sky-300 font-bold text-[10px]">0.02% LIMIT</span>
-                </div>
-              </div>
-              <div className="h-10 w-full relative overflow-hidden bg-slate-950 rounded border border-slate-900 flex items-center justify-center">
-                <svg className="w-full h-full" viewBox="0 0 300 40">
-                  <motion.path
-                    animate={{ d: [
-                      "M 0,20 Q 15,2 30,20 T 60,20 T 90,20 T 120,20 T 150,20 T 180,20 T 210,20 T 240,20 T 270,20 Q 285,38 300,20",
-                      "M 0,20 Q 15,38 30,20 T 60,20 T 90,20 T 120,20 T 150,20 T 180,20 T 210,20 T 240,20 T 270,20 Q 285,2 300,20"
-                    ]}}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                    fill="none"
-                    stroke="#10b981"
-                    strokeWidth="1"
-                    strokeDasharray="4,2"
-                  />
-                </svg>
+          <div className="w-full h-full flex flex-col justify-between p-3 relative bg-slate-950/45 rounded-xl border border-slate-900 text-left">
+            <span className="font-mono text-[7px] text-emerald-400 font-extrabold pb-2 uppercase border-b border-emerald-950/40 block">HARDWARE SIGNAL TRACE ROUTING // ACTIVE</span>
+            
+            <div className="flex-1 flex flex-col justify-center items-center py-2 relative">
+              <svg viewBox="0 0 300 100" className="w-full h-24">
+                {/* Microcontroller MCU Box */}
+                <rect x="15" y="25" width="54" height="40" rx="3" fill="#02071a" stroke="#10b981" strokeWidth="1" />
+                <text x="42" y="47" fill="#34d399" className="font-mono text-[7px] font-bold" textAnchor="middle">MCU CORE</text>
+                
+                {/* Device Sensor Box */}
+                <rect x="231" y="25" width="54" height="40" rx="3" fill="#02071a" stroke="#0ea5e9" strokeWidth="1" />
+                <text x="258" y="47" fill="#38bdf8" className="font-mono text-[7px] font-bold" textAnchor="middle">SENSOR</text>
+                
+                {/* Channels lines */}
+                <path d="M 69,37 L 231,37" stroke="#1e293b" strokeWidth="1.5" />
+                <path d="M 69,53 L 231,53" stroke="#1e293b" strokeWidth="1.5" />
+                
+                {/* Animated active state tracers */}
+                <motion.circle
+                  cx="69"
+                  cy="37"
+                  r="2.5"
+                  fill="#34d399"
+                  className="shadow-[0_0_8px_#34d399]"
+                  animate={{ cx: [69, 231] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                />
+                <motion.circle
+                  cx="231"
+                  cy="53"
+                  r="2.5"
+                  fill="#38bdf8"
+                  className="shadow-[0_0_8px_#38bdf8]"
+                  animate={{ cx: [231, 69] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                />
+                
+                <text x="150" y="32" fill="#10b981" className="font-mono text-[5.5px]" textAnchor="middle">TX_BUS [GPIO_12]</text>
+                <text x="150" y="64" fill="#0ea5e9" className="font-mono text-[5.5px]" textAnchor="middle">RX_BUS [GPIO_13]</text>
+              </svg>
+              
+              <div className="flex gap-4 justify-around w-full font-mono text-[6.5px] text-slate-500 uppercase mt-1">
+                <span>VOLTAGE: 3.3V</span>
+                <span>BAUD: 115200</span>
+                <span>SIGNAL: STABLE</span>
               </div>
             </div>
-            <div className="flex justify-between text-[7.5px] font-mono text-slate-500 pt-1.5 border-t border-slate-900 uppercase">
-              <span>Probe Channel: CH A1 active</span>
-              <span className="text-emerald-300 font-bold">100% SIGNAL MATCH</span>
+
+            <div className="flex justify-between text-[7px] font-mono text-slate-500 pt-1 border-t border-slate-900 uppercase">
+              <span>PIN TRACE ANALYZER ACTIVE</span>
+              <span className="text-emerald-400 font-extrabold animate-pulse">TELEMETRY COMPLIANT</span>
             </div>
           </div>
         );
       case 4: // Robotic Manipulators
         return <AnimatedManipulatorDiagnostic />;
-      case 8: // AI Advisor Chatbot
-        return (
-          <div className="w-full h-full flex flex-col justify-between p-3 relative bg-slate-950/45 rounded-xl border border-slate-900">
-            <span className="font-mono text-[7px] text-emerald-400 font-extrabold pb-2 uppercase border-b border-emerald-950/40 block">INTELLIGENT ADVISOR CHATBOT CORE // ENGAGED</span>
-            
-            <div className="flex-1 flex flex-col justify-center py-2 gap-2 text-left">
-              {/* Simulated chat preview cards */}
-              <div className="space-y-1.5">
-                <div className="p-1 px-2 rounded bg-slate-900/80 border border-slate-800 text-[8px] font-sans flex items-start gap-1.5 max-w-[90%]">
-                  <span className="font-mono text-emerald-400 font-bold">[USER]:</span>
-                  <span className="text-slate-300">How do I compute inverse kinematics for my robotic manipulator?</span>
-                </div>
-                <div className="p-1.5 px-2 rounded bg-emerald-950/10 border border-emerald-500/20 text-[8px] font-sans flex items-start gap-1.5 ml-auto max-w-[90%]">
-                  <span className="font-mono text-cyan-400 font-bold">[AI]:</span>
-                  <span className="text-emerald-300 font-medium">Use trigonometric geometric solvers or algebraic matrices. Here is a Python code snippet: theta2 = acos...</span>
-                </div>
-              </div>
-
-              {/* Glowing active intelligence signal */}
-              <div className="flex items-center justify-between text-[7.5px] font-mono text-slate-500 bg-slate-950 p-1.5 rounded border border-slate-900 mt-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-emerald-400 font-bold">KNOWLEDGE RETRIEVAL STACK ACTIVE</span>
-                </div>
-                <span className="text-[6.5px] text-slate-600">GEN_CODES_OK</span>
-              </div>
-            </div>
-
-            <div className="flex justify-between text-[7.5px] font-mono text-slate-500 pt-1.5 border-t border-slate-900 uppercase">
-              <span>REAL-TIME MULTI-AXIS TUTORIAL</span>
-              <span className="text-emerald-400 font-black animate-pulse">GEMINI GENERATIVE ACTIVE</span>
-            </div>
-          </div>
-        );
       default:
         return null;
     }
@@ -1358,14 +1467,16 @@ export default function HomePage({
                     {/* Embedded Signal Visualizer Graph */}
                     <div className="text-left flex-1 min-h-[160px] flex flex-col justify-between font-sans animate-fadeIn">
                       <span className="font-mono text-[7px] text-indigo-400 font-extrabold uppercase tracking-wide block mb-1 opacity-70">
-                        {activePhaseIndex === 3 
+                        {currentPhase?.id === "ph-4"
                           ? "CLOSED-LOOP FEEDBACK CONTROL DIAGRAM" 
-                          : activePhaseIndex === 4 
+                          : currentPhase?.id === "ph-5"
                           ? "SPATIAL MULTI-AXIS MANIPULATOR GEOMETRY" 
-                          : activePhaseIndex === 5 
+                          : currentPhase?.id === "ph-6"
                           ? "NEURAL NETWORK INFERENCE CORE" 
-                          : activePhaseIndex === 7 
-                          ? "SIGNAL INTEGRITY SPECTRUM ANALYZER" 
+                          : currentPhase?.id === "ph-diagnostics"
+                          ? "COMPONENT DIAGNOSTIC TERMINAL SIGNAL TRACE" 
+                          : currentPhase?.id === "ph-types"
+                          ? "ROBOT CLASSIFICATION SCANNER" 
                           : "MODULE SYNAPTIC INTERACTION SIGNALS"}
                       </span>
                       <div className="flex-1 w-full min-h-[150px] rounded-xl bg-slate-950/95 border border-slate-900 p-1.5 relative overflow-hidden flex flex-col justify-between select-none">

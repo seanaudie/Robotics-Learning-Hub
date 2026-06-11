@@ -956,6 +956,79 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
   // Rapid 30fps continuous animation tick state for mechatronic visualizers
   const [simTick, setSimTick] = useState<number>(0);
 
+  // Arrow key keyboard navigation for selecting programming courses/subtabs or electronics subtabs
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in user input fields
+      const activeEl = document.activeElement;
+      if (activeEl) {
+        const tag = activeEl.tagName.toLowerCase();
+        if (
+          tag === "input" ||
+          tag === "textarea" ||
+          tag === "select" ||
+          activeEl.hasAttribute("contenteditable") ||
+          activeEl.classList.contains("monaco-editor")
+        ) {
+          return;
+        }
+      }
+
+      // Ignore if any modal overlay is present
+      const hasModalOpen = !!document.querySelector('.fixed.inset-0, [class*="fixed inset-0"], [id*="-modal"]');
+      if (hasModalOpen) {
+        return;
+      }
+
+      if (viewType === "electronics") {
+        const tabs: ("ohms" | "circuits" | "signals" | "binary" | "protocols")[] = [
+          "ohms",
+          "circuits",
+          "signals",
+          "binary",
+          "protocols"
+        ];
+        const currentIndex = tabs.indexOf(activeElectSubTab);
+        if (currentIndex === -1) return;
+
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+          e.preventDefault();
+          const nextIndex = (currentIndex + 1) % tabs.length;
+          setActiveElectSubTab(tabs[nextIndex]);
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+          e.preventDefault();
+          const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+          setActiveElectSubTab(tabs[prevIndex]);
+        }
+      } else {
+        // default / programming
+        const tabs: ("variables" | "inputs" | "conditions" | "loops" | "functions" | "handbook")[] = [
+          "variables",
+          "inputs",
+          "conditions",
+          "loops",
+          "functions",
+          "handbook"
+        ];
+        const currentIndex = tabs.indexOf(activeCodingSubTab);
+        if (currentIndex === -1) return;
+
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+          e.preventDefault();
+          const nextIndex = (currentIndex + 1) % tabs.length;
+          setActiveCodingSubTab(tabs[nextIndex]);
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+          e.preventDefault();
+          const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+          setActiveCodingSubTab(tabs[prevIndex]);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [viewType, activeCodingSubTab, activeElectSubTab]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setSimTick((prev) => (prev + 1.6) % 12000);
@@ -1084,7 +1157,7 @@ export default function RoboticsGuide({ viewType }: { viewType?: "programming" |
   const ohmsVibeY = ohmsResistance > 700 ? "1.5px" : ohmsResistance > 400 ? "0.75px" : "0.15px";
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto w-full px-1" id="robotics-edu-suite">
+    <div className="space-y-6 max-w-7xl mx-auto w-full px-1" id="robotics-edu-suite">
       {/* Header banner explaining STEM systems */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-6 md:p-8" id="edu-hero-intro">
         <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-indigo-505/10 to-sky-505/0 rounded-full blur-3xl pointer-events-none" />
@@ -3552,7 +3625,7 @@ delay(250); // Pause execution`)}
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
                 
                 {/* Left Side: Logical Flowchart SVG (6 Columns) */}
-                <div className="xl:col-span-6 bg-[#020617] p-4 rounded-xl border border-slate-900 flex flex-col justify-between items-center overflow-x-auto min-h-[440px]" id="interactive-svg-flowchart">
+                <div className="xl:col-span-6 bg-[#020617] p-4 rounded-xl border border-slate-900 flex flex-col justify-between items-center h-[460px] overflow-hidden" id="interactive-svg-flowchart">
                   <div className="w-full flex items-center justify-between border-b border-slate-900/60 pb-2 mb-2 select-none">
                     <span className="font-mono text-[8.5px] text-[#818cf8] font-black uppercase tracking-widest flex items-center gap-1.5">
                       <Zap className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
@@ -3563,7 +3636,7 @@ delay(250); // Pause execution`)}
                     </span>
                   </div>
 
-                  <svg viewBox="0 0 340 400" className="w-full max-w-sm h-auto select-none font-mono text-[9.5px]">
+                  <svg viewBox="0 0 340 400" className="w-full max-w-[325px] h-auto select-none font-mono text-[9.5px]">
                     {/* Arrow Marker Definitions */}
                     <defs>
                       <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -3775,7 +3848,7 @@ delay(250); // Pause execution`)}
                 </div>
 
                 {/* Right Side: Step-by-Step Logic Telemetry Walkthrough (6 Columns) */}
-                <div className="xl:col-span-6 bg-[#020614] p-5 rounded-xl border border-slate-900 flex flex-col justify-between min-h-[440px] relative overflow-hidden text-left">
+                <div className="xl:col-span-6 bg-[#020614] p-5 rounded-xl border border-slate-900 flex flex-col justify-between h-[460px] relative overflow-hidden text-left">
                   {/* Outer mechanical mesh glow effect */}
                   <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:14px_14px] opacity-15 pointer-events-none" />
                   

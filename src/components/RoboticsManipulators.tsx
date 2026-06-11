@@ -492,6 +492,95 @@ export default function RoboticsManipulators() {
     }
   }, [currentStep]);
 
+  // Arrow key keyboard navigation for selecting joints (DOF test) in step 2
+  useEffect(() => {
+    if (currentStep !== 2) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in input, select, textarea, etc.
+      const activeEl = document.activeElement;
+      if (activeEl) {
+        const tag = activeEl.tagName.toLowerCase();
+        if (
+          tag === "input" ||
+          tag === "textarea" ||
+          tag === "select" ||
+          activeEl.hasAttribute("contenteditable") ||
+          activeEl.classList.contains("monaco-editor")
+        ) {
+          return;
+        }
+      }
+
+      // Ignore if a modal popup starts on screen
+      const hasModalOpen = !!document.querySelector('.fixed.inset-0, [class*="fixed inset-0"], [id*="-modal"]');
+      if (hasModalOpen) {
+        return;
+      }
+
+      const jointIds = ["j1", "j2", "j3", "j5", "j6"] as const;
+      
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        const currentIndex = jointIds.indexOf(activeDofTest as any);
+        let nextTest: "j1" | "j2" | "j3" | "j5" | "j6";
+        if (currentIndex === -1) {
+          nextTest = "j1";
+        } else {
+          nextTest = jointIds[(currentIndex + 1) % jointIds.length];
+        }
+        
+        setActiveDofTest(nextTest);
+        if (nextTest === "j1") {
+          setRotYaw(0);
+          setRotPitch(40);
+        } else if (nextTest === "j2") {
+          setRotYaw(-85);
+          setRotPitch(20);
+        } else if (nextTest === "j3") {
+          setRotYaw(-65);
+          setRotPitch(22);
+        } else if (nextTest === "j5") {
+          setRotYaw(-25);
+          setRotPitch(18);
+        } else if (nextTest === "j6") {
+          setRotYaw(45);
+          setRotPitch(12);
+        }
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const currentIndex = jointIds.indexOf(activeDofTest as any);
+        let nextTest: "j1" | "j2" | "j3" | "j5" | "j6";
+        if (currentIndex === -1) {
+          nextTest = "j6";
+        } else {
+          nextTest = jointIds[(currentIndex - 1 + jointIds.length) % jointIds.length];
+        }
+
+        setActiveDofTest(nextTest);
+        if (nextTest === "j1") {
+          setRotYaw(0);
+          setRotPitch(40);
+        } else if (nextTest === "j2") {
+          setRotYaw(-85);
+          setRotPitch(20);
+        } else if (nextTest === "j3") {
+          setRotYaw(-65);
+          setRotPitch(22);
+        } else if (nextTest === "j5") {
+          setRotYaw(-25);
+          setRotPitch(18);
+        } else if (nextTest === "j6") {
+          setRotYaw(45);
+          setRotPitch(12);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentStep, activeDofTest]);
+
   // Reset active joint highlights when switching steps or kinematics modes
   useEffect(() => {
     setHighlightedPart("none");
@@ -1178,7 +1267,7 @@ export default function RoboticsManipulators() {
                 
                 <span className="text-[8px] text-slate-500 font-mono font-bold block uppercase tracking-wider mt-2">// HIGHLIGHT CORE COMPONENTS:</span>
 
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-1 gap-1.5">
                   {[
                     { id: "base", label: "Rotational Base", desc: "Allows full 360° rotation in horizontal plane." },
                     { id: "shoulder", label: "Shoulder Joint", desc: "Pitch axis controls arm lift tilt and range." },
@@ -1566,7 +1655,7 @@ export default function RoboticsManipulators() {
                             <button
                               type="button"
                               onClick={() => setJ1((prev) => Math.max(-120, prev - 5))}
-                              className="px-1.5 py-0.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               -5°
                             </button>
@@ -1576,13 +1665,13 @@ export default function RoboticsManipulators() {
                               max="120"
                               value={j1}
                               onChange={(e) => setJ1(Number(e.target.value))}
-                              className="flex-grow h-1 bg-slate-955 rounded appearance-none hover:bg-slate-900 cursor-pointer"
+                              className="flex-grow h-1.5 bg-slate-955 rounded appearance-none hover:bg-slate-900 cursor-pointer"
                               style={getProgressStyle(j1, -120, 120, "#3b82f6")}
                             />
                             <button
                               type="button"
                               onClick={() => setJ1((prev) => Math.min(120, prev + 5))}
-                              className="px-1.5 py-0.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               +5°
                             </button>
@@ -1603,7 +1692,7 @@ export default function RoboticsManipulators() {
                             <button
                               type="button"
                               onClick={() => setJ2((prev) => Math.max(-15, prev - 5))}
-                              className="px-1.5 py-0.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               -5°
                             </button>
@@ -1613,13 +1702,13 @@ export default function RoboticsManipulators() {
                               max="110"
                               value={j2}
                               onChange={(e) => setJ2(Number(e.target.value))}
-                              className="flex-grow h-1 bg-slate-955 rounded appearance-none hover:bg-slate-900 cursor-pointer"
+                              className="flex-grow h-1.5 bg-slate-955 rounded appearance-none hover:bg-slate-900 cursor-pointer"
                               style={getProgressStyle(j2, -15, 110, "#3b82f6")}
                             />
                             <button
                               type="button"
                               onClick={() => setJ2((prev) => Math.min(110, prev + 5))}
-                              className="px-1.5 py-0.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               +5°
                             </button>
@@ -1640,7 +1729,7 @@ export default function RoboticsManipulators() {
                             <button
                               type="button"
                               onClick={() => setJ3((prev) => Math.max(-110, prev - 5))}
-                              className="px-1.5 py-0.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               -5°
                             </button>
@@ -1650,13 +1739,13 @@ export default function RoboticsManipulators() {
                               max="30"
                               value={j3}
                               onChange={(e) => setJ3(Number(e.target.value))}
-                              className="flex-grow h-1 bg-slate-955 rounded appearance-none hover:bg-slate-900 cursor-pointer"
+                              className="flex-grow h-1.5 bg-slate-955 rounded appearance-none hover:bg-slate-900 cursor-pointer"
                               style={getProgressStyle(j3, -110, 30, "#3b82f6")}
                             />
                             <button
                               type="button"
                               onClick={() => setJ3((prev) => Math.min(30, prev + 5))}
-                              className="px-1.5 py-0.5 bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-950/80 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               +5°
                             </button>
@@ -1677,7 +1766,7 @@ export default function RoboticsManipulators() {
                             <button
                               type="button"
                               onClick={() => setJ5((prev) => Math.max(-120, prev - 5))}
-                              className="px-1.5 py-0.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               -5°
                             </button>
@@ -1687,13 +1776,13 @@ export default function RoboticsManipulators() {
                               max="120"
                               value={j5}
                               onChange={(e) => setJ5(Number(e.target.value))}
-                              className="flex-grow h-1 bg-slate-955 rounded appearance-none hover:bg-slate-900 cursor-pointer"
+                              className="flex-grow h-1.5 bg-slate-955 rounded appearance-none hover:bg-slate-900 cursor-pointer"
                               style={getProgressStyle(j5, -120, 120, "#3b82f6")}
                             />
                             <button
                               type="button"
                               onClick={() => setJ5((prev) => Math.min(120, prev + 5))}
-                              className="px-1.5 py-0.5 bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               +5°
                             </button>
@@ -1745,7 +1834,7 @@ export default function RoboticsManipulators() {
                             <button
                               type="button"
                               onClick={() => setTargetPoint((p) => ({ ...p, x: Math.max(35, p.x - 5) }))}
-                              className="px-1.5 py-0.5 bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               -5
                             </button>
@@ -1755,13 +1844,13 @@ export default function RoboticsManipulators() {
                               max="115"
                               value={targetPoint.x}
                               onChange={(e) => setTargetPoint((p) => ({ ...p, x: Number(e.target.value) }))}
-                              className="flex-grow h-1 bg-slate-900 rounded appearance-none hover:bg-slate-800 cursor-pointer"
+                              className="flex-grow h-1.5 bg-slate-900 rounded appearance-none hover:bg-slate-800 cursor-pointer"
                               style={getProgressStyle(targetPoint.x, 35, 115, "#3b82f6")}
                             />
                             <button
                               type="button"
                               onClick={() => setTargetPoint((p) => ({ ...p, x: Math.min(115, p.x + 5) }))}
-                              className="px-1.5 py-0.5 bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               +5
                             </button>
@@ -1778,7 +1867,7 @@ export default function RoboticsManipulators() {
                             <button
                               type="button"
                               onClick={() => setTargetPoint((p) => ({ ...p, y: Math.max(-80, p.y - 5) }))}
-                              className="px-1.5 py-0.5 bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               -5
                             </button>
@@ -1788,13 +1877,13 @@ export default function RoboticsManipulators() {
                               max="80"
                               value={targetPoint.y}
                               onChange={(e) => setTargetPoint((p) => ({ ...p, y: Number(e.target.value) }))}
-                              className="flex-grow h-1 bg-slate-900 rounded appearance-none hover:bg-slate-800 cursor-pointer"
+                              className="flex-grow h-1.5 bg-slate-900 rounded appearance-none hover:bg-slate-800 cursor-pointer"
                               style={getProgressStyle(targetPoint.y, -80, 80, "#3b82f6")}
                             />
                             <button
                               type="button"
                               onClick={() => setTargetPoint((p) => ({ ...p, y: Math.min(80, p.y + 5) }))}
-                              className="px-1.5 py-0.5 bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               +5
                             </button>
@@ -1811,7 +1900,7 @@ export default function RoboticsManipulators() {
                             <button
                               type="button"
                               onClick={() => setTargetPoint((p) => ({ ...p, z: Math.max(25, p.z - 5) }))}
-                              className="px-1.5 py-0.5 bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               -5
                             </button>
@@ -1821,13 +1910,13 @@ export default function RoboticsManipulators() {
                               max="115"
                               value={targetPoint.z}
                               onChange={(e) => setTargetPoint((p) => ({ ...p, z: Number(e.target.value) }))}
-                              className="flex-grow h-1 bg-slate-900 rounded appearance-none hover:bg-slate-800 cursor-pointer"
+                              className="flex-grow h-1.5 bg-slate-900 rounded appearance-none hover:bg-slate-800 cursor-pointer"
                               style={getProgressStyle(targetPoint.z, 25, 115, "#3b82f6")}
                             />
                             <button
                               type="button"
                               onClick={() => setTargetPoint((p) => ({ ...p, z: Math.min(115, p.z + 5) }))}
-                              className="px-1.5 py-0.5 bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[9px] font-mono font-bold cursor-pointer transition-all hover:text-white"
+                              className="min-w-[44px] h-[40px] px-2 flex items-center justify-center bg-slate-955 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all hover:text-white select-none"
                             >
                               +5
                             </button>
@@ -2504,16 +2593,16 @@ export default function RoboticsManipulators() {
                             <rect x="2" y="-12" width="72" height="34" rx="3.5" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
                             
                             {/* Title Label */}
-                            <text x="38" y="-5" className="font-sans font-black text-[6.5px] fill-slate-200 tracking-wider text-center" textAnchor="middle">
+                            <text x="38" y="-5" className="font-sans font-black text-[6.5px] tracking-wider text-center" fill="#e2e8f0" textAnchor="middle">
                               {label.toUpperCase()}
                             </text>
                             
                             <line x1="4" y1="-1" x2="72" y2="-1" stroke="rgba(148,163,184,0.18)" strokeWidth="0.5" />
 
                             {/* Cartesian values in mm in distinct high-contrast colors */}
-                            <text x="8" y="8" className="font-mono text-[7.5px] font-black fill-red-450">X: {Math.round(p3D.x)}mm</text>
-                            <text x="8" y="16" className="font-mono text-[7.5px] font-black fill-emerald-450">Y: {Math.round(p3D.y)}mm</text>
-                            <text x="44" y="12" className="font-mono text-[8px] font-black fill-blue-450">Z: {Math.round(p3D.z)}mm</text>
+                            <text x="8" y="8" className="font-mono text-[7.5px] font-bold" fill="#f87171">X: {Math.round(p3D.x)}mm</text>
+                            <text x="8" y="16" className="font-mono text-[7.5px] font-bold" fill="#34d399">Y: {Math.round(p3D.y)}mm</text>
+                            <text x="44" y="12" className="font-mono text-[8px] font-bold" fill="#60a5fa">Z: {Math.round(p3D.z)}mm</text>
                           </g>
                         </g>
                       );

@@ -238,6 +238,7 @@ const ROBOT_CATEGORIES: RobotCategory[] = [
 
 export default function RobotTypesSection() {
   const [activeCategory, setActiveCategory] = useState<RobotCategory>(ROBOT_CATEGORIES[0]);
+  const [viewMode, setViewMode] = useState<"visual" | "interactive">("visual");
   
   // Interactive Simulator States
   // 1. Educational (Line Tracker) states
@@ -445,6 +446,13 @@ export default function RobotTypesSection() {
                   key={cat.id}
                   onClick={() => {
                     setActiveCategory(cat);
+                    setViewMode("visual");
+                    setTimeout(() => {
+                      const displayEl = document.getElementById("robot-view-display");
+                      if (displayEl) {
+                        displayEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }
+                    }, 50);
                   }}
                   className={`w-full text-left p-3 rounded-xl border transition-all duration-200 cursor-pointer relative overflow-hidden group select-none ${
                     isSelected
@@ -506,7 +514,7 @@ export default function RobotTypesSection() {
         </div>
 
         {/* RIGHT COLUMN: Static Reference Visualizer and Specifications */}
-        <div className="lg:col-span-8 flex flex-col gap-5">
+        <div id="robot-view-display" className="lg:col-span-8 flex flex-col gap-5 scroll-mt-20">
           {/* Main Visualizer Panel */}
           <div className="bg-[#030815]/95 rounded-xl border border-slate-800/80 p-4 relative overflow-hidden flex flex-col justify-between min-h-[300px]">
             {/* Visualizer Header */}
@@ -524,14 +532,34 @@ export default function RobotTypesSection() {
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 font-mono text-[8px]">
-                <Eye className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-                <span className="text-cyan-400 font-extrabold uppercase">VISUAL REFERENCE</span>
+              <div className="flex bg-slate-950 p-1 rounded-lg border border-slate-800/60 gap-1 shrink-0">
+                <button
+                  onClick={() => setViewMode("visual")}
+                  className={`px-2.5 py-1 rounded font-mono text-[9px] uppercase tracking-wide font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                    viewMode === "visual"
+                      ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/25"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent"
+                  }`}
+                >
+                  <Eye className="w-3 h-3" />
+                  Visual Reference
+                </button>
+                <button
+                  onClick={() => setViewMode("interactive")}
+                  className={`px-2.5 py-1 rounded font-mono text-[9px] uppercase tracking-wide font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                    viewMode === "interactive"
+                      ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/25"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent"
+                  }`}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Interactive Simulator
+                </button>
               </div>
             </div>
 
             {/* DYNAMIC ILLUSTRATION IMAGE VIEWPORT */}
-            <div className="flex-1 flex flex-col justify-center items-center py-2 relative min-h-[220px]">
+            <div className={`flex-1 flex flex-col justify-center items-center py-2 relative min-h-[220px] ${viewMode === "visual" ? "" : "hidden"}`}>
               <div className="w-full rounded-lg border border-slate-800/80 overflow-hidden relative group">
                 <img
                   src={activeCategory.id === "educational" ? "/src/assets/images/ev3_lego_educational_1780908973187.png" :
@@ -556,7 +584,7 @@ export default function RobotTypesSection() {
             </div>
 
             {/* Bypassing simulator views and controls visually */}
-            <div className="hidden">
+            <div className={viewMode === "interactive" ? "" : "hidden"}>
               {/* DYNAMIC VIEWPORTS PER ROBOT CATEGORY */}
               <div className="flex-1 flex flex-col justify-center items-center py-4 relative min-h-[220px]">
                 

@@ -6,6 +6,7 @@ import { Send, RefreshCw, Bot, User, Sparkles, ChevronDown, ChevronUp } from "lu
 interface AIChatTutorProps {
   onSendMessage: (prompt: string, history: ChatMessage[]) => Promise<string>;
   loading: boolean;
+  className?: string;
 }
 
 const LEVEL_PROMPTS = {
@@ -26,14 +27,14 @@ const LEVEL_PROMPTS = {
   ],
 };
 
-export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps) {
+export default function AIChatTutor({ onSendMessage, loading, className }: AIChatTutorProps) {
   const [activeLevel, setActiveLevel] = useState<"beginner" | "advanced" | "expert">("beginner");
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       role: "model",
-      text: "Hello, fellow robotics engineer! I am your AI Robotics Advisor. Ask me anything about microcontrollers, closed-loop servo physics, capacitive encoders, H-bridge drivers, or write-up custom control loops!",
+      text: "Hello! Ask me any questions you have about Robotics. Whether you are learning mechanical design, electronics, embedded programming, or feedback control, I am here to help!",
       timestamp: new Date(),
     },
   ]);
@@ -89,14 +90,14 @@ export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps
       {
         id: "welcome",
         role: "model",
-        text: "Welcome back! I am your AI Robotics Advisor. What cyber-physical systems shall we investigate today?",
+        text: "Welcome back! How can I assist you with your robotics questions today?",
         timestamp: new Date(),
       },
     ]);
   };
 
   return (
-    <div className="bg-[#050B18]/90 border-2 border-slate-700 p-5 rounded-2xl flex flex-col justify-between h-[480px] shadow-2xl relative transition-all">
+    <div className={`bg-[#050B18]/90 border border-slate-800/80 p-5 rounded-2xl flex flex-col justify-between shadow-2xl relative transition-all ${className || "h-[480px]"}`}>
       <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3.5 z-10 gap-2">
         <span className="font-mono text-[9.5px] text-sky-400 uppercase tracking-wider font-extrabold flex items-center gap-1.5 select-none">
           <Sparkles className="w-4 h-4 text-sky-400 animate-pulse" /> Interactive AI Robotics Tutor
@@ -209,7 +210,7 @@ export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps
                 key={idx}
                 type="button"
                 onClick={() => handleSend(p)}
-                className="bg-slate-950 hover:bg-sky-950/20 text-[11px] text-slate-300 hover:text-sky-450 p-2.5 px-3.5 rounded-xl border-2 border-slate-850 hover:border-sky-500/40 font-semibold transition-all text-left cursor-pointer flex items-center gap-2 shadow-inner"
+                className="bg-slate-950 hover:bg-sky-950/20 text-[11px] text-slate-300 hover:text-sky-450 p-2.5 px-3.5 rounded-xl border border-slate-900 hover:border-sky-500/40 font-semibold transition-all text-left cursor-pointer flex items-center gap-2 shadow-inner"
               >
                 <span className="text-sky-450 animate-pulse font-black text-xs font-mono">•</span> 
                 <span className="font-sans">{p}</span>
@@ -231,15 +232,15 @@ export default function AIChatTutor({ onSendMessage, loading }: AIChatTutorProps
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Ask a robotics question..."
-          className="flex-1 bg-slate-950 text-xs text-white placeholder-slate-400 font-sans py-3 px-4 rounded-xl border-2 border-slate-700/80 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 focus:outline-none transition-all font-semibold"
+          className="flex-1 bg-slate-950 text-xs text-white placeholder-slate-400 font-sans py-3 px-4 rounded-xl border border-slate-800 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 focus:outline-none transition-all font-semibold"
         />
         <button
           type="submit"
           disabled={!inputValue.trim() || loading}
-          className={`p-3 rounded-xl flex items-center justify-center transition-all border-2 ${
+          className={`p-3 rounded-xl flex items-center justify-center transition-all border ${
             inputValue.trim() && !loading
               ? "bg-sky-500 border-sky-400 text-slate-950 hover:bg-sky-400 cursor-pointer shadow-lg shadow-sky-500/15 font-black"
-              : "bg-slate-950 text-slate-500 border-slate-800 cursor-not-allowed"
+              : "bg-slate-950 text-slate-500 border-slate-900 cursor-not-allowed"
           }`}
         >
           <Send className="w-4 h-4" />
