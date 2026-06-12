@@ -492,9 +492,9 @@ export default function RoboticsManipulators() {
     }
   }, [currentStep]);
 
-  // Arrow key keyboard navigation for selecting joints (DOF test) in step 2
+  // Arrow key keyboard navigation for selecting joints / components (Step 1 component highlights or Step 2 joint sweep tests)
   useEffect(() => {
-    if (currentStep !== 2) return;
+    if (currentStep !== 1 && currentStep !== 2) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is typing in input, select, textarea, etc.
@@ -518,68 +518,132 @@ export default function RoboticsManipulators() {
         return;
       }
 
-      const jointIds = ["j1", "j2", "j3", "j5", "j6"] as const;
-      
-      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-        e.preventDefault();
-        const currentIndex = jointIds.indexOf(activeDofTest as any);
-        let nextTest: "j1" | "j2" | "j3" | "j5" | "j6";
-        if (currentIndex === -1) {
-          nextTest = "j1";
-        } else {
-          nextTest = jointIds[(currentIndex + 1) % jointIds.length];
-        }
+      if (currentStep === 1) {
+        const partIds = ["base", "shoulder", "elbow", "wrist", "gripper"] as const;
         
-        setActiveDofTest(nextTest);
-        if (nextTest === "j1") {
-          setRotYaw(0);
-          setRotPitch(40);
-        } else if (nextTest === "j2") {
-          setRotYaw(-85);
-          setRotPitch(20);
-        } else if (nextTest === "j3") {
-          setRotYaw(-65);
-          setRotPitch(22);
-        } else if (nextTest === "j5") {
-          setRotYaw(-25);
-          setRotPitch(18);
-        } else if (nextTest === "j6") {
-          setRotYaw(45);
-          setRotPitch(12);
-        }
-      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-        e.preventDefault();
-        const currentIndex = jointIds.indexOf(activeDofTest as any);
-        let nextTest: "j1" | "j2" | "j3" | "j5" | "j6";
-        if (currentIndex === -1) {
-          nextTest = "j6";
-        } else {
-          nextTest = jointIds[(currentIndex - 1 + jointIds.length) % jointIds.length];
-        }
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+          e.preventDefault();
+          const currentIndex = partIds.indexOf(highlightedPart as any);
+          let nextPart: "base" | "shoulder" | "elbow" | "wrist" | "gripper";
+          if (currentIndex === -1) {
+            nextPart = "base";
+          } else {
+            nextPart = partIds[(currentIndex + 1) % partIds.length];
+          }
+          
+          setHighlightedPart(nextPart);
+          if (nextPart === "base") {
+            setRotYaw(0);
+            setRotPitch(35);
+          } else if (nextPart === "shoulder") {
+            setRotYaw(-85);
+            setRotPitch(20);
+          } else if (nextPart === "elbow") {
+            setRotYaw(-65);
+            setRotPitch(24);
+          } else if (nextPart === "wrist") {
+            setRotYaw(-25);
+            setRotPitch(18);
+          } else if (nextPart === "gripper") {
+            setRotYaw(45);
+            setRotPitch(12);
+          }
+          scrollToSimulation();
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+          e.preventDefault();
+          const currentIndex = partIds.indexOf(highlightedPart as any);
+          let nextPart: "base" | "shoulder" | "elbow" | "wrist" | "gripper";
+          if (currentIndex === -1) {
+            nextPart = "gripper";
+          } else {
+            nextPart = partIds[(currentIndex - 1 + partIds.length) % partIds.length];
+          }
 
-        setActiveDofTest(nextTest);
-        if (nextTest === "j1") {
-          setRotYaw(0);
-          setRotPitch(40);
-        } else if (nextTest === "j2") {
-          setRotYaw(-85);
-          setRotPitch(20);
-        } else if (nextTest === "j3") {
-          setRotYaw(-65);
-          setRotPitch(22);
-        } else if (nextTest === "j5") {
-          setRotYaw(-25);
-          setRotPitch(18);
-        } else if (nextTest === "j6") {
-          setRotYaw(45);
-          setRotPitch(12);
+          setHighlightedPart(nextPart);
+          if (nextPart === "base") {
+            setRotYaw(0);
+            setRotPitch(35);
+          } else if (nextPart === "shoulder") {
+            setRotYaw(-85);
+            setRotPitch(20);
+          } else if (nextPart === "elbow") {
+            setRotYaw(-65);
+            setRotPitch(24);
+          } else if (nextPart === "wrist") {
+            setRotYaw(-25);
+            setRotPitch(18);
+          } else if (nextPart === "gripper") {
+            setRotYaw(45);
+            setRotPitch(12);
+          }
+          scrollToSimulation();
+        }
+      } else if (currentStep === 2) {
+        const jointIds = ["j1", "j2", "j3", "j5", "j6"] as const;
+        
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+          e.preventDefault();
+          const currentIndex = jointIds.indexOf(activeDofTest as any);
+          let nextTest: "j1" | "j2" | "j3" | "j5" | "j6";
+          if (currentIndex === -1) {
+            nextTest = "j1";
+          } else {
+            nextTest = jointIds[(currentIndex + 1) % jointIds.length];
+          }
+          
+          setActiveDofTest(nextTest);
+          if (nextTest === "j1") {
+            setRotYaw(0);
+            setRotPitch(40);
+          } else if (nextTest === "j2") {
+            setRotYaw(-85);
+            setRotPitch(20);
+          } else if (nextTest === "j3") {
+            setRotYaw(-65);
+            setRotPitch(22);
+          } else if (nextTest === "j5") {
+            setRotYaw(-25);
+            setRotPitch(18);
+          } else if (nextTest === "j6") {
+            setRotYaw(45);
+            setRotPitch(12);
+          }
+          scrollToSimulation();
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+          e.preventDefault();
+          const currentIndex = jointIds.indexOf(activeDofTest as any);
+          let nextTest: "j1" | "j2" | "j3" | "j5" | "j6";
+          if (currentIndex === -1) {
+            nextTest = "j6";
+          } else {
+            nextTest = jointIds[(currentIndex - 1 + jointIds.length) % jointIds.length];
+          }
+
+          setActiveDofTest(nextTest);
+          if (nextTest === "j1") {
+            setRotYaw(0);
+            setRotPitch(40);
+          } else if (nextTest === "j2") {
+            setRotYaw(-85);
+            setRotPitch(20);
+          } else if (nextTest === "j3") {
+            setRotYaw(-65);
+            setRotPitch(22);
+          } else if (nextTest === "j5") {
+            setRotYaw(-25);
+            setRotPitch(18);
+          } else if (nextTest === "j6") {
+            setRotYaw(45);
+            setRotPitch(12);
+          }
+          scrollToSimulation();
         }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentStep, activeDofTest]);
+  }, [currentStep, activeDofTest, highlightedPart]);
 
   // Reset active joint highlights when switching steps or kinematics modes
   useEffect(() => {
