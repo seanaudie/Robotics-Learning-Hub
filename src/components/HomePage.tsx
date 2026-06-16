@@ -614,7 +614,42 @@ export default function HomePage({
             </div>
           </div>
         );
-      case 5: // Robotic AI Systems
+      case 5: { // Robotic AI Systems
+        const paths = [
+          // Input 1 -> Hidden 1 -> Output 1
+          { cx: [35, 140, 245], cy: [23, 18, 33], color: "#c084fc", delay: 0 },
+          { cx: [35, 140, 245], cy: [23, 18, 33], color: "#c084fc", delay: 1.2 },
+          // Input 1 -> Hidden 2 -> Output 1
+          { cx: [35, 140, 245], cy: [23, 36, 33], color: "#a855f7", delay: 0.6 },
+          { cx: [35, 140, 245], cy: [23, 36, 33], color: "#a855f7", delay: 1.8 },
+          // Input 1 -> Hidden 3 -> Output 2
+          { cx: [35, 140, 245], cy: [23, 54, 58], color: "#38bdf8", delay: 0.3 },
+          { cx: [35, 140, 245], cy: [23, 54, 58], color: "#38bdf8", delay: 1.5 },
+
+          // Input 2 -> Hidden 1 -> Output 1
+          { cx: [35, 140, 245], cy: [48, 18, 33], color: "#a855f7", delay: 0.9 },
+          { cx: [35, 140, 245], cy: [48, 18, 33], color: "#a855f7", delay: 2.1 },
+          // Input 2 -> Hidden 2 -> Output 2
+          { cx: [35, 140, 245], cy: [48, 36, 58], color: "#38bdf8", delay: 0.5 },
+          { cx: [35, 140, 245], cy: [48, 36, 58], color: "#38bdf8", delay: 1.7 },
+          // Input 2 -> Hidden 3 -> Output 2
+          { cx: [35, 140, 245], cy: [48, 54, 58], color: "#c084fc", delay: 1.1 },
+          { cx: [35, 140, 245], cy: [48, 54, 58], color: "#c084fc", delay: 2.3 },
+          // Input 2 -> Hidden 4 -> Output 2
+          { cx: [35, 140, 245], cy: [48, 72, 58], color: "#38bdf8", delay: 0.2 },
+          { cx: [35, 140, 245], cy: [48, 72, 58], color: "#38bdf8", delay: 1.4 },
+
+          // Input 3 -> Hidden 2 -> Output 2
+          { cx: [35, 140, 245], cy: [73, 36, 58], color: "#a855f7", delay: 0.7 },
+          { cx: [35, 140, 245], cy: [73, 36, 58], color: "#a855f7", delay: 1.9 },
+          // Input 3 -> Hidden 3 -> Output 2
+          { cx: [35, 140, 245], cy: [73, 54, 58], color: "#c084fc", delay: 1.3 },
+          { cx: [35, 140, 245], cy: [73, 54, 58], color: "#c084fc", delay: 2.5 },
+          // Input 3 -> Hidden 4 -> Output 1
+          { cx: [35, 140, 245], cy: [73, 72, 33], color: "#38bdf8", delay: 0.4 },
+          { cx: [35, 140, 245], cy: [73, 72, 33], color: "#38bdf8", delay: 1.6 },
+        ];
+
         return (
           <div className="w-full h-full flex flex-col justify-between p-1 relative">
             <span className="font-mono text-[7px] text-purple-500 font-extrabold pb-1.5 uppercase border-b border-slate-900 block font-bold">
@@ -660,9 +695,24 @@ export default function HomePage({
                   <line x1="140" y1="72" x2="245" y2="58" stroke="#d8b4fe" strokeWidth="0.5" strokeOpacity="0.5" />
 
                   {/* Active synapsis shooting particles (Animating circles on paths) */}
-                  <motion.circle cx={[35, 140, 245]} cy={[23, 36, 33]} r="1.5" fill="#f43f5e" transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }} />
-                  <motion.circle cx={[35, 140, 245]} cy={[73, 54, 58]} r="1.5" fill="#a855f7" transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.8 }} />
-                  <motion.circle cx={[35, 140, 245]} cy={[48, 18, 33]} r="1.5" fill="#38bdf8" transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", delay: 0.4 }} />
+                  {paths.map((p, i) => (
+                    <motion.circle
+                      key={i}
+                      style={{ filter: `drop-shadow(0 0 2px ${p.color})` }}
+                      animate={{
+                        cx: p.cx,
+                        cy: p.cy,
+                        r: [1.3, 3.2, 1.3],
+                        fill: [p.color, "#fb7185", "#10b981"]
+                      }}
+                      transition={{
+                        duration: 2.2,
+                        repeat: Infinity,
+                        ease: "linear",
+                        delay: p.delay,
+                      }}
+                    />
+                  ))}
 
                   {/* Render layer Node circles */}
                   {/* Inputs */}
@@ -699,6 +749,7 @@ export default function HomePage({
             </div>
           </div>
         );
+      }
       case 6: // Robot Types & Applications (index 6)
         return (
           <div className="w-full h-full flex flex-col justify-between p-1 relative bg-transparent border-none overflow-hidden text-left">
