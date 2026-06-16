@@ -95,28 +95,28 @@ export default function AnimatedManipulatorDiagnostic() {
   const gripperWidth = isGripperClosing ? 1 : 4.5; // open/closed gap in pixels
 
   return (
-    <div className="w-full h-full flex flex-col justify-between p-2.5 relative bg-slate-950/45 rounded-xl border border-slate-900/60 select-none">
+    <div className="w-full h-full flex flex-col justify-between p-1 relative bg-transparent border-none select-none overflow-hidden">
       
       {/* Dynamic diagnostic banner tracking mechatronic state machines */}
-      <div className="flex items-center justify-between border-b border-sky-950/30 pb-2">
-        <span className="font-mono text-[7px] text-sky-400 font-extrabold uppercase tracking-widest flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping inline-block" />
+      <div className="flex items-center justify-between border-b border-sky-950/20 pb-1 shrink-0">
+        <span className="font-mono text-[7px] text-sky-450 text-sky-400 font-extrabold uppercase tracking-widest flex items-center gap-1">
+          <span className="w-1 h-1 rounded-full bg-cyan-400 animate-ping inline-block" style={{ width: '4px', height: '4px' }} />
           KINEMATIC SOLVER FEEDBACK // ACTIVE
         </span>
-        <span className="font-mono text-[6.5px] text-slate-500 font-bold uppercase p-0.5 px-1.5 bg-sky-950/25 rounded border border-sky-900/30">
+        <span className="font-mono text-[6px] text-slate-500 font-bold uppercase p-0.5 px-1 bg-sky-950/15 rounded border border-sky-900/20">
           SYS_MANP_KIN_05
         </span>
       </div>
 
-      <div className="flex-1 grid grid-cols-12 gap-2.5 py-2.5 items-center">
+      <div className="flex-1 grid grid-cols-12 gap-2 py-1 items-center overflow-hidden">
         
         {/* LEFT PORTION: Aerospace Polar Coordinate Simulation Viewport */}
-        <div className="col-span-8 flex justify-center items-center relative rounded-lg border border-slate-900/40 bg-[#02050f]/60 overflow-hidden min-h-[110px] w-full">
+        <div className="col-span-8 flex justify-center items-center relative rounded-lg border border-slate-900/30 bg-[#02050f]/40 overflow-hidden h-[105px] w-full">
           
           {/* Subtle cyber background grid overlays */}
           <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(to_right,#3bf_1px,transparent_1px),linear-gradient(to_bottom,#3bf_1px,transparent_1px)] bg-[size:16px_16px]" />
           
-          <svg className="w-full h-full max-h-[125px] overflow-visible" viewBox="0 0 200 120" id="diagnostic-manipulator-svg">
+          <svg className="w-full h-full max-h-[100px] overflow-visible" viewBox="0 0 200 120" id="diagnostic-manipulator-svg">
             <defs>
               {/* Polar style radial grid and mechatronic glowing bars */}
               <radialGradient id="radarScan" cx="50%" cy="50%" r="50%">
@@ -206,7 +206,7 @@ export default function AnimatedManipulatorDiagnostic() {
               
               {/* Left Claw Prong */}
               <path
-                d={`M -2.5,0 C -3.5,-3 -gripperW,-6 -1,-8`}
+                d={`M -2.5,0 C -3.5,-3 -${gripperWidth},-6 -1,-8`}
                 fill="none"
                 stroke={isGripperClosing ? "#ef4444" : "#22d3ee"}
                 strokeWidth="1.2"
@@ -215,7 +215,7 @@ export default function AnimatedManipulatorDiagnostic() {
               />
               {/* Right Claw Prong */}
               <path
-                d={`M 2.5,0 C 3.5,-3 gripperW,-6 1,-8`}
+                d={`M 2.5,0 C 3.5,-3 ${gripperWidth},-6 1,-8`}
                 fill="none"
                 stroke={isGripperClosing ? "#ef4444" : "#22d3ee"}
                 strokeWidth="1.2"
@@ -231,7 +231,7 @@ export default function AnimatedManipulatorDiagnostic() {
         </div>
 
         {/* RIGHT PORTION: Digital Telemetry Diagnostics Array */}
-        <div className="col-span-4 flex flex-col justify-between h-full bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-900 font-mono text-[7px] text-slate-400 gap-1 min-h-[110px]">
+        <div className="col-span-4 flex flex-col justify-between h-[105px] bg-[#02050f]/30 px-1.5 py-1 rounded-lg border border-slate-900/50 font-mono text-[6.5px] text-slate-400 gap-0.5 overflow-hidden">
           
           <div className="border-b border-slate-900 pb-1">
             <span className="text-[6.5px] text-sky-400 font-bold block">JOINT POSITION DEGREES</span>
@@ -281,12 +281,12 @@ export default function AnimatedManipulatorDiagnostic() {
       </div>
 
       {/* Cyber status footer readout */}
-      <div className="flex items-center justify-between text-[7px] font-mono text-slate-500 pt-1.5 border-t border-slate-900 select-none uppercase">
+      <div className="flex items-center justify-between text-[6.5px] font-mono text-slate-500 pt-1 border-t border-slate-900/60 select-none uppercase shrink-0">
         <span className="flex items-center gap-1">
-          <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse.fast inline-block" />
+          <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse inline-block" style={{ width: '4px', height: '4px' }} />
           SOLVER_CALCULATIONS_STABLE
         </span>
-        <span className="text-sky-400 font-bold">100% COGNITIVE RESOLUTION</span>
+        <span className="text-sky-400 font-bold">100% OK</span>
       </div>
 
     </div>

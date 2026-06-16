@@ -611,7 +611,7 @@ export default function RoboticsFlowSystem() {
     ? ROBOT_SYSTEMS.find(r => r.id === activeId) || GENERAL_THEORY 
     : GENERAL_THEORY;
 
-  const showInlineSimulator = !!(activeId && !isDesktop);
+  const showInlineSimulator = !!activeId;
 
   const getSensorIcon = () => {
     if (!activeId) return Eye;
@@ -656,14 +656,13 @@ export default function RoboticsFlowSystem() {
 
       {/* Main Header with simple description that directly invites interaction */}
       <div className="relative z-10 flex flex-col items-center text-center max-w-2xl mx-auto mb-8 md:mb-10 animate-fadeIn">
-        <span className="font-mono text-[9px] font-black uppercase tracking-widest bg-sky-950/65 text-sky-400 border border-sky-400/20 px-4 py-1.5 rounded-full mb-3 shadow-[0_4px_15px_rgba(56,189,248,0.15)] animate-pulse">
+        <span className="font-mono text-[8px] font-black uppercase tracking-widest bg-sky-950/65 text-sky-400 border border-sky-400/20 px-3 py-1 rounded-full mb-3 shadow-[0_4px_15px_rgba(56,189,248,0.15)] animate-pulse">
           Telemetry Signal Pathway
         </span>
-        <h2 className="font-sans font-black text-white text-3xl md:text-4xl tracking-tight uppercase leading-none">
+        <h2 className="font-sans font-black text-white text-2xl md:text-3.5xl tracking-tight uppercase leading-none">
           How Robotics System Works
         </h2>
-        <div className="w-16 h-[2.5px] bg-gradient-to-r from-sky-450 to-indigo-505 bg-sky-500 my-3.5 rounded" />
-        <p className="font-sans text-xs md:text-sm text-slate-405 text-slate-400 leading-relaxed font-semibold max-w-lg">
+        <p className="font-sans text-[11px] md:text-xs text-slate-400 leading-relaxed font-semibold max-w-lg mt-3">
           Explore how robots interact with the world through a continuous feedback loop. Tap any of the dynamic presets below to simulate real-world systems!
         </p>
       </div>
@@ -727,12 +726,9 @@ export default function RoboticsFlowSystem() {
           <div ref={simulatorRef} className={`w-full z-10 relative ${
             showInlineSimulator ? "grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch" : ""
           }`}>
-            <div className={`z-10 relative w-full ${
-              showInlineSimulator 
-                ? "lg:col-span-7 flex flex-col gap-3.5" 
-                : "flex flex-col md:flex-row items-stretch justify-between my-auto gap-3.5 md:gap-4 lg:gap-6 py-2 md:py-0"
-            }`}>
-              {/* BLOCK 01: SENSORS CARD */}
+            {!showInlineSimulator && (
+              <div className="z-10 relative w-full flex flex-col md:flex-row items-stretch justify-between my-auto gap-3.5 md:gap-4 lg:gap-6 py-2 md:py-0">
+                {/* BLOCK 01: SENSORS CARD */}
             <div 
               style={{
                 "--beam-color": "rgb(56, 189, 248)",
@@ -753,63 +749,69 @@ export default function RoboticsFlowSystem() {
               title="Click to focus Sensors phase and reset slide timer"
             >
               {/* Seamless glass container with rounded interior */}
-              <div className="cyber-card-inner bg-[#020716]/95 rounded-[15px] p-5 text-left h-full min-h-[170px] md:min-h-[180px] flex flex-col justify-between transition-all duration-500">
+              <div className={`cyber-card-inner bg-[#020716]/95 rounded-[15px] text-left h-full flex flex-col justify-between transition-all duration-500 ${
+                showInlineSimulator ? "p-3.5 py-2.5 min-h-0" : "p-5 min-h-[170px] md:min-h-[180px]"
+              }`}>
                 <div>
-                  <div className="flex items-start justify-between mb-3 border-b border-slate-900/80 pb-3">
+                  <div className="flex items-start justify-between mb-2 border-b border-slate-900/80 pb-2">
                     <div className="flex flex-col">
-                      <h3 className="font-sans font-black text-white text-base md:text-lg uppercase tracking-tight leading-none">
+                      <h3 className="font-sans font-black text-white text-sm md:text-base uppercase tracking-tight leading-none">
                         {systemData.sensorTitle}
                       </h3>
-                      <span className="font-mono text-[9px] text-sky-400 font-black tracking-widest mt-1 uppercase">
+                      <span className="font-mono text-[8px] text-sky-400 font-black tracking-widest mt-1 uppercase">
                         {systemData.sensorSub}
                       </span>
                     </div>
-                    <div className="p-2 rounded-xl bg-sky-950/45 border border-sky-500/10">
-                      <SensorIcon className={`w-8 h-8 transition-all duration-500 ${activeStep === "sensors" ? "text-sky-400 rotate-12 scale-110" : bootHighlightSensors ? "text-sky-400/80 scale-100" : "text-slate-650"}`} />
+                    <div className="p-1.5 rounded-xl bg-sky-950/45 border border-sky-500/10">
+                      <SensorIcon className={`w-6 h-6 transition-all duration-500 ${activeStep === "sensors" ? "text-sky-400 rotate-12 scale-110" : bootHighlightSensors ? "text-sky-400/80 scale-100" : "text-slate-650"}`} />
                     </div>
                   </div>
                   
-                  <p className="font-sans text-[11.5px] leading-relaxed text-slate-350 font-bold select-text mb-4">
-                    {systemData.sensorMeta}
-                  </p>
+                  {!showInlineSimulator && (
+                    <p className="font-sans text-[10.5px] leading-relaxed text-slate-400 font-medium select-text mb-4">
+                      {systemData.sensorMeta}
+                    </p>
+                  )}
                 </div>
 
                 {/* SENSORS SCANNING LOGO ANIMATION */}
-                <div className="mt-1 mb-3 py-2 border-t border-slate-900/40 flex items-center justify-center bg-slate-950/40 rounded-xl p-3 h-28 relative overflow-hidden">
-                  <svg viewBox="0 0 100 100" className="w-24 h-24">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(56, 189, 248, 0.15)" strokeWidth="1" />
-                    <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(56, 189, 248, 0.1)" strokeWidth="1" strokeDasharray="3,3" />
-                    <circle cx="50" cy="50" r="15" fill="none" stroke="rgba(56, 189, 248, 0.1)" strokeWidth="1" />
-                    <line x1="50" y1="5" x2="50" y2="95" stroke="rgba(56, 189, 248, 0.12)" strokeWidth="1" />
-                    <line x1="5" y1="50" x2="95" y2="50" stroke="rgba(56, 189, 248, 0.12)" strokeWidth="1" />
-                    
-                    <g style={{
-                      transformOrigin: '50px 50px',
-                      animation: (activeStep === "sensors") ? 'scanSweep 3s linear infinite' : 'scanSweep 8s linear infinite'
-                    }}>
-                      <path d="M 50,50 L 50,5 A 45,45 0 0,1 85,25 Z" fill="url(#scanGrad)" opacity={activeStep === "sensors" ? "0.35" : "0.15"} />
-                      <line x1="50" y1="50" x2="50" y2="5" stroke="#38bdf8" strokeWidth={activeStep === "sensors" ? "1.5" : "0.75"} strokeLinecap="round" />
-                    </g>
-                    
-                    {activeStep === "sensors" && (
-                      <circle cx="50" cy="50" r="2.5" fill="#38bdf8" />
-                    )}
-                    
-                    <circle cx="80" cy="30" r="1.5" fill="#38bdf8" opacity={activeStep === "sensors" ? "0.8" : "0.3"} className={activeStep === "sensors" ? "animate-pulse" : ""} />
-                    <circle cx="30" cy="75" r="2" fill="#38bdf8" opacity={activeStep === "sensors" ? "0.9" : "0.3"} className={activeStep === "sensors" ? "animate-pulse" : ""} />
-                    <circle cx="20" cy="25" r="1" fill="#38bdf8" opacity={activeStep === "sensors" ? "0.6" : "0.2"} />
+                {!showInlineSimulator && (
+                  <div className="mt-1 mb-3 py-2 border-t border-slate-900/40 flex items-center justify-center bg-slate-950/40 rounded-xl p-3 h-28 relative overflow-hidden">
+                    <svg viewBox="0 0 100 100" className="w-24 h-24">
+                      <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(56, 189, 248, 0.15)" strokeWidth="1" />
+                      <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(56, 189, 248, 0.1)" strokeWidth="1" strokeDasharray="3,3" />
+                      <circle cx="50" cy="50" r="15" fill="none" stroke="rgba(56, 189, 248, 0.1)" strokeWidth="1" />
+                      <line x1="50" y1="5" x2="50" y2="95" stroke="rgba(56, 189, 248, 0.12)" strokeWidth="1" />
+                      <line x1="5" y1="50" x2="95" y2="50" stroke="rgba(56, 189, 248, 0.12)" strokeWidth="1" />
+                      
+                      <g style={{
+                        transformOrigin: '50px 50px',
+                        animation: (activeStep === "sensors") ? 'scanSweep 3s linear infinite' : 'scanSweep 8s linear infinite'
+                      }}>
+                        <path d="M 50,50 L 50,5 A 45,45 0 0,1 85,25 Z" fill="url(#scanGrad)" opacity={activeStep === "sensors" ? "0.35" : "0.15"} />
+                        <line x1="50" y1="50" x2="50" y2="5" stroke="#38bdf8" strokeWidth={activeStep === "sensors" ? "1.5" : "0.75"} strokeLinecap="round" />
+                      </g>
+                      
+                      {activeStep === "sensors" && (
+                        <circle cx="50" cy="50" r="2.5" fill="#38bdf8" />
+                      )}
+                      
+                      <circle cx="80" cy="30" r="1.5" fill="#38bdf8" opacity={activeStep === "sensors" ? "0.8" : "0.3"} className={activeStep === "sensors" ? "animate-pulse" : ""} />
+                      <circle cx="30" cy="75" r="2" fill="#38bdf8" opacity={activeStep === "sensors" ? "0.9" : "0.3"} className={activeStep === "sensors" ? "animate-pulse" : ""} />
+                      <circle cx="20" cy="25" r="1" fill="#38bdf8" opacity={activeStep === "sensors" ? "0.6" : "0.2"} />
 
-                    <defs>
-                      <linearGradient id="scanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
-                        <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div className="absolute bottom-1 right-2 font-mono text-[7px] text-sky-400/60 uppercase">
-                    {activeStep === "sensors" ? "SENSING ACTIVE" : "STANDBY"}
+                      <defs>
+                        <linearGradient id="scanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
+                          <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="absolute bottom-1 right-2 font-mono text-[7px] text-sky-400/60 uppercase">
+                      {activeStep === "sensors" ? "SENSING ACTIVE" : "STANDBY"}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* 3 EDUCATIONAL EXAMPLES (Visual highlight fade transition) */}
                 <div className={`transition-all duration-750 ease-in-out ${
@@ -940,83 +942,89 @@ export default function RoboticsFlowSystem() {
               }`}
               title="Click to focus Controllers phase and reset slide timer"
             >
-              {/* Seamless glass container with rounded interior */}
-              <div className="cyber-card-inner bg-[#020716]/95 rounded-[15px] p-5 text-left h-full min-h-[170px] md:min-h-[180px] flex flex-col justify-between transition-all duration-500">
+               {/* Seamless glass container with rounded interior */}
+              <div className={`cyber-card-inner bg-[#020716]/95 rounded-[15px] text-left h-full flex flex-col justify-between transition-all duration-500 {
+                showInlineSimulator ? "p-3.5 py-2.5 min-h-0" : "p-5 min-h-[170px] md:min-h-[180px]"
+              }`}>
                 <div>
-                  <div className="flex items-start justify-between mb-3 border-b border-slate-900/80 pb-3">
+                  <div className="flex items-start justify-between mb-2 border-b border-slate-900/80 pb-2">
                     <div className="flex flex-col">
-                      <h3 className="font-sans font-black text-white text-base md:text-lg uppercase tracking-tight leading-none">
+                      <h3 className="font-sans font-black text-white text-sm md:text-base uppercase tracking-tight leading-none">
                         {systemData.controllerTitle}
                       </h3>
-                      <span className="font-mono text-[9px] text-indigo-400 font-black tracking-widest mt-1 uppercase">
+                      <span className="font-mono text-[8px] text-indigo-400 font-black tracking-widest mt-1 uppercase">
                         {systemData.controllerSub}
                       </span>
                     </div>
-                    <div className="p-2 rounded-xl bg-indigo-950/45 border border-indigo-500/10">
-                      <ControllerIcon className={`w-8 h-8 transition-all duration-500 ${activeStep === "controllers" ? "text-indigo-400 scale-110" : bootHighlightControllers ? "text-indigo-405/80 scale-100" : "text-slate-650"}`} />
+                    <div className="p-1.5 rounded-xl bg-indigo-950/45 border border-indigo-500/10">
+                      <ControllerIcon className={`w-6 h-6 transition-all duration-500 ${activeStep === "controllers" ? "text-indigo-400 scale-110" : bootHighlightControllers ? "text-indigo-405/80 scale-100" : "text-slate-650"}`} />
                     </div>
                   </div>
                   
-                  <p className="font-sans text-[11.5px] leading-relaxed text-slate-350 font-bold select-text mb-4">
-                    {systemData.controllerMeta}
-                  </p>
+                  {!showInlineSimulator && (
+                    <p className="font-sans text-[10.5px] leading-relaxed text-slate-400 font-medium select-text mb-4">
+                      {systemData.controllerMeta}
+                    </p>
+                  )}
                 </div>
 
                 {/* CONTROLLERS PROCESSING LOGO ANIMATION */}
-                <div className="mt-1 mb-3 py-2 border-t border-slate-900/40 flex items-center justify-center bg-slate-950/40 rounded-xl p-3 h-28 relative overflow-hidden">
-                  <svg viewBox="0 0 120 100" className="w-28 h-24">
-                    {/* Microchip pin traces / copper lines */}
-                    <g opacity={activeStep === "controllers" ? "0.9" : "0.4"}>
-                      {/* Left: Input trace lines (flowing inwards to MCU) */}
-                      <path d="M 15 25 L 40 25 L 45 40" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite" }} />
-                      <path d="M 15 75 L 40 75 L 45 60" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite" }} />
-                      <line x1="5" y1="50" x2="42" y2="50" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite" }} />
+                {!showInlineSimulator && (
+                  <div className="mt-1 mb-3 py-2 border-t border-slate-900/40 flex items-center justify-center bg-slate-950/40 rounded-xl p-3 h-28 relative overflow-hidden">
+                    <svg viewBox="0 0 120 100" className="w-28 h-24">
+                      {/* Microchip pin traces / copper lines */}
+                      <g opacity={activeStep === "controllers" ? "0.9" : "0.4"}>
+                        {/* Left: Input trace lines (flowing inwards to MCU) */}
+                        <path d="M 15 25 L 40 25 L 45 40" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite" }} />
+                        <path d="M 15 75 L 40 75 L 45 60" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite" }} />
+                        <line x1="5" y1="50" x2="42" y2="50" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite" }} />
 
-                      {/* Right: Output trace lines (staggered delay, flowing outwards from MCU) */}
-                      <path d="M 75 40 L 80 25 L 105 25" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite", animationDelay: "0.75s" }} />
-                      <path d="M 75 60 L 80 75 L 105 75" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite", animationDelay: "0.75s" }} />
-                      <line x1="78" y1="50" x2="115" y2="50" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite", animationDelay: "0.75s" }} />
-                    </g>
+                        {/* Right: Output trace lines (staggered delay, flowing outwards from MCU) */}
+                        <path d="M 75 40 L 80 25 L 105 25" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite", animationDelay: "0.75s" }} />
+                        <path d="M 75 60 L 80 75 L 105 75" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite", animationDelay: "0.75s" }} />
+                        <line x1="78" y1="50" x2="115" y2="50" stroke="#6366f1" strokeWidth="1" strokeDasharray="4,4" style={{ animation: "sigFlow 1.5s linear infinite", animationDelay: "0.75s" }} />
+                      </g>
 
-                    {/* Central Microchip (MCU) Body */}
-                    <g transform="translate(42, 32)">
-                      {/* MCU chip casing */}
-                      <rect x="0" y="0" width="36" height="36" rx="4" fill="#0c1020" stroke={activeStep === "controllers" ? "#6366f1" : "rgba(99, 102, 241, 0.4)"} strokeWidth="1.5" />
-                      
-                      {/* Silicon Chip pins */}
-                      <rect x="-4" y="6" width="4" height="2" fill="#94a3b8" />
-                      <rect x="-4" y="14" width="4" height="2" fill="#94a3b8" />
-                      <rect x="-4" y="22" width="4" height="2" fill="#94a3b8" />
-                      <rect x="-4" y="30" width="4" height="2" fill="#94a3b8" />
-                      
-                      <rect x="36" y="6" width="4" height="2" fill="#94a3b8" />
-                      <rect x="36" y="14" width="4" height="2" fill="#94a3b8" />
-                      <rect x="36" y="22" width="4" height="2" fill="#94a3b8" />
-                      <rect x="36" y="30" width="4" height="2" fill="#94a3b8" />
-                      
-                      <rect x="6" y="-4" width="2" height="4" fill="#94a3b8" />
-                      <rect x="14" y="-4" width="2" height="4" fill="#94a3b8" />
-                      <rect x="22" y="-4" width="2" height="4" fill="#94a3b8" />
-                      <rect x="30" y="-4" width="2" height="4" fill="#94a3b8" />
-                      
-                      <rect x="6" y="36" width="2" height="4" fill="#94a3b8" />
-                      <rect x="14" y="36" width="2" height="4" fill="#94a3b8" />
-                      <rect x="22" y="36" width="2" height="4" fill="#94a3b8" />
-                      <rect x="30" y="36" width="2" height="4" fill="#94a3b8" />
+                      {/* Central Microchip (MCU) Body */}
+                      <g transform="translate(42, 32)">
+                        {/* MCU chip casing */}
+                        <rect x="0" y="0" width="36" height="36" rx="4" fill="#0c1020" stroke={activeStep === "controllers" ? "#6366f1" : "rgba(99, 102, 241, 0.4)"} strokeWidth="1.5" />
+                        
+                        {/* Silicon Chip pins */}
+                        <rect x="-4" y="6" width="4" height="2" fill="#94a3b8" />
+                        <rect x="-4" y="14" width="4" height="2" fill="#94a3b8" />
+                        <rect x="-4" y="22" width="4" height="2" fill="#94a3b8" />
+                        <rect x="-4" y="30" width="4" height="2" fill="#94a3b8" />
+                        
+                        <rect x="36" y="6" width="4" height="2" fill="#94a3b8" />
+                        <rect x="36" y="14" width="4" height="2" fill="#94a3b8" />
+                        <rect x="36" y="22" width="4" height="2" fill="#94a3b8" />
+                        <rect x="36" y="30" width="4" height="2" fill="#94a3b8" />
+                        
+                        <rect x="6" y="-4" width="2" height="4" fill="#94a3b8" />
+                        <rect x="14" y="-4" width="2" height="4" fill="#94a3b8" />
+                        <rect x="22" y="-4" width="2" height="4" fill="#94a3b8" />
+                        <rect x="30" y="-4" width="2" height="4" fill="#94a3b8" />
+                        
+                        <rect x="6" y="36" width="2" height="4" fill="#94a3b8" />
+                        <rect x="14" y="36" width="2" height="4" fill="#94a3b8" />
+                        <rect x="22" y="36" width="2" height="4" fill="#94a3b8" />
+                        <rect x="30" y="36" width="2" height="4" fill="#94a3b8" />
 
-                      {/* Internal processing Core activity indicator */}
-                      <rect x="10" y="10" width="16" height="16" rx="2" fill={activeStep === "controllers" ? "rgba(99, 102, 241, 0.2)" : "rgba(30,30,50,0.4)"} stroke={activeStep === "controllers" ? "#6366f1" : "rgba(99, 102, 241, 0.2)"} strokeWidth="0.75" />
-                      {activeStep === "controllers" ? (
-                        <circle cx="18" cy="18" r="3.5" fill="#818cf8" className="animate-pulse" />
-                      ) : (
-                        <circle cx="18" cy="18" r="2" fill="#334155" />
-                      )}
-                    </g>
-                  </svg>
-                  <div className="absolute bottom-1 right-2 font-mono text-[7px] text-indigo-400/60 uppercase">
-                    {activeStep === "controllers" ? "PROCESSING ACTIVE" : "STANDBY"}
+                        {/* Internal processing Core activity indicator */}
+                        <rect x="10" y="10" width="16" height="16" rx="2" fill={activeStep === "controllers" ? "rgba(99, 102, 241, 0.2)" : "rgba(30,30,50,0.4)"} stroke={activeStep === "controllers" ? "#6366f1" : "rgba(99, 102, 241, 0.2)"} strokeWidth="0.75" />
+                        {activeStep === "controllers" ? (
+                          <circle cx="18" cy="18" r="3.5" fill="#818cf8" className="animate-pulse" />
+                        ) : (
+                          <circle cx="18" cy="18" r="2" fill="#334155" />
+                        )}
+                      </g>
+                    </svg>
+                    <div className="absolute bottom-1 right-2 font-mono text-[7px] text-indigo-400/60 uppercase">
+                      {activeStep === "controllers" ? "PROCESSING ACTIVE" : "STANDBY"}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* 3 EDUCATIONAL EXAMPLES (Visual highlight fade transition) */}
                 <div className={`transition-all duration-750 ease-in-out ${
@@ -1148,96 +1156,102 @@ export default function RoboticsFlowSystem() {
               title="Click to focus Actuators phase and reset slide timer"
             >
               {/* Seamless glass container with rounded interior */}
-              <div className="cyber-card-inner bg-[#020716]/95 rounded-[15px] p-5 text-left h-full min-h-[170px] md:min-h-[180px] flex flex-col justify-between transition-all duration-500">
+              <div className={`cyber-card-inner bg-[#020716]/95 rounded-[15px] text-left h-full flex flex-col justify-between transition-all duration-500 ${
+                showInlineSimulator ? "p-3.5 py-2.5 min-h-0" : "p-5 min-h-[170px] md:min-h-[180px]"
+              }`}>
                 <div>
-                  <div className="flex items-start justify-between mb-3 border-b border-slate-900/80 pb-3">
+                  <div className="flex items-start justify-between mb-2 border-b border-slate-900/80 pb-2">
                     <div className="flex flex-col">
-                      <h3 className="font-sans font-black text-white text-base md:text-lg uppercase tracking-tight leading-none">
+                      <h3 className="font-sans font-black text-white text-sm md:text-base uppercase tracking-tight leading-none">
                         {systemData.actuatorTitle}
                       </h3>
-                      <span className="font-mono text-[9px] text-emerald-450 text-emerald-400 font-black tracking-widest mt-1 uppercase">
+                      <span className="font-mono text-[8px] text-emerald-450 text-emerald-400 font-black tracking-widest mt-1 uppercase">
                         {systemData.actuatorSub}
                       </span>
                     </div>
-                    <div className="p-2 rounded-xl bg-emerald-950/45 border border-emerald-500/10">
-                      <ActuatorIcon className={`w-8 h-8 transition-all duration-500 ${activeStep === "actuators" ? "text-emerald-400 scale-110 animate-spin" : bootHighlightActuators ? "text-emerald-400/80 scale-100 animate-spin [animation-duration:8s]" : "text-slate-650"}`} />
+                    <div className="p-1.5 rounded-xl bg-emerald-950/45 border border-emerald-500/10">
+                      <ActuatorIcon className={`w-6 h-6 transition-all duration-500 ${activeStep === "actuators" ? "text-emerald-400 scale-110 animate-spin" : bootHighlightActuators ? "text-emerald-400/80 scale-100 animate-spin [animation-duration:8s]" : "text-slate-650"}`} />
                     </div>
                   </div>
                   
-                  <p className="font-sans text-[11.5px] leading-relaxed text-slate-350 font-bold select-text mb-4">
-                    {systemData.actuatorMeta}
-                  </p>
+                  {!showInlineSimulator && (
+                    <p className="font-sans text-[10.5px] leading-relaxed text-slate-400 font-medium select-text mb-4">
+                      {systemData.actuatorMeta}
+                    </p>
+                  )}
                 </div>
 
                 {/* ACTUATORS GEARS LOGO ANIMATION */}
-                <div className="mt-1 mb-3 py-2 border-t border-slate-900/40 flex items-center justify-center bg-slate-950/40 rounded-xl p-3 h-28 relative overflow-hidden">
-                  <svg viewBox="0 0 100 100" className="w-24 h-24">
-                    {/* Large Gear (Clockwise rotation) */}
-                    <g 
-                      style={{
-                        transformOrigin: "36px 42px",
-                        animation: activeStep === "actuators" ? "gearRotateClockwise 3s linear infinite" : "gearRotateClockwise 12s linear infinite"
-                      }}
-                    >
-                      {/* Spokes */}
-                      <rect x="34.5" y="24" width="3" height="36" rx="1" fill={activeStep === "actuators" ? "rgba(16, 185, 129, 0.6)" : "rgba(16, 185, 129, 0.2)"} />
-                      <rect x="18" y="40.5" width="36" height="3" rx="1" fill={activeStep === "actuators" ? "rgba(16, 185, 129, 0.6)" : "rgba(16, 185, 129, 0.2)"} />
-                      
-                      {/* Outer rim */}
-                      <circle cx="36" cy="42" r="18" fill="none" stroke={activeStep === "actuators" ? "#10b981" : "rgba(16, 185, 129, 0.2)"} strokeWidth="3" />
-                      
-                      {/* Inner hub */}
-                      <circle cx="36" cy="42" r="6" fill="#010614" stroke={activeStep === "actuators" ? "#34d399" : "rgba(16, 185, 129, 0.2)"} strokeWidth="1.5" />
-                      
-                      {/* Detailed Teeth */}
-                      {Array.from({ length: 8 }).map((_, gi) => {
-                        const angle = (gi * 360) / 8;
-                        return (
-                          <path
-                            key={gi}
-                            d="M 33,21 L 39,21 L 41,25 L 31,25 Z"
-                            fill={activeStep === "actuators" ? "#10b981" : "rgba(16, 185, 129, 0.35)"}
-                            transform={`rotate(${angle}, 36, 42)`}
-                          />
-                        );
-                      })}
-                    </g>
+                {!showInlineSimulator && (
+                  <div className="mt-1 mb-3 py-2 border-t border-slate-900/40 flex items-center justify-center bg-slate-950/40 rounded-xl p-3 h-28 relative overflow-hidden">
+                    <svg viewBox="0 0 100 100" className="w-24 h-24">
+                      {/* Large Gear (Clockwise rotation) */}
+                      <g 
+                        style={{
+                          transformOrigin: "36px 42px",
+                          animation: activeStep === "actuators" ? "gearRotateClockwise 3s linear infinite" : "gearRotateClockwise 12s linear infinite"
+                        }}
+                      >
+                        {/* Spokes */}
+                        <rect x="34.5" y="24" width="3" height="36" rx="1" fill={activeStep === "actuators" ? "rgba(16, 185, 129, 0.6)" : "rgba(16, 185, 129, 0.2)"} />
+                        <rect x="18" y="40.5" width="36" height="3" rx="1" fill={activeStep === "actuators" ? "rgba(16, 185, 129, 0.6)" : "rgba(16, 185, 129, 0.2)"} />
+                        
+                        {/* Outer rim */}
+                        <circle cx="36" cy="42" r="18" fill="none" stroke={activeStep === "actuators" ? "#10b981" : "rgba(16, 185, 129, 0.2)"} strokeWidth="3" />
+                        
+                        {/* Inner hub */}
+                        <circle cx="36" cy="42" r="6" fill="#010614" stroke={activeStep === "actuators" ? "#34d399" : "rgba(16, 185, 129, 0.2)"} strokeWidth="1.5" />
+                        
+                        {/* Detailed Teeth */}
+                        {Array.from({ length: 8 }).map((_, gi) => {
+                          const angle = (gi * 360) / 8;
+                          return (
+                            <path
+                              key={gi}
+                              d="M 33,21 L 39,21 L 41,25 L 31,25 Z"
+                              fill={activeStep === "actuators" ? "#10b981" : "rgba(16, 185, 129, 0.35)"}
+                              transform={`rotate(${angle}, 36, 42)`}
+                            />
+                          );
+                        })}
+                      </g>
 
-                    {/* Small Gear interlocking (Counter-Clockwise rotation) */}
-                    <g 
-                      style={{
-                        transformOrigin: "66px 57px",
-                        animation: activeStep === "actuators" ? "gearRotateCounter 2s linear infinite" : "gearRotateCounter 8s linear infinite"
-                      }}
-                    >
-                      {/* Spokes */}
-                      <rect x="64.5" y="46" width="3" height="22" rx="1" fill={activeStep === "actuators" ? "rgba(16, 185, 129, 0.5)" : "rgba(16, 185, 129, 0.15)"} />
-                      <rect x="55" y="55.5" width="22" height="3" rx="1" fill={activeStep === "actuators" ? "rgba(16, 185, 129, 0.5)" : "rgba(16, 185, 129, 0.15)"} />
-                      
-                      {/* Outer rim */}
-                      <circle cx="66" cy="57" r="11" fill="none" stroke={activeStep === "actuators" ? "#047857" : "rgba(16, 185, 129, 0.15)"} strokeWidth="2.5" />
-                      
-                      {/* Inner hub */}
-                      <circle cx="66" cy="57" r="4" fill="#010614" stroke={activeStep === "actuators" ? "#059669" : "rgba(16, 185, 129, 0.15)"} strokeWidth="1" />
-                      
-                      {/* Detailed Teeth */}
-                      {Array.from({ length: 6 }).map((_, gi) => {
-                        const angle = (gi * 360) / 6 + 22.5; // Fine-tune angle to interlock beautifully
-                        return (
-                          <path
-                            key={gi}
-                            d="M 64.2,43.5 L 67.8,43.5 L 69.2,47 L 62.8,47 Z"
-                            fill={activeStep === "actuators" ? "#059669" : "rgba(16, 185, 129, 0.25)"}
-                            transform={`rotate(${angle}, 66, 57)`}
-                          />
-                        );
-                      })}
-                    </g>
-                  </svg>
-                  <div className="absolute bottom-1 right-2 font-mono text-[7px] text-emerald-400/60 uppercase">
-                    {activeStep === "actuators" ? "MOTOR DRIVING" : "STANDBY"}
+                      {/* Small Gear interlocking (Counter-Clockwise rotation) */}
+                      <g 
+                        style={{
+                          transformOrigin: "66px 57px",
+                          animation: activeStep === "actuators" ? "gearRotateCounter 2s linear infinite" : "gearRotateCounter 8s linear infinite"
+                        }}
+                      >
+                        {/* Spokes */}
+                        <rect x="64.5" y="46" width="3" height="22" rx="1" fill={activeStep === "actuators" ? "rgba(16, 185, 129, 0.5)" : "rgba(16, 185, 129, 0.15)"} />
+                        <rect x="55" y="55.5" width="22" height="3" rx="1" fill={activeStep === "actuators" ? "rgba(16, 185, 129, 0.5)" : "rgba(16, 185, 129, 0.15)"} />
+                        
+                        {/* Outer rim */}
+                        <circle cx="66" cy="57" r="11" fill="none" stroke={activeStep === "actuators" ? "#047857" : "rgba(16, 185, 129, 0.15)"} strokeWidth="2.5" />
+                        
+                        {/* Inner hub */}
+                        <circle cx="66" cy="57" r="4" fill="#010614" stroke={activeStep === "actuators" ? "#059669" : "rgba(16, 185, 129, 0.15)"} strokeWidth="1" />
+                        
+                        {/* Detailed Teeth */}
+                        {Array.from({ length: 6 }).map((_, gi) => {
+                          const angle = (gi * 360) / 6 + 22.5; // Fine-tune angle to interlock beautifully
+                          return (
+                            <path
+                              key={gi}
+                              d="M 64.2,43.5 L 67.8,43.5 L 69.2,47 L 62.8,47 Z"
+                              fill={activeStep === "actuators" ? "#059669" : "rgba(16, 185, 129, 0.25)"}
+                              transform={`rotate(${angle}, 66, 57)`}
+                            />
+                          );
+                        })}
+                      </g>
+                    </svg>
+                    <div className="absolute bottom-1 right-2 font-mono text-[7px] text-emerald-400/60 uppercase">
+                      {activeStep === "actuators" ? "MOTOR DRIVING" : "STANDBY"}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* 3 EDUCATIONAL EXAMPLES (Visual highlight fade transition) */}
                 <div className={`transition-all duration-750 ease-in-out ${
@@ -1311,23 +1325,16 @@ export default function RoboticsFlowSystem() {
             </div>
 
             </div>
+            )}
 
             {/* Right Column: Dynamic mechatronic simulator workspace */}
             {activeId && (
               <div 
                 ref={simulationWorkspaceRef} 
-                className={isDesktop 
-                  ? "fixed inset-0 z-[100000] overflow-y-auto bg-slate-950/85 backdrop-blur-md p-3 sm:p-6 flex justify-center items-center" 
-                  : "lg:col-span-12 xl:col-span-5 bg-[#020614]/90 p-4 rounded-2xl border border-slate-900 flex flex-col justify-between min-h-[440px] relative overflow-hidden text-left shadow-[0_0_30px_rgba(56,189,248,0.05)]"
-                }
-                onClick={isDesktop ? () => { setActiveId(null); setActiveStep("sensors"); } : undefined}
+                className="lg:col-span-12 xl:col-span-12 bg-[#020614]/90 p-4 rounded-2xl border border-slate-900 flex flex-col justify-between min-h-[440px] relative overflow-hidden text-left shadow-[0_0_30px_rgba(56,189,248,0.05)] animate-fadeIn"
               >
                 <div 
-                  className={isDesktop 
-                    ? "w-full max-w-4xl bg-[#030919] border border-slate-800 rounded-2xl overflow-hidden shadow-[0_0_55px_rgba(56,189,248,0.3)] relative flex flex-col my-auto p-6 animate-slideUp text-left"
-                    : "w-full h-full flex flex-col justify-between"
-                  }
-                  onClick={(e) => e.stopPropagation()}
+                  className="w-full h-full flex flex-col justify-between"
                 >
                   {/* Outer mechanical mesh glow effect */}
                   <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:14px_14px] opacity-15 pointer-events-none" />
@@ -1342,14 +1349,12 @@ export default function RoboticsFlowSystem() {
                       <span className="font-mono text-[8.5px] text-slate-505 text-slate-500 font-extrabold uppercase">
                         SIMULATION STATUS: RUNNING
                       </span>
-                      {isDesktop && (
-                        <button 
-                          onClick={() => { setActiveId(null); setActiveStep("sensors"); }}
-                          className="ml-3 px-2 py-1 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-400 hover:text-white rounded-lg text-[8.5px] font-mono cursor-pointer uppercase font-bold flex items-center gap-1 transition-all"
-                        >
-                          <X className="w-2.5 h-2.5" /> Close Sim
-                        </button>
-                      )}
+                      <button 
+                        onClick={() => { setActiveId(null); setActiveStep("sensors"); }}
+                        className="ml-3 px-2 py-1 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-400 hover:text-white rounded-lg text-[8.5px] font-mono cursor-pointer uppercase font-bold flex items-center gap-1 transition-all"
+                      >
+                        <X className="w-2.5 h-2.5" /> Close Sim
+                      </button>
                     </div>
                   </div>
 

@@ -54,6 +54,7 @@ export default function HomePage({
 
   // Dynamic Roadmap phase configurations representing the user's interactive journey
   const [activePhaseIndex, setActivePhaseIndex] = React.useState<number | null>(null);
+  const [showCreatorModal, setShowCreatorModal] = React.useState(false);
 
   const roadmapPhases = [
     {
@@ -308,9 +309,9 @@ export default function HomePage({
     switch (idx) {
       case 0: // Robotics Foundations
         return (
-          <div className="w-full h-full flex flex-col justify-between p-3 relative">
+          <div className="w-full h-full flex flex-col justify-between p-1 relative">
             <span className="font-mono text-[7px] text-sky-500 font-extrabold pb-2 uppercase border-b border-sky-950/40 block">FEEDFORWARD SIGNAL CHAIN // CALIBRATING SYSTEM</span>
-            <div className="flex-1 flex gap-2 items-center justify-between py-6">
+            <div className="flex-1 flex gap-2 items-center justify-between py-2">
               {/* Sensor */}
               <div className="flex flex-col items-center gap-1">
                 <div className="w-12 h-12 rounded-xl bg-slate-950 border border-sky-500/30 flex flex-col justify-center items-center text-sky-400 relative">
@@ -364,11 +365,11 @@ export default function HomePage({
         );
       case 1: // Programming
         return (
-          <div className="w-full h-full flex flex-col justify-between p-3 relative">
+          <div className="w-full h-full flex flex-col justify-between p-1 relative select-none">
             <span className="font-mono text-[7px] text-indigo-500 font-extrabold pb-2 uppercase border-b border-slate-900/80 block">LOOP STACK TRANSLATOR // RUNNING EXAMPLES</span>
-            <div className="flex-1 grid grid-cols-12 gap-3 py-3 overflow-hidden">
+            <div className="flex-1 grid grid-cols-12 gap-2 py-1 overflow-hidden">
               {/* Code window */}
-              <div className="col-span-6 bg-slate-950 rounded-lg p-2.5 font-mono text-[8px] text-slate-400 border border-slate-900/80 overflow-y-auto leading-tight select-all text-left">
+              <div className="col-span-12 bg-slate-950 rounded-lg p-2.5 font-mono text-[8px] text-slate-400 border border-slate-900/80 overflow-y-auto leading-tight select-all text-left">
                 <span className="text-violet-400">void</span> loop() {"{"}
                 <div className="pl-2">
                   <span className="text-sky-400">int</span> limit = <span className="text-indigo-400">120</span>;
@@ -387,68 +388,6 @@ export default function HomePage({
                 </div>
                 {"}"}
               </div>
-
-              {/* Dynamic Flowchart status */}
-              <div className="col-span-6 flex flex-col justify-center items-center gap-2 font-mono text-[8px] py-1 select-none">
-                
-                {/* 1. Terminal (Start) */}
-                <div className="flex flex-col items-center">
-                  <div className="px-3 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 font-bold uppercase tracking-wider text-[7px] shadow-[0_0_12px_rgba(14,165,233,0.1)]">
-                    [Terminal] loop() start
-                  </div>
-                  <div className="text-slate-650 text-slate-500 text-[7px] mt-0.5">▼</div>
-                </div>
-
-                {/* 2. Input Block (Parallelogram) */}
-                <div className="flex flex-col items-center">
-                  <div className="transform skew-x-6 px-2.5 py-1 border border-teal-500/30 bg-teal-500/10 text-teal-400 font-bold text-[7px]">
-                    <div className="transform -skew-x-6">
-                      [Input] Read Sensor Pin A0
-                    </div>
-                  </div>
-                  <div className="text-slate-500 text-[7px] mt-0.5">▼</div>
-                </div>
-
-                {/* 3. Decision Block (Diamond) */}
-                <div className="flex flex-col items-center relative py-1">
-                  <div className="w-13 h-13 rotate-45 border border-amber-500/30 bg-amber-500/5 flex items-center justify-center my-0.5 shadow-[0_0_12px_rgba(245,158,11,0.1)]">
-                    <div className="-rotate-45 text-center leading-tighter text-amber-300 font-black text-[6.5px] max-w-[40px]">
-                      Is Val &gt; 120?
-                    </div>
-                  </div>
-                  
-                  {/* Branch Labels */}
-                  <div className="absolute top-1/2 -left-8 text-[6.5px] text-indigo-400 font-black tracking-tighter">YES ↙</div>
-                  <div className="absolute top-1/2 -right-8 text-[6.5px] text-slate-500 font-black tracking-tighter">↘ NO</div>
-                </div>
-
-                {/* 4. Action Blocks / Output (skewed rectangles) */}
-                <div className="grid grid-cols-2 gap-3 w-full px-2">
-                  <div className="flex flex-col items-center">
-                    <div className="transform skew-x-6 px-2 py-1 border border-indigo-500/25 bg-indigo-505 bg-indigo-500/10 text-indigo-300 font-bold text-[6.5px] text-center w-full">
-                      <div className="transform -skew-x-6 leading-tight">
-                        [Output] D9 HIGH
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="transform skew-x-6 px-2 py-1 border border-slate-700 bg-slate-900/40 text-slate-500 font-bold text-[6.5px] text-center w-full">
-                      <div className="transform -skew-x-6 leading-tight">
-                        [Output] D9 LOW
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 5. Terminal Block (End) */}
-                <div className="flex flex-col items-center mt-1">
-                  <div className="text-slate-500 text-[7px] mb-0.5">▼</div>
-                  <div className="px-3 py-1 rounded-full border border-rose-500/25 bg-rose-500/15 text-rose-400 font-bold uppercase tracking-wider text-[7px]">
-                    [Terminal] delay(35)
-                  </div>
-                </div>
-
-              </div>
             </div>
             <div className="text-[7.5px] font-mono text-slate-500 mt-2 bg-slate-950 p-1.5 rounded border border-slate-900">
               LOG STATUS: <span className="text-indigo-400 font-semibold uppercase animate-pulse">FLOW_INTERPRETER_COMPILED_OK</span>
@@ -457,12 +396,12 @@ export default function HomePage({
         );
       case 2: // Basic Electronics
         return (
-          <div className="w-full h-full flex flex-col justify-between p-3 relative select-none">
+          <div className="w-full h-full flex flex-col justify-between p-1 relative select-none">
             <span className="font-mono text-[7px] text-emerald-400 font-extrabold pb-2 uppercase border-b border-emerald-950/40 block">OHMIC CIRCUIT SCHEMATIC // LIVE STEADY-STATE</span>
             
-            <div className="flex-1 flex flex-col justify-center items-center py-2">
+            <div className="flex-1 flex flex-col justify-center items-center py-1">
               {/* Dynamic circuit values summary bar */}
-              <div className="grid grid-cols-3 gap-2 w-full text-center font-mono text-[8px] mb-3">
+              <div className="grid grid-cols-3 gap-2 w-full text-center font-mono text-[8px] mb-1.5">
                 <div className="bg-slate-950/80 px-2 py-1 rounded border border-sky-500/20 text-sky-400">
                   <span className="text-slate-550 block text-[6px] uppercase">Voltage (V)</span>
                   <strong className="text-sky-400 font-black">5.0 Volts</strong>
@@ -478,7 +417,7 @@ export default function HomePage({
               </div>
 
               {/* Vector circuit diagram */}
-              <div className="w-full h-[95px] bg-slate-950/90 rounded-lg border border-slate-900/80 p-1 relative flex items-center justify-center">
+              <div className="w-full h-[75px] bg-slate-950/90 rounded-lg border border-slate-900/80 p-0.5 relative flex items-center justify-center">
                 <svg className="w-full h-full text-slate-700" viewBox="0 0 280 85" fill="none" stroke="currentColor" strokeWidth="1">
                   
                   {/* Schematic Wire Tracks (Rectangle loop) */}
@@ -551,19 +490,19 @@ export default function HomePage({
         );
       case 3: // Advanced Systems / Control Systems
         return (
-          <div className="w-full h-full flex flex-col justify-between p-3 relative select-none">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-900/80 mb-1">
+          <div className="w-full h-full flex flex-col justify-between p-1 relative select-none">
+            <div className="flex justify-between items-center pb-1.5 border-b border-slate-900/80 mb-0.5">
               <span className="font-mono text-[7px] text-amber-500 font-extrabold uppercase">
                 PID CONTROL SYSTEMS // ACTIVE SCHEMATIC
               </span>
             </div>
 
-            <div className="flex-1 grid grid-cols-12 gap-3 py-1 items-center">
+            <div className="flex-1 grid grid-cols-12 gap-2 py-0.5 items-center">
               {/* Left Column: Closed-Loop Block Diagram (7 cols) */}
-              <div className="col-span-12 lg:col-span-7 flex flex-col justify-center gap-1">
-                <span className="font-mono text-[6.5px] text-slate-500 uppercase block mb-1">Feedback Block Diagram</span>
+              <div className="col-span-12 lg:col-span-7 flex flex-col justify-center gap-0.5">
+                <span className="font-mono text-[6.5px] text-slate-500 uppercase block mb-0.5">Feedback Block Diagram</span>
                 <div 
-                  className="bg-slate-950 rounded-lg p-2 border border-slate-900 relative h-[78px] flex items-center justify-center"
+                  className="bg-slate-950 rounded-lg p-1 border border-slate-900 relative h-[68px] flex items-center justify-center"
                 >
 
                   <svg className="w-full h-[70px]" viewBox="0 0 220 70">
@@ -610,8 +549,8 @@ export default function HomePage({
 
               {/* Right Column: Inverted Pendulum Live Controller Animation (5 cols) - Properly connected and locked rod */}
               <div className="col-span-12 lg:col-span-5 flex flex-col items-center justify-center">
-                <span className="font-mono text-[6.5px] text-slate-500 uppercase block mb-1">State Visualizer</span>
-                <div className="w-full bg-[#02050f] rounded-lg border border-slate-900 h-[78px] relative overflow-hidden flex items-end justify-center pb-2 select-none">
+                <span className="font-mono text-[6.5px] text-slate-500 uppercase block mb-0.5">State Visualizer</span>
+                <div className="w-full bg-[#02050f] rounded-lg border border-slate-900 h-[68px] relative overflow-hidden flex items-end justify-center pb-1 select-none">
                   <span className="absolute top-1 right-2.5 font-mono text-[5.5px] text-emerald-400 font-extrabold animate-pulse">ACTIVE BALANCING</span>
                   
                   {/* Balancing Animation */}
@@ -677,13 +616,13 @@ export default function HomePage({
         );
       case 5: // Robotic AI Systems
         return (
-          <div className="w-full h-full flex flex-col justify-between p-3 relative">
-            <span className="font-mono text-[7px] text-purple-500 font-extrabold pb-2 uppercase border-b border-slate-900 block font-bold">
+          <div className="w-full h-full flex flex-col justify-between p-1 relative">
+            <span className="font-mono text-[7px] text-purple-500 font-extrabold pb-1.5 uppercase border-b border-slate-900 block font-bold">
               NEURAL NETWORK INFERENCE DECK // MULTI-LAYER PERCEPTRON
             </span>
-            <div className="flex-1 flex flex-col justify-center py-1 gap-2.5">
+            <div className="flex-1 flex flex-col justify-center py-0.5 gap-1.5">
               {/* Neural network graph svg */}
-              <div className="h-[90px] relative overflow-hidden bg-slate-950 rounded-lg border border-slate-900 flex justify-center items-center p-1.5">
+              <div className="h-[72px] relative overflow-hidden bg-slate-950 rounded-lg border border-slate-900 flex justify-center items-center p-0.5">
                 <div className="absolute inset-0 bg-[#0e021a]/15" />
                 <svg className="w-full h-full" viewBox="0 0 280 85">
                   {/* Layer text labels */}
@@ -762,124 +701,30 @@ export default function HomePage({
         );
       case 6: // Robot Types & Applications (index 6)
         return (
-          <div className="w-full h-full flex flex-col justify-between p-3 relative bg-slate-950/45 rounded-xl border border-slate-900 overflow-hidden text-left">
-            <span className="font-mono text-[7px] text-cyan-400 font-extrabold pb-2 uppercase border-b border-cyan-950/40 block">ROBOT CLASSIFICATION SCANNER // ENGAGED</span>
+          <div className="w-full h-full flex flex-col justify-between p-1 relative bg-transparent border-none overflow-hidden text-left">
+            <span className="font-mono text-[7px] text-cyan-400 font-extrabold pb-1.5 uppercase border-b border-cyan-950/20 block">ROBOT CLASSIFICATION SCANNER // VISUALIZATION ACTIVE</span>
             
-            <div className="flex-1 flex flex-col justify-center items-center py-2 relative">
-              <svg viewBox="0 0 300 100" className="w-full h-24">
-                {/* Concentric diagnostic radar rings */}
-                <circle cx="150" cy="50" r="42" fill="none" stroke="#10182c" strokeWidth="1" />
-                <circle cx="150" cy="50" r="28" fill="none" stroke="#11253e" strokeWidth="0.8" strokeDasharray="2,3" />
-                <circle cx="150" cy="50" r="14" fill="none" stroke="#22d3ee" strokeWidth="0.5" className="opacity-15" />
-                
-                {/* Central radar axis point */}
-                <circle cx="150" cy="50" r="3.5" fill="#08b6d4" />
-                <circle cx="150" cy="50" r="1" fill="#fff" />
-
-                {/* Radar grid axis helper lines */}
-                <line x1="150" y1="5" x2="150" y2="95" stroke="#083344" strokeWidth="0.5" strokeDasharray="2,2" />
-                <line x1="95" y1="50" x2="205" y2="50" stroke="#083344" strokeWidth="0.5" strokeDasharray="2,2" />
-
-                {/* Rotating Sweeper Ray */}
-                <motion.line
-                  x1="150"
-                  y1="50"
-                  x2="200"
-                  y2="50"
-                  stroke="#22d3ee"
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                  style={{ originX: "150px", originY: "50px" }}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 4.5, repeat: Infinity, ease: "linear" }}
-                />
-
-                {/* Quadrant Target Highlights: AMR, Arm, Quadcopter, Human */}
-                {/* AMR target top-left */}
-                <g>
-                   <circle cx="110" cy="25" r="2.5" fill="#38bdf8" />
-                   <motion.circle
-                     cx="110"
-                     cy="25"
-                     r="6"
-                     fill="none"
-                     stroke="#38bdf8"
-                     strokeWidth="0.5"
-                     animate={{ scale: [1, 2], opacity: [0.8, 0] }}
-                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
-                   />
-                   <text x="110" y="15" fill="#38bdf8" className="font-mono text-[5.5px] font-bold" textAnchor="middle">WHEELED_AMR</text>
-                </g>
-
-                {/* ARM target top-right */}
-                <g>
-                   <circle cx="190" cy="25" r="2.5" fill="#fbbf24" />
-                   <motion.circle
-                     cx="190"
-                     cy="25"
-                     r="6"
-                     fill="none"
-                     stroke="#fbbf24"
-                     strokeWidth="0.5"
-                     animate={{ scale: [1, 2], opacity: [0.8, 0] }}
-                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.38 }}
-                   />
-                   <text x="190" y="15" fill="#fbbf24" className="font-mono text-[5.5px] font-bold" textAnchor="middle">JOINT_ARM</text>
-                </g>
-
-                {/* QUADROTOR target bottom-right */}
-                <g>
-                   <circle cx="190" cy="75" r="2.5" fill="#818cf8" />
-                   <motion.circle
-                     cx="190"
-                     cy="75"
-                     r="6"
-                     fill="none"
-                     stroke="#818cf8"
-                     strokeWidth="0.5"
-                     animate={{ scale: [1, 2], opacity: [0.8, 0] }}
-                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.75 }}
-                   />
-                   <text x="190" y="87" fill="#818cf8" className="font-mono text-[5.5px] font-bold" textAnchor="middle">UAV_DRONE</text>
-                </g>
-
-                {/* BIPED target bottom-left */}
-                <g>
-                   <circle cx="110" cy="75" r="2.5" fill="#f43f5e" />
-                   <motion.circle
-                     cx="110"
-                     cy="75"
-                     r="6"
-                     fill="none"
-                     stroke="#f43f5e"
-                     strokeWidth="0.5"
-                     animate={{ scale: [1, 2], opacity: [0.8, 0] }}
-                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 1.12 }}
-                   />
-                   <text x="110" y="87" fill="#f43f5e" className="font-mono text-[5.5px] font-bold" textAnchor="middle">HUMANOID</text>
-                </g>
-              </svg>
-              
-              <div className="flex gap-2 justify-around w-full font-mono text-[6.5px] text-slate-500 uppercase mt-1">
-                <span>[SCAN] WHEELS</span>
-                <span>[SCAN] TRAJECTORY</span>
-                <span>[SCAN] IMU</span>
-                <span>[SCAN] DEG. FREEDOM</span>
-              </div>
+            <div className="flex-1 flex flex-col justify-center items-center py-1 relative">
+              <img 
+                src="/src/assets/images/robotics_tech_visualizer_1781348337794.jpg" 
+                alt="Cybernetic Robotics Morphology" 
+                className="w-full h-[100px] object-cover rounded-lg border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                referrerPolicy="no-referrer"
+              />
             </div>
 
             <div className="flex justify-between text-[7px] font-mono text-slate-500 pt-1 border-t border-slate-900 uppercase">
-              <span>ACTIVE SWEEPING RINGS TRACER</span>
-              <span className="text-cyan-400 font-extrabold uppercase animate-pulse">4 MORPHOLOGY MATCH</span>
+              <span>INTELLIGENT KINEMATICS ACTIVE</span>
+              <span className="text-cyan-400 font-extrabold uppercase animate-pulse">ALIGNMENT COMPLIANT</span>
             </div>
           </div>
         );
       case 7: // Component Diagnostics (index 7)
         return (
-          <div className="w-full h-full flex flex-col justify-between p-3 relative bg-slate-950/45 rounded-xl border border-slate-900 text-left">
-            <span className="font-mono text-[7px] text-emerald-400 font-extrabold pb-2 uppercase border-b border-emerald-950/40 block">HARDWARE SIGNAL TRACE ROUTING // ACTIVE</span>
+          <div className="w-full h-full flex flex-col justify-between p-1 relative bg-transparent border-none text-left">
+            <span className="font-mono text-[7px] text-emerald-400 font-extrabold pb-1.5 uppercase border-b border-emerald-950/20 block">HARDWARE SIGNAL TRACE ROUTING // ACTIVE</span>
             
-            <div className="flex-1 flex flex-col justify-center items-center py-2 relative">
+            <div className="flex-1 flex flex-col justify-center items-center py-1 relative">
               <svg viewBox="0 0 300 100" className="w-full h-24">
                 {/* Microcontroller MCU Box */}
                 <rect x="15" y="25" width="54" height="40" rx="3" fill="#02071a" stroke="#10b981" strokeWidth="1" />
@@ -938,572 +783,398 @@ export default function HomePage({
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#020617] text-slate-100 flex flex-col justify-between overflow-x-hidden p-4 md:p-8 select-none font-sans">
+    <div className="relative min-h-screen lg:h-screen lg:overflow-hidden w-full bg-[#030611] text-slate-100 flex flex-col justify-between p-4 lg:p-6 select-none font-sans">
       
-      {/* Electronic Circuit Grid Overlay */}
-      <div className="absolute inset-x-0 top-0 bottom-0 bg-[linear-gradient(to_right,#0c1a30_1px,transparent_1px),linear-gradient(to_bottom,#0c1a30_1px,transparent_1px)] bg-[size:32px_32px] opacity-40 pointer-events-none" />
+      {/* Subtle Digital Grid Overlay */}
+      <div className="absolute inset-x-0 top-0 bottom-0 bg-[linear-gradient(to_right,#0f1c35_1px,transparent_1px),linear-gradient(to_bottom,#0f1c35_1px,transparent_1px)] bg-[size:40px_40px] opacity-25 pointer-events-none" />
       
-      {/* Futuristic Radial Signal Wave Scan line */}
-      <div className="absolute top-0 left-0 right-0 h-[600px] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-sky-950/25 via-[#020617] to-transparent pointer-events-none" />
-      
-      <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-sky-500/40 to-transparent pointer-events-none" />
+      {/* Elegant Radial Background Scan Flare */}
+      <div className="absolute top-0 left-0 right-0 h-[450px] bg-[radial-gradient(circle_at_center,_rgba(14,165,233,0.12)_0%,_transparent_100%)] pointer-events-none" />
+      <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-sky-500/20 to-transparent pointer-events-none" />
 
-      {/* SECTION 1: HERO VIEW + INTERACTIVE FUTURISTIC ROBOTICS ROADMAP */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center py-1 md:py-2">
-        
-        {/* Animated Main Title Box */}
-        <div className="space-y-2 max-w-3xl mx-auto flex flex-col items-center mb-3 text-center">
-          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-sky-950/40 border border-sky-500/15">
-            <Radio className="w-3 h-3 text-sky-400 animate-pulse" />
-            <span className="font-mono text-[8.5px] text-sky-400 font-extrabold tracking-widest uppercase">STEERING AUTOMATION SYLLABUS GATE</span>
-          </div>
-
-          <div className="flex flex-col items-center justify-center gap-1.5 mb-0.5">
-            <PremiumLogo className="w-8 h-8 md:w-9 h-9" glow={true} />
-            <h1 className="text-xl md:text-[1.8rem] font-sans font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white via-slate-100 to-slate-400 leading-none uppercase select-none text-center">
-              ROBOTICS LEARNING HUB
+      {/* COMPACT INTEGRATED HEADER */}
+      <header className="relative z-10 w-full max-w-7xl mx-auto flex items-center justify-between border-b border-slate-900/80 pb-3 mb-2 shrink-0">
+        <div className="flex items-center gap-3">
+          <PremiumLogo className="w-8 h-8" glow={true} />
+          <div className="text-left">
+            <h1 className="text-sm md:text-base font-sans font-black tracking-wider text-white uppercase leading-none">
+              Robotics Learning Hub
             </h1>
+            <span className="font-mono text-[8px] text-sky-400 font-extrabold tracking-widest uppercase block mt-1">
+              STEM Cybernetic Curriculum Pipeline
+            </span>
           </div>
-          
-          <p className="text-[11px] md:text-[12px] text-slate-400 leading-normal font-sans max-w-xl mx-auto font-medium">
-            Learn robotics interactive modules sequentially. Analyze live sensor input signal flows, structure algorithmic codes, trace hardware electrical circuits, and calibrate physical feedback loops.
-          </p>
         </div>
 
-        {/* Dynamic Connected Roadmap Unified Dashboard - Combined Curriculum Flow & Companion Robot DEB-09 */}
-        <div id="curriculum-roadmap-dashboard" className="w-full bg-[#040c1e]/95 border-2 border-slate-900 rounded-xl p-4 md:p-5 my-2 max-w-7xl mx-auto relative overflow-hidden backdrop-blur-md shadow-[0_0_50px_rgba(30,58,138,0.15)] select-none animate-fadeIn">
-          {/* Luminous high header overlay border */}
-          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-500/35 to-rose-500/5 pointer-events-none" />
+        <div className="flex items-center gap-2">
+          {/* Secure Operator deck link */}
+          <button
+            onClick={() => setShowCreatorModal(true)}
+            className="font-mono text-[8px] bg-slate-950 text-sky-300 border border-slate-800 hover:border-sky-500/50 hover:text-white px-2.5 py-1 rounded transition-colors uppercase font-bold cursor-pointer"
+          >
+            Developer profile
+          </button>
+        </div>
+      </header>
 
-          {/* Holographic matrix grids */}
-          <div className="absolute inset-0 bg-[radial-gradient(rgba(14,165,233,0.04)_1.5px,transparent_1.5px)] bg-[size:20px_20px] opacity-80 pointer-events-none" />
+      {/* MAIN CONSOLE SYSTEM DECK */}
+      <main className="relative z-10 w-full max-w-7xl mx-auto flex-1 flex flex-col justify-center py-1">
+        <div className="w-full bg-[#050b1d]/90 border-2 border-slate-900/80 rounded-2xl p-4 relative overflow-hidden backdrop-blur-md shadow-[0_0_50px_rgba(15,23,42,0.6)] flex-1 flex flex-col justify-between max-h-[85vh] lg:max-h-[610px]">
+          {/* Ambient header divider glow */}
+          <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent pointer-events-none" />
           
-          {/* Tech decorative target brackets on the single containing window */}
-          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-sky-500/30" />
-          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-sky-500/30" />
-          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-indigo-500/30" />
-          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-indigo-500/30" />
+          {/* Technical target frames */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sky-500/20" />
+          <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-sky-500/20" />
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-indigo-500/20" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-indigo-500/20" />
 
-          {/* Glowing sweep scanner light sweep beam across the entire window */}
-          <motion.div 
-            animate={{ top: ["0%", "100%", "0%"] }}
-            transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
-            className="absolute left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-sky-500/15 to-transparent pointer-events-none z-10"
-          />
-
-          {/* Elegant Consolidated Dashboard Header */}
-          <div className="mb-3.5 flex flex-wrap items-center justify-between border-b border-slate-900 pb-2 text-left gap-3 relative z-10">
-            <div className="flex items-center gap-3">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${sensorAlertActive ? "bg-rose-400" : "bg-cyan-400"}`}></span>
-                <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${sensorAlertActive ? "bg-rose-500" : "bg-cyan-500"}`}></span>
-              </span>
-              <div>
-                <span className="font-mono text-[7.5px] text-fuchsia-400 font-black block tracking-widest uppercase drop-shadow-[0_0_6px_rgba(217,70,239,0.5)] animate-pulse">INTEGRATED DIAGNOSTICS CONTROL</span>
-                <h3 className="font-sans font-black text-xs md:text-sm text-white uppercase tracking-tight flex items-center gap-2 mt-0.5">
-                  <GraduationCap className="w-4 h-4 text-sky-400" />
-                  STEM CURRICULUM PIPELINE
-                </h3>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 select-none">
-              <div className="font-mono text-[8px] bg-[#0c132c] text-sky-400 px-2 py-0.5 rounded border border-sky-500/20 font-bold flex items-center gap-1.5">
-                <span>SYSTEM HUB</span>
-                <span className="text-slate-700">|</span>
-                <span className="animate-pulse font-extrabold text-emerald-400">
-                  ONLINE_STABLE
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Integrated 12-Column Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch relative z-10 font-sans">
+          {/* Grid Layout: 12-Columns */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-stretch overflow-hidden">
             
-            {/* LEFT 7-COLUMNS: The Active STEM Sequence Log */}
-            <div id="curriculum-flow-selector-section" className="col-span-12 md:col-span-7 flex flex-col justify-between gap-3 bg-[#030718]/45 border-2 border-slate-900 rounded-xl p-3.5 md:p-4 relative select-none">
+            {/* LEFT 7-COLUMNS: The Active STEM Sequence Selector */}
+            <div className="col-span-12 lg:col-span-7 flex flex-col justify-between gap-3 bg-[#030612]/50 border border-slate-900 rounded-xl p-3 relative">
               
-              {/* Corner brackets */}
-              <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sky-500/30" />
-              <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-sky-500/30" />
-              <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-indigo-500/30" />
-              <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-indigo-500/30" />
-
-              {/* Header section identical to the Right Panel header for aligned PC user experience */}
               <div className="flex items-center justify-between border-b border-slate-900 pb-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-slate-950 border border-slate-800">
-                    <GraduationCap className="w-4 h-4 text-sky-400" />
+                  <div className="w-6 h-6 rounded bg-slate-950 border border-slate-900 flex items-center justify-center">
+                    <GraduationCap className="w-3.5 h-3.5 text-sky-450 text-sky-400" />
                   </div>
-                  <div className="text-left font-sans">
-                    <span className="font-mono text-[7px] px-1 py-0.5 rounded font-extrabold tracking-wider bg-sky-500/10 text-sky-400 border border-sky-500/25">
-                      STAGE CHANNELS
-                    </span>
-                    <h4 className="font-sans font-black text-xs text-white uppercase tracking-tight mt-0.5">
-                      CURRICULUM FLOW SELECTOR
-                    </h4>
-                  </div>
+                  <h3 className="font-sans font-black text-xs text-white uppercase tracking-tight">
+                    Syllabus Modules Pathway
+                  </h3>
                 </div>
+                <span className="font-mono text-[7px] text-slate-500 font-bold uppercase">
+                  Select Stage to Calibrate
+                </span>
               </div>
 
-              <div className="flex flex-col gap-3 flex-1 justify-between">
-                {/* STAGES SEQUENTIAL PATHWAY SELECTOR */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {roadmapPhases.map((phase, idx) => {
-                    const isActive = activePhaseIndex === idx;
-                    
-                    return (
-                      <div 
-                        key={phase.id} 
-                        onClick={() => {
-                          setActivePhaseIndex(idx);
-                          // Seamless smooth-scroll down to diagnostic readout on mobile screens if needed
-                          if (window.innerWidth < 768) {
-                            setTimeout(() => {
-                              const targetElement = document.getElementById("module-diagnostic-panel");
-                              if (targetElement) {
-                                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                              }
-                            }, 100);
-                          }
-                        }}
-                        className={`group relative z-10 p-2 sm:p-2.5 rounded-lg border flex flex-col items-center justify-between select-none min-h-[108px] transition-all duration-300 ${
-                          isActive 
-                            ? "scale-[1.02]" 
-                            : "hover:scale-[1.005]"
-                        } ${
-                          phase.color === "sky"
-                            ? isActive 
-                              ? "border-sky-400 bg-sky-500/10 shadow-[0_0_20px_rgba(56,189,248,0.4)] ring-1 ring-sky-450/40" 
-                              : "border-sky-500/15 bg-slate-950/50 hover:border-sky-450 hover:bg-sky-500/[0.02] hover:shadow-[0_0_15px_rgba(56,189,248,0.25)]"
-                            : phase.color === "indigo"
-                            ? isActive 
-                              ? "border-indigo-400 bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.4)] ring-1 ring-indigo-450/40" 
-                              : "border-indigo-500/15 bg-slate-950/50 hover:border-indigo-450 hover:bg-indigo-500/[0.02] hover:shadow-[0_0_15px_rgba(99,102,241,0.25)]"
-                            : phase.color === "emerald"
-                            ? isActive 
-                              ? "border-emerald-400 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.4)] ring-1 ring-emerald-450/40" 
-                              : "border-emerald-500/15 bg-slate-950/50 hover:border-emerald-450 hover:bg-emerald-500/[0.02] hover:shadow-[0_0_15px_rgba(16,185,129,0.25)]"
-                            : phase.color === "amber"
-                            ? isActive 
-                              ? "border-amber-400 bg-amber-500/10 shadow-[0_0_20px_rgba(245,158,11,0.4)] ring-1 ring-amber-450/40" 
-                              : "border-amber-500/15 bg-slate-950/50 hover:border-amber-450 hover:bg-amber-500/[0.02] hover:shadow-[0_0_15px_rgba(245,158,11,0.25)]"
-                            : phase.color === "purple"
-                            ? isActive 
-                              ? "border-purple-400 bg-purple-500/10 shadow-[0_0_20px_rgba(168,85,247,0.4)] ring-1 ring-purple-450/40" 
-                              : "border-purple-500/15 bg-slate-950/50 hover:border-purple-450 hover:bg-purple-500/[0.02] hover:shadow-[0_0_15px_rgba(168,85,247,0.25)]"
-                            : phase.color === "fuchsia"
-                            ? isActive 
-                              ? "border-fuchsia-400 bg-fuchsia-500/10 shadow-[0_0_20px_rgba(217,70,239,0.5)] ring-1 ring-fuchsia-450/40" 
-                              : "border-fuchsia-500/15 bg-slate-950/50 hover:border-fuchsia-450 hover:bg-fuchsia-500/[0.02] hover:shadow-[0_0_217,70,239,0.3)] hover:shadow-[0_0_20px_rgba(217,70,239,0.35)]"
-                            : isActive 
-                              ? "border-sky-400 bg-sky-500/10 ring-1 ring-sky-450/40" 
-                              : "border-slate-800 bg-slate-950/50 hover:border-sky-400"
-                        }`}
-                      >
-                        {/* Interactive dynamic background glow effect on hover */}
-                        <div className={`absolute inset-0 rounded-xl bg-gradient-to-br from-transparent ${
-                          phase.color === "sky" ? "to-sky-500/[0.03]" :
-                          phase.color === "indigo" ? "to-indigo-500/[0.03]" :
-                          phase.color === "emerald" ? "to-emerald-500/[0.03]" :
-                          phase.color === "amber" ? "to-amber-500/[0.03]" :
-                          phase.color === "purple" ? "to-purple-500/[0.03]" :
-                          phase.color === "fuchsia" ? "to-fuchsia-500/[0.03]" : "to-sky-500/[0.03]"
-                        } opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`} />
+              {/* STAGES CONTAINER: Elegant micro bento grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1 my-1 overflow-y-auto lg:max-h-none px-1.5 py-1">
+                {roadmapPhases.map((phase, idx) => {
+                  const isActive = activePhaseIndex === idx;
+                  const c = phase.color || "sky";
 
-                        {/* Top Metadata Row */}
-                        <div className="flex items-center justify-between pointer-events-none w-full">
-                          <span className={`font-mono text-[6.5px] px-1 py-0.5 rounded font-extrabold tracking-wider ${phase.badgeColor}`}>
+                  const stylesMap: Record<string, {
+                    hoverBorder: string;
+                    activeBorder: string;
+                    activeBg: string;
+                    activeGlow: string;
+                    activeLeftAccent: string;
+                    activeIconBorderCount: string;
+                    activeText: string;
+                    activeDot: string;
+                  }> = {
+                    sky: {
+                      hoverBorder: "hover:border-sky-500/50 hover:bg-sky-500/[0.02] hover:shadow-[0_0_12px_rgba(56,189,248,0.15)]",
+                      activeBorder: "border-sky-400",
+                      activeBg: "bg-sky-500/[0.08]",
+                      activeGlow: "shadow-[0_0_15px_rgba(56,189,248,0.25)] ring-1 ring-sky-500/20",
+                      activeLeftAccent: "bg-sky-400 shadow-[0_0_10px_#38bdf8]",
+                      activeIconBorderCount: "border-sky-500 text-sky-400",
+                      activeText: "text-sky-400",
+                      activeDot: "bg-sky-400"
+                    },
+                    indigo: {
+                      hoverBorder: "hover:border-indigo-500/50 hover:bg-indigo-500/[0.02] hover:shadow-[0_0_12px_rgba(99,102,241,0.15)]",
+                      activeBorder: "border-indigo-400",
+                      activeBg: "bg-indigo-500/[0.08]",
+                      activeGlow: "shadow-[0_0_15px_rgba(99,102,241,0.25)] ring-1 ring-indigo-500/20",
+                      activeLeftAccent: "bg-indigo-400 shadow-[0_0_10px_#6366f1]",
+                      activeIconBorderCount: "border-indigo-500 text-indigo-400",
+                      activeText: "text-indigo-400",
+                      activeDot: "bg-indigo-400"
+                    },
+                    emerald: {
+                      hoverBorder: "hover:border-emerald-500/50 hover:bg-emerald-500/[0.02] hover:shadow-[0_0_12px_rgba(16,185,129,0.15)]",
+                      activeBorder: "border-emerald-400",
+                      activeBg: "bg-emerald-500/[0.08]",
+                      activeGlow: "shadow-[0_0_15px_rgba(16,185,129,0.25)] ring-1 ring-emerald-500/20",
+                      activeLeftAccent: "bg-emerald-400 shadow-[0_0_10px_#10b981]",
+                      activeIconBorderCount: "border-emerald-500 text-emerald-400",
+                      activeText: "text-emerald-400",
+                      activeDot: "bg-emerald-400"
+                    },
+                    amber: {
+                      hoverBorder: "hover:border-amber-500/50 hover:bg-amber-500/[0.02] hover:shadow-[0_0_12px_rgba(245,158,11,0.15)]",
+                      activeBorder: "border-amber-400",
+                      activeBg: "bg-amber-500/[0.08]",
+                      activeGlow: "shadow-[0_0_15px_rgba(245,158,11,0.25)] ring-1 ring-amber-500/20",
+                      activeLeftAccent: "bg-amber-400 shadow-[0_0_10px_#f59e0b]",
+                      activeIconBorderCount: "border-amber-500 text-amber-400",
+                      activeText: "text-amber-400",
+                      activeDot: "bg-amber-400"
+                    },
+                    purple: {
+                      hoverBorder: "hover:border-purple-500/50 hover:bg-purple-500/[0.02] hover:shadow-[0_0_12px_rgba(168,85,247,0.15)]",
+                      activeBorder: "border-purple-400",
+                      activeBg: "bg-purple-500/[0.08]",
+                      activeGlow: "shadow-[0_0_15px_rgba(168,85,247,0.25)] ring-1 ring-purple-500/20",
+                      activeLeftAccent: "bg-purple-400 shadow-[0_0_10px_#a855f7]",
+                      activeIconBorderCount: "border-purple-500 text-purple-400",
+                      activeText: "text-purple-400",
+                      activeDot: "bg-purple-400"
+                    },
+                    cyan: {
+                      hoverBorder: "hover:border-cyan-500/50 hover:bg-cyan-500/[0.02] hover:shadow-[0_0_12px_rgba(34,211,238,0.15)]",
+                      activeBorder: "border-cyan-400",
+                      activeBg: "bg-cyan-500/[0.08]",
+                      activeGlow: "shadow-[0_0_15px_rgba(34,211,238,0.25)] ring-1 ring-cyan-500/20",
+                      activeLeftAccent: "bg-cyan-400 shadow-[0_0_10px_#22d3ee]",
+                      activeIconBorderCount: "border-cyan-500 text-cyan-400",
+                      activeText: "text-cyan-400",
+                      activeDot: "bg-cyan-400"
+                    }
+                  };
+
+                  const currentStyle = stylesMap[c] || stylesMap.sky;
+                  
+                  return (
+                    <button 
+                      key={phase.id} 
+                      onClick={() => {
+                        if (isActive) {
+                          setActivePhaseIndex(null);
+                        } else {
+                          setActivePhaseIndex(idx);
+                        }
+                        // On mobile, scroll to diagnostic layout below
+                        if (window.innerWidth < 1024) {
+                          setTimeout(() => {
+                            const targetElement = document.getElementById("module-diagnostic-panel");
+                            if (targetElement) {
+                              targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                          }, 100);
+                        }
+                      }}
+                      className={`group relative z-10 p-2.5 rounded-lg border flex items-center justify-between transition-all duration-200 select-none cursor-pointer min-h-[58px] py-1.5 h-auto w-full text-left overflow-hidden ${
+                        isActive 
+                          ? `${currentStyle.activeBorder} ${currentStyle.activeBg} ${currentStyle.activeGlow}` 
+                          : `border-slate-850 border-slate-900 bg-slate-950/45 ${currentStyle.hoverBorder}`
+                      }`}
+                    >
+                      {/* Left holographic active state accent indicator bar */}
+                      {isActive && (
+                        <div className={`absolute left-0 top-0 bottom-0 w-[3.5px] rounded-l-md z-30 ${currentStyle.activeLeftAccent}`} />
+                      )}
+
+                      {/* Ambient hover gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                      <div className="flex items-center gap-2.5 overflow-hidden">
+                        {/* Dynamic colored icon container */}
+                        <div className={`w-7 h-7 rounded-md flex items-center justify-center border shrink-0 transition-transform duration-350 ${
+                          isActive
+                            ? `${currentStyle.activeIconBorderCount} bg-slate-950 scale-[1.03]`
+                            : "border-slate-900 bg-slate-950 text-slate-500 group-hover:border-slate-800"
+                        }`}>
+                          {phase.icon}
+                        </div>
+                        
+                        <div className="overflow-hidden leading-tight pl-2">
+                          <span className={`font-mono text-[7.5px] block font-extrabold uppercase tracking-widest ${isActive ? currentStyle.activeText : "text-slate-500"}`}>
                             {phase.phaseNum}
                           </span>
-                          
-                          <div className="flex items-center gap-1">
-                            <span className="font-mono text-[6px] text-slate-500 uppercase font-black tracking-widest leading-none">
-                              {isActive ? "INSPECTING" : "STANDBY"}
-                            </span>
-                            <div className="relative flex h-1 w-1">
-                              {isActive && (
-                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                                  phase.color === "sky" ? "bg-sky-400" :
-                                  phase.color === "indigo" ? "bg-indigo-400" :
-                                  phase.color === "emerald" ? "bg-emerald-400" :
-                                  phase.color === "amber" ? "bg-amber-400" :
-                                  phase.color === "purple" ? "bg-purple-400" :
-                                  phase.color === "fuchsia" ? "bg-fuchsia-400" : "bg-sky-400"
-                                }`} />
-                              )}
-                              <span className={`relative inline-flex rounded-full h-1 w-1 ${
-                                isActive 
-                                  ? (phase.color === "sky" ? "bg-sky-400" :
-                                     phase.color === "indigo" ? "bg-indigo-400" :
-                                     phase.color === "emerald" ? "bg-emerald-400" :
-                                     phase.color === "amber" ? "bg-amber-400" :
-                                     phase.color === "purple" ? "bg-purple-400" :
-                                     phase.color === "fuchsia" ? "bg-fuchsia-400" : "bg-sky-400")
-                                  : "bg-slate-800"
-                              }`} />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Central Content (Icon + Title & Concept Code) - Fully Centered Centric Architecture */}
-                        <div className="flex flex-col items-center justify-center text-center mt-1 pointer-events-none flex-1 gap-1.5 w-full">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all duration-300 shrink-0 [&>svg]:!w-[18px] [&>svg]:!h-[18px] ${
-                            phase.color === "sky"
-                              ? isActive 
-                                ? "border-sky-500 bg-slate-950 text-sky-400 scale-[1.05]" 
-                                : "border-sky-950 bg-slate-950 text-sky-455/45 group-hover:border-sky-500/45 group-hover:text-sky-400"
-                              : phase.color === "indigo"
-                              ? isActive 
-                                ? "border-indigo-500 bg-slate-950 text-indigo-400 scale-[1.05]" 
-                                : "border-indigo-950 bg-slate-950 text-indigo-455/45 group-hover:border-indigo-500/45 group-hover:text-indigo-400"
-                              : phase.color === "emerald"
-                              ? isActive 
-                                ? "border-emerald-500 bg-slate-950 text-emerald-400 scale-[1.05]" 
-                                : "border-emerald-950 bg-slate-950 text-emerald-455/45 group-hover:border-emerald-500/45 group-hover:text-emerald-400"
-                              : phase.color === "amber"
-                              ? isActive 
-                                ? "border-amber-500 bg-slate-950 text-amber-400 scale-[1.05]" 
-                                : "border-amber-950 bg-slate-950 text-amber-455/45 group-hover:border-amber-500/45 group-hover:text-amber-400"
-                              : phase.color === "purple"
-                              ? isActive 
-                                ? "border-purple-500 bg-slate-950 text-purple-400 scale-[1.05]" 
-                                : "border-purple-950 bg-slate-950 text-purple-455/45 group-hover:border-purple-500/45 group-hover:text-purple-400"
-                              : phase.color === "fuchsia"
-                              ? isActive 
-                                ? "border-fuchsia-500 bg-slate-950 text-fuchsia-400 scale-[1.05]" 
-                                : "border-fuchsia-950 bg-slate-950 text-fuchsia-455/45 group-hover:border-fuchsia-500/45 group-hover:text-fuchsia-400"
-                              : isActive 
-                                ? "border-sky-500 bg-slate-950 text-sky-400 scale-[1.05]" 
-                                : "border-slate-905 bg-slate-950 text-slate-500 group-hover:border-slate-700"
-                          }`}>
-                            {phase.icon}
-                          </div>
-                          <div className="flex flex-col items-center justify-center w-full">
-                            <h5 className={`font-sans font-black text-[11px] sm:text-[11.5px] tracking-tight text-center uppercase leading-tight transition-colors duration-250 ${
-                              isActive
-                                ? (phase.color === "sky" ? "text-sky-300" :
-                                   phase.color === "indigo" ? "text-indigo-300" :
-                                   phase.color === "emerald" ? "text-emerald-300" :
-                                   phase.color === "amber" ? "text-amber-300" :
-                                   phase.color === "purple" ? "text-purple-300" :
-                                   phase.color === "fuchsia" ? "text-fuchsia-300" : "text-white")
-                                : "text-slate-100 " + (
-                                   phase.color === "sky" ? "group-hover:text-sky-400" :
-                                   phase.color === "indigo" ? "group-hover:text-indigo-400" :
-                                   phase.color === "emerald" ? "group-hover:text-emerald-400" :
-                                   phase.color === "amber" ? "group-hover:text-amber-400" :
-                                   phase.color === "purple" ? "group-hover:text-purple-400" :
-                                   phase.color === "fuchsia" ? "group-hover:text-fuchsia-400" : "group-hover:text-sky-400"
-                                 )
-                            }`}>
-                              {phase.name}
-                            </h5>
-                            <span className="font-mono text-[7px] text-slate-400 block mt-0.5 font-bold leading-normal tracking-wide uppercase text-center max-w-[95%] font-medium">
-                              {phase.concept}
-                            </span>
-                          </div>
+                          <h4 className="font-sans font-black text-xs tracking-tight text-white uppercase leading-normal mt-0.5">
+                            {phase.name}
+                          </h4>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
- 
-                {/* COMPACT STAGE MONITORING NOTIFICATION AREA */}
-                <div className="mt-1.5 p-2 py-2.5 rounded bg-slate-950/80 border border-slate-900 select-none text-left flex items-start gap-2.5 w-full">
-                  <span className="relative flex h-1.5 w-1.5 mt-1">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-500"></span>
-                  </span>
-                  <div>
-                    <span className="font-mono text-[7px] text-cyan-400 font-extrabold uppercase tracking-widest block">SYSTEM TELEMETRY LINK ACTIVE</span>
-                    <p className="text-[10px] text-slate-350 leading-normal font-sans font-medium mt-0.5">
-                      {currentPhase ? (
-                        <>
-                          Module <span className="text-white font-bold">#{currentPhase.phaseNum} ({currentPhase.name})</span> is aligned. Tap stage to inspect telemetry.
-                        </>
-                      ) : (
-                        "No module currently selected. Use the Sequence Selector cards above to align a learning pipeline module."
-                      )}
-                    </p>
-                  </div>
-                </div>
 
+                      {/* Small Active LED State indicator */}
+                      <div className="flex items-center gap-1.5 shrink-0 pl-1.5">
+                        <div className="relative flex h-1.5 w-1.5">
+                          {isActive && (
+                            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${currentStyle.activeDot}`} />
+                          )}
+                          <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${
+                            isActive ? currentStyle.activeDot : "bg-slate-800"
+                          }`} />
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* TELEMETRY STATEMENT AREA (Literal human logs) */}
+              <div className="p-2 rounded bg-slate-950 border border-slate-900 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className={`w-1.5 h-1.5 rounded-full ${activePhaseIndex !== null ? "bg-sky-400 animate-pulse" : "bg-slate-800"}`} />
+                  <span className="font-sans text-[10px] text-slate-400">
+                    {currentPhase ? (
+                      <>
+                        Aligned stage: <strong className="text-white font-bold">{currentPhase.name}</strong>. Engage simulator to run mechatronic diagnostics.
+                      </>
+                    ) : (
+                      "Launch status: Standard standby mode. Select a curriculum module above to inspect interactive telemetry."
+                    )}
+                  </span>
+                </div>
               </div>
 
             </div>
 
-            {/* RIGHT 5-COLUMNS: Integrated Module Readout Panel */}
-            <div id="module-diagnostic-panel" className="col-span-12 md:col-span-4 lg:col-span-5 flex flex-col justify-between gap-3 bg-[#030718]/45 border-2 border-slate-900 rounded-xl p-3.5 md:p-4 relative select-none">
-              
-              {/* Corner brackets */}
-              <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sky-500/30" />
-              <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-sky-500/30" />
-              <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-indigo-500/30" />
-              <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-indigo-500/30" />
+            {/* RIGHT 5-COLUMNS: Module Description Content Panel */}
+            <div id="module-diagnostic-panel" className="col-span-12 lg:col-span-5 flex flex-col justify-between gap-3 bg-[#030612]/50 border border-slate-900 rounded-xl p-3.5 relative">
               
               {currentPhase === null ? (
                 <div className="flex flex-col justify-between h-full flex-1">
-                  {/* Holographic Speech header */}
-                  <div className="flex items-center justify-between border-b border-slate-900 pb-2">
+                  
+                  {/* Holographic Header */}
+                  <div className="flex items-center justify-between border-b border-slate-900 pb-2.5 shrink-0">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-sky-500/10 border border-sky-500/30 text-sky-400 animate-pulse">
-                        <Cpu className="w-5 h-5" />
+                      <div className="w-6 h-6 rounded bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 animate-pulse">
+                        <Cpu className="w-3.5 h-3.5" />
                       </div>
-                      <div className="text-left font-sans">
-                        <span className="font-mono text-[7.5px] px-1.5 py-0.5 rounded font-extrabold tracking-wider bg-violet-500/10 text-violet-400 border border-violet-500/25">
-                          ASSISTANT DEB-09
-                        </span>
-                        <h4 className="font-sans font-black text-xs md:text-sm text-slate-200 uppercase tracking-tight mt-0.5">
-                          HOLOGRAPHIC COMPANION ACTIVE
-                        </h4>
-                      </div>
+                      <h4 className="font-sans font-black text-xs text-slate-200 uppercase tracking-tight">
+                        Companion Robot Advisor
+                      </h4>
                     </div>
                   </div>
 
-                  {/* Humanoid Robot Interactive Box */}
-                  <div className="flex flex-col items-center justify-center py-2 md:py-3 flex-1 gap-2">
-                    {/* Bobbing Humanoid Robot SVG Frame */}
+                  {/* Robot Interactive Core */}
+                  <div className="flex flex-col items-center justify-center flex-1 py-1 gap-1">
+                    
+                    {/* Cute DEB-09 Bobbing Robot Frame */}
                     <motion.div
                       animate={{ 
-                        y: [0, -8, 0],
-                        scaleY: [1, 0.97, 1.01, 1],
-                        scaleX: [1, 1.03, 0.99, 1],
-                        rotate: [-1, 1, -1]
+                        y: [0, -6, 0],
+                        scaleY: [1, 0.98, 1.01, 1],
+                        scaleX: [1, 1.02, 0.99, 1]
                       }}
                       transition={{ 
                         duration: 3, 
                         repeat: Infinity, 
                         ease: "easeInOut" 
                       }}
-                      className="w-32 h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 relative flex items-center justify-center animate-fadeIn"
+                      className="w-40 h-40 relative flex items-center justify-center select-none"
                     >
-                      {/* Luminous backdrop circle */}
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-500/5 to-violet-500/10 blur-lg animate-pulse" />
+                      {/* Ambient shadow glow */}
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-500/10 to-violet-500/10 blur-xl animate-pulse" />
                       
-                      {/* Holographic base stand */}
-                      <motion.div 
-                        animate={{ opacity: [0.3, 0.7, 0.3], scaleX: [0.95, 1.05, 0.95] }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute -bottom-1 w-16 h-1 bg-gradient-to-r from-sky-500/10 via-violet-500/20 to-sky-500/10 rounded-full blur-[1px] border border-sky-400/20" 
-                      />
-                      
-                      {/* High Tech Vector SVG Robot Shape */}
                       <svg className="w-full h-full text-sky-400" viewBox="0 0 120 120" stroke="currentColor" fill="none" strokeWidth="1.5">
-                        {/* Antennas */}
                         <line x1="60" y1="35" x2="60" y2="20" strokeWidth="1" strokeDasharray="2,2" />
-                        <circle cx="60" cy="18" r="3" className="fill-violet-400 animate-ping animate-pulse" style={{ transformOrigin: "60px 18px", animationDuration: "1.5s" }} />
-                        <circle cx="60" cy="18" r="2" className="fill-sky-400" />
-                        
-                        <line x1="45" y1="38" x2="33" y2="25" strokeWidth="1" />
-                        <circle cx="33" cy="25" r="1.5" className="fill-indigo-400" />
- 
-                        <line x1="75" y1="38" x2="87" y2="25" strokeWidth="1" />
-                        <circle cx="87" cy="25" r="1.5" className="fill-indigo-400" />
- 
-                        {/* Robot Head Frame */}
+                        <circle cx="60" cy="18" r="2.5" className="fill-sky-400" />
                         <rect x="36" y="36" width="48" height="34" rx="14" fill="#030712" strokeWidth="1.7" className="stroke-sky-400" />
                         <rect x="42" y="42" width="36" height="22" rx="8" fill="#01030a" strokeWidth="0.8" className="stroke-indigo-500/50" />
                         
-                        {/* Cybernetic details inside neck / joint */}
-                        <line x1="56" y1="70" x2="56" y2="76" strokeWidth="3" className="stroke-slate-800" />
-                        <line x1="64" y1="70" x2="64" y2="76" strokeWidth="3" className="stroke-slate-800" />
-                        
-                        {/* Interactive speech wave patterns or glowing visor eyes */}
                         <g>
-                          {/* Pulsing Visor / Eyes */}
                           <motion.ellipse 
-                            cx="50" cy="53" rx="4" ry="4" 
-                            className="fill-sky-400" 
-                            animate={{ scaleY: [1, 1, 0.1, 1, 1] }} 
-                            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", repeatDelay: 1 }}
+                             cx="50" cy="53" rx="3.5" ry="3.5" 
+                             className="fill-sky-400" 
+                             animate={{ scaleY: [1, 1, 0.1, 1, 1] }} 
+                             transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", repeatDelay: 1.2 }}
                           />
                           <motion.ellipse 
-                            cx="70" cy="53" rx="4" ry="4" 
-                            className="fill-sky-400" 
-                            animate={{ scaleY: [1, 1, 0.1, 1, 1] }} 
-                            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", repeatDelay: 1 }}
+                             cx="70" cy="53" rx="3.5" ry="3.5" 
+                             className="fill-sky-400" 
+                             animate={{ scaleY: [1, 1, 0.1, 1, 1] }} 
+                             transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", repeatDelay: 1.2 }}
                           />
-                          {/* Subtle digital scanning lines across look */}
-                          <line x1="44" y1="53" x2="76" y2="53" stroke="rgba(56, 189, 248, 0.2)" strokeWidth="0.5" />
                         </g>
- 
-                        {/* Torso Shoulder Line */}
                         <path d="M 32,95 C 40,84 80,84 88,95" fill="#030712" strokeWidth="1.5" className="stroke-sky-400/80" />
-                        {/* Glowing chest power reactor core */}
-                        <circle cx="60" cy="94" r="5.5" fill="#050a18" className="stroke-purple-500" strokeWidth="1" />
-                        <circle cx="60" cy="94" r="3" fill="#a855f7" className="animate-pulse" />
- 
-                        {/* Left floating arms/thrusters */}
-                        <motion.path 
-                          d="M 24,65 Q 16,75 22,85" 
-                          animate={{ rotate: [-2, 5, -2] }} 
-                          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                          style={{ transformOrigin: "24px 65px" }} 
-                        />
- 
-                        {/* Right floating arms/thrusters (Symmetric cute arm) */}
-                        <motion.path 
-                          d="M 96,65 Q 104,75 98,85" 
-                          animate={{ rotate: [2, -5, 2] }} 
-                          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                          style={{ transformOrigin: "96px 65px" }} 
-                        />
- 
-                        {/* Outer tracking design rings */}
-                        <circle cx="60" cy="53" r="42" className="stroke-indigo-500/10" strokeDasharray="3,15" />
-                        <circle cx="60" cy="53" r="50" className="stroke-sky-500/10" strokeDasharray="4,8" />
+                        <circle cx="60" cy="94" r="5" fill="#050a18" className="stroke-purple-500" strokeWidth="1" />
+                        <circle cx="60" cy="94" r="2" fill="#a855f7" className="animate-pulse" />
                       </svg>
- 
-                      {/* Dynamic speech lines on the side of the robot */}
-                      <div className="absolute left-[-12px] top-1/2 flex flex-col gap-1 items-end opacity-60">
-                        <div className="h-[1px] w-3 bg-sky-500" />
-                        <div className="h-[1px] w-4.5 bg-indigo-500" />
-                      </div>
-                      <div className="absolute right-[-12px] top-1/2 flex flex-col gap-1 items-start opacity-60">
-                        <div className="h-[1px] w-3 bg-sky-500" />
-                        <div className="h-[1px] w-4.5 bg-indigo-500" />
-                      </div>
                     </motion.div>
- 
-                    {/* Holographic Projector Pedestal / Base Platform with projection cone light highlights */}
-                    <div className="relative w-48 h-8 flex flex-col items-center justify-center -mt-6 mb-1 select-none pointer-events-none">
-                      {/* Projection Cone / Light Beam highlighting the robot from below (Wider and Shorter) */}
-                      <div className="absolute bottom-[10px] w-44 h-12 bg-gradient-to-t from-cyan-500/30 via-cyan-500/[0.02] to-transparent blur-md opacity-90 z-20" 
-                           style={{ clipPath: 'polygon(0% 0%, 100% 0%, 40% 100%, 60% 100%)' }} />
- 
-                      {/* Elevated Circular Aperture centered on top of the platform representing the requested source circle */}
-                      <div className="absolute bottom-[7px] w-8 h-2 rounded-full bg-[#040e24] border border-cyan-400/90 shadow-[0_0_10px_rgba(6,182,212,0.8)] flex items-center justify-center z-30">
-                        {/* Dynamic pulsing inner white-hot light core */}
-                        <div className="w-3.5 h-0.5 rounded-full bg-cyan-100 shadow-[0_0_6px_#ffffff] animate-pulse" />
-                      </div>
- 
-                      {/* Emitter Disk Outer Ring (Metallic / Dark slate) */}
-                      <div className="w-16 h-3 rounded-full bg-slate-900 border border-slate-800 relative shadow-[0_0_8px_rgba(0,0,0,0.8)] z-10 flex items-center justify-center">
-                        {/* Glowing Emitter Core Ring */}
-                        <div className="w-11 h-1.5 rounded-full bg-cyan-950 border border-cyan-500/40 shadow-[0_0_6px_rgba(6,182,212,0.4)] flex items-center justify-center overflow-hidden">
-                          {/* Laser focal lens */}
-                          <div className="w-4 h-0.5 rounded-full bg-cyan-400 shadow-[0_0_4px_#22d3ee] animate-pulse" />
-                        </div>
-                      </div>
-                      
-                      {/* Holographic Ring Glow Base reflections on the floor */}
-                      <div className="absolute bottom-0 w-24 h-1.5 bg-gradient-to-r from-transparent via-cyan-500/15 to-transparent rounded-full blur-[1px] animate-pulse" />
+
+                    {/* Holographic Projection light cone */}
+                    <div className="relative w-48 h-5 flex flex-col items-center justify-center -mt-4 mb-2 select-none pointer-events-none">
+                      <div className="absolute bottom-[6px] w-36 h-8 bg-gradient-to-t from-cyan-500/25 to-transparent blur-sm opacity-90" 
+                           style={{ clipPath: 'polygon(0% 0%, 100% 0%, 35% 100%, 65% 100%)' }} />
+                      <div className="absolute bottom-[4px] w-6 h-1 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
                     </div>
- 
-                    {/* Futuristic Welcome speech bubble */}
-                    <div className="w-full text-center font-sans bg-gradient-to-br from-[#0a0f2d] to-[#04061a] p-3 rounded-xl border border-cyan-500/35 relative shadow-[0_0_15px_rgba(6,182,212,0.12)] hover:border-violet-500/50 transition-all duration-300">
-                      
-                      {/* Centered clean block typography layout (uniform cyan/theme colors, wrapped body) */}
-                      <p className="font-sans leading-relaxed tracking-wide text-center flex flex-col items-center select-none antialiased text-cyan-400 uppercase">
-                        <span className="font-black text-[10.5px] tracking-wider mb-1 animate-pulse">
-                          Welcome Robotics Engineer!
-                        </span>
-                        <span className="font-bold text-[9px] tracking-tight max-w-[280px] leading-snug text-center text-cyan-300">
-                          Select a learning module on the left to activate feedback and launch simulators
-                        </span>
+
+                    {/* Welcome Speech Bubble */}
+                    <div className="w-full text-center bg-gradient-to-br from-[#080d26] to-[#030514] p-3 rounded-lg border border-cyan-500/20 shadow-lg">
+                      <span className="font-sans font-black text-[10px] text-cyan-400 uppercase tracking-wide block mb-1">
+                        Systems Ready
+                      </span>
+                      <p className="font-sans text-[10px] text-cyan-200 font-medium leading-normal max-w-[260px] mx-auto">
+                        Welcome to the Robotics deck! Select a mechatronic curriculum module on the left navigation panel to align diagnostics.
                       </p>
                     </div>
-                    
-                    {/* Mobile View Interactive Redirect Button */}
+
+                  </div>
+
+                  {/* Empty Command Footer state */}
+                  <div className="mt-2 shrink-0">
                     <button
-                      onClick={() => {
-                        const target = document.getElementById("curriculum-flow-selector-section");
-                        if (target) {
-                          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                      }}
-                      className="md:hidden w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono text-[11px] font-black tracking-wider rounded-xl transition-all duration-200 active:scale-95 cursor-pointer shadow-[0_0_20px_rgba(56,189,248,0.4)] border-2 border-sky-300 uppercase"
+                      disabled={true}
+                      className="w-full px-4 py-2.5 bg-slate-950 hover:bg-slate-900 text-slate-650 border border-slate-900 text-slate-500 font-bold font-mono text-[9px] tracking-wider rounded-lg cursor-not-allowed uppercase flex items-center justify-center gap-2"
                     >
-                      <ChevronLeft className="w-4 h-4 animate-bounce max-md:rotate-90 text-slate-950" style={{ animationDuration: "1.5s" }} />
-                      <span>TAP TO SELECT CURRICULUM MODULE ABOVE</span>
+                      <span>Launcher Idle — Waiting for Module</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-slate-700" />
                     </button>
                   </div>
 
-                  {/* Launcher CTA trigger (Disabled or Prompt State) */}
-                  <div className="mt-2 pt-3 border-t border-slate-900 font-sans">
-                    <button
-                      disabled={true}
-                      className="w-full relative px-5 py-3 bg-[#02050f]/60 border border-slate-900 text-slate-600 font-bold font-mono text-[10.5px] tracking-wider rounded-xl cursor-not-allowed uppercase flex items-center justify-center gap-3 select-none"
-                    >
-                      <span>LAUNCHER WAITING FOR SELECTION</span>
-                      <ArrowRight className="w-4 h-4 text-slate-700" />
-                    </button>
-                  </div>
                 </div>
               ) : (
-                <div className="flex flex-col justify-between h-full flex-1">
-                  {/* Header section with active theme color */}
-                  <div className="flex items-center justify-between border-b border-slate-900 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-950 border border-slate-800">
+                <div className="flex flex-col justify-between h-full flex-1 overflow-hidden">
+                  
+                  {/* Phase Headline */}
+                  <div className="flex items-center justify-between border-b border-slate-900 pb-2 shrink-0">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded bg-slate-950 border border-slate-800 flex items-center justify-center text-sky-400 shrink-0">
                         {currentPhase.icon}
                       </div>
-                      <div className="text-left font-sans">
-                        <span className={`font-mono text-[7.5px] px-1.5 py-0.5 rounded font-extrabold tracking-wider ${currentPhase.badgeColor}`}>
-                          {currentPhase.phaseNum} DIAGNOSTIC RUN
+                      <div className="text-left leading-tight">
+                        <span className={`font-mono text-[7px] px-1 rounded font-extrabold tracking-wider ${currentPhase.badgeColor}`}>
+                          {currentPhase.phaseNum} Overview
                         </span>
-                        <h4 className="font-sans font-black text-xs md:text-sm text-white uppercase tracking-tight mt-0.5">
+                        <h4 className="font-sans font-bold text-xs text-white uppercase mt-0.5">
                           {currentPhase.name}
                         </h4>
                       </div>
                     </div>
                   </div>
 
-                  {/* Readout contents layout */}
-                  <div className="flex flex-col gap-4 flex-1">
+                  {/* Readout Body */}
+                  <div className="flex flex-col gap-2.5 py-2 overflow-y-auto flex-1 h-full pr-1">
                     
-                    {/* Concept overview description block */}
-                    <div className="text-left font-sans">
-                      <span className="font-mono text-[7px] text-sky-400 font-extrabold uppercase tracking-wide block mb-1 opacity-70">
-                        CONCEPT OVERVIEW
+                    {/* Concept desc label */}
+                    <div className="text-left leading-normal">
+                      <span className="font-mono text-[6.5px] text-sky-400 font-extrabold uppercase tracking-widest block mb-0.5">
+                        Learning Bounds
                       </span>
-                      <p className="font-sans text-[11px] text-slate-300 leading-relaxed font-normal p-3 rounded-lg bg-slate-950/40 border border-slate-900">
+                      <p className="font-sans text-[10px] text-slate-350 leading-relaxed bg-slate-950/50 p-2.5 rounded-md border border-slate-900 font-normal">
                         {currentPhase.desc}
                       </p>
                     </div>
 
-                    {/* Embedded Signal Visualizer Graph */}
-                    <div className="text-left flex-1 min-h-[160px] flex flex-col justify-between font-sans animate-fadeIn">
-                      <span className="font-mono text-[7px] text-indigo-400 font-extrabold uppercase tracking-wide block mb-1 opacity-70">
-                        {currentPhase?.id === "ph-4"
-                          ? "CLOSED-LOOP FEEDBACK CONTROL DIAGRAM" 
-                          : currentPhase?.id === "ph-5"
-                          ? "SPATIAL MULTI-AXIS MANIPULATOR GEOMETRY" 
-                          : currentPhase?.id === "ph-6"
-                          ? "NEURAL NETWORK INFERENCE CORE" 
-                          : currentPhase?.id === "ph-diagnostics"
-                          ? "COMPONENT DIAGNOSTIC TERMINAL SIGNAL TRACE" 
-                          : currentPhase?.id === "ph-types"
-                          ? "ROBOT CLASSIFICATION SCANNER" 
-                          : "MODULE SYNAPTIC INTERACTION SIGNALS"}
+                    {/* Integrated Interactive Simulator Screen */}
+                    <div className="text-left flex flex-col gap-1">
+                      <span className="font-mono text-[6.5px] text-indigo-400 font-extrabold uppercase tracking-widest block">
+                        Calibration Telemetry Visualizer
                       </span>
-                      <div className="flex-1 w-full min-h-[150px] rounded-xl bg-slate-950/95 border border-slate-900 p-1.5 relative overflow-hidden flex flex-col justify-between select-none">
+                      <div className="w-full h-[155px] rounded-lg bg-slate-950 border border-slate-900 p-1.5 relative overflow-hidden flex flex-col justify-between">
                         {renderPhaseVisualizer(activePhaseIndex)}
                       </div>
                     </div>
 
                   </div>
 
-                  {/* Launcher CTA trigger */}
-                  <div className="mt-2 pt-3 border-t border-slate-900 font-sans">
+                  {/* Large Tactical Engage Trigger button */}
+                  <div className="pt-2 border-t border-slate-900 shrink-0">
                     <button
                       onClick={() => {
                         onEnter(currentPhase.targetTab);
                       }}
-                      className="w-full relative px-6 py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black font-mono text-[11.5px] tracking-widest rounded-xl transition-all duration-300 active:scale-95 cursor-pointer uppercase flex items-center justify-center gap-3 group border border-sky-500 shadow-[0_0_25px_rgba(56,189,248,0.25)]"
+                      className="w-full relative px-4 py-3 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black font-mono text-[10px] tracking-widest rounded-xl transition-all duration-150 active:scale-98 cursor-pointer uppercase flex items-center justify-center gap-1.5 group border border-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.2)]"
                     >
-                      <span>LAUNCH SIMULATOR // ENGAGE {currentPhase.phaseNum}</span>
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300 text-slate-950" />
+                      <span>Engage Module Simulation</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200 text-slate-950" />
                       
-                      {/* Corner brackets */}
-                      <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-sky-400/60" />
-                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-sky-400/60" />
-                      <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-sky-400/60" />
-                      <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-sky-400/60" />
+                      {/* Professional corners */}
+                      <div className="absolute -top-[1.5px] -left-[1.5px] w-2 h-2 border-t-2 border-l-2 border-white/60" />
+                      <div className="absolute -top-[1.5px] -right-[1.5px] w-2 h-2 border-t-2 border-r-2 border-white/60" />
+                      <div className="absolute -bottom-[1.5px] -left-[1.5px] w-2 h-2 border-b-2 border-l-2 border-white/60" />
+                      <div className="absolute -bottom-[1.5px] -right-[1.5px] w-2 h-2 border-b-2 border-r-2 border-white/60" />
                     </button>
                   </div>
+
                 </div>
               )}
 
@@ -1511,42 +1182,62 @@ export default function HomePage({
 
           </div>
         </div>
-      </section>
+      </main>
 
-
-
-
-
-
-
-
-
-      {/* SECTION 5: SYSTEM AUTHOR DETAILS */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto py-8 border-t border-slate-900 mt-8">
-        <div className="mb-4">
-          <span className="font-mono text-[9px] text-sky-400 font-extrabold tracking-widest block uppercase mb-1">SYSTEM CONTROLLER LOGS</span>
-          <h2 className="font-sans font-extrabold text-lg md:text-xl text-slate-100 uppercase tracking-tight flex items-center gap-2">
-            ABOUT THE PLATFORM &amp; CREATOR
-          </h2>
-        </div>
-        <CreatorProfileCard />
-      </section>
-
-      {/* Footer Diagnostic Readout status */}
-      <footer className="relative z-10 w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between border-t border-slate-900 pt-5 mt-6 text-[9.5px] font-mono text-slate-500 gap-2">
-        <span>Robotics Learning Hub © 2026 — Developed in Dubai, UAE by Sean Buscano</span>
+      {/* FOOTER AREA */}
+      <footer className="relative z-10 w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between border-t border-slate-900 pt-3 mt-1.5 text-[8.5px] font-mono text-slate-500 gap-2 shrink-0">
+        <span>Robotics Learning Hub © 2026 — Dubai, UAE by Sean Buscano</span>
         <div className="flex gap-4 select-none items-center">
-          {onOpenCreatorModal && (
-            <button 
-              onClick={onOpenCreatorModal} 
-              className="hover:text-sky-400 transition-colors cursor-pointer text-slate-400 font-bold"
-            >
-              [ SYSTEM CREATOR MODULE ]
-            </button>
-          )}
-          <span>[ STEM Build v2.0 ]</span>
+          <button 
+            onClick={() => setShowCreatorModal(true)} 
+            className="hover:text-sky-400 transition-colors cursor-pointer text-slate-400 font-bold uppercase"
+          >
+            [ Creator Module ]
+          </button>
+          <span>[ STEM Build v2.5 ]</span>
         </div>
       </footer>
+
+      {/* Holographic Operator Deck Modal Overlay */}
+      {showCreatorModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+          <div className="relative bg-[#04081c] border-2 border-slate-900 rounded-2xl max-w-lg w-full p-5 shadow-2xl overflow-hidden select-none">
+            
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-sky-400" />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-sky-400" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-indigo-400" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-indigo-400" />
+            
+            <div className="flex items-center justify-between border-b border-slate-900 pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-sky-400 animate-pulse" />
+                <span className="font-mono text-[9px] font-black text-sky-400 uppercase tracking-widest">Developer credentials deck</span>
+              </div>
+              <button 
+                onClick={() => setShowCreatorModal(false)}
+                className="p-1 rounded bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-white transition-colors cursor-pointer border border-slate-800"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            
+            <div className="my-2 max-h-[60vh] overflow-y-auto pr-1">
+              <CreatorProfileCard />
+            </div>
+            
+            <div className="mt-4 pt-3 border-t border-slate-900 flex justify-end font-mono text-[10px]">
+              <button 
+                onClick={() => setShowCreatorModal(false)}
+                className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg transition-colors cursor-pointer uppercase"
+              >
+                Dismiss Deck
+              </button>
+            </div>
+            
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

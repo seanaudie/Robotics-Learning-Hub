@@ -755,11 +755,19 @@ export default function RoboticsManipulators() {
         e = j3 + 12 * Math.sin(time * 1.2);
         w = j5 + 10 * Math.cos(time * 1.3);
       }
-    } else if (currentStep === 2 && activeDofTest !== "none") {
-      y = activeDofTest === "j1" ? dofSweepVal : j1;
-      s = activeDofTest === "j2" ? dofSweepVal : j2;
-      e = activeDofTest === "j3" ? dofSweepVal : j3;
-      w = activeDofTest === "j5" ? dofSweepVal : j5;
+    } else if (currentStep === 2) {
+      if (activeDofTest !== "none") {
+        y = activeDofTest === "j1" ? dofSweepVal : j1;
+        s = activeDofTest === "j2" ? dofSweepVal : j2;
+        e = activeDofTest === "j3" ? dofSweepVal : j3;
+        w = activeDofTest === "j5" ? dofSweepVal : j5;
+      } else {
+        // Soft standby breathing optional, but keep it relative to knob settings
+        y = j1;
+        s = j2;
+        e = j3;
+        w = j5;
+      }
     } else if (currentStep === 4 && ppState !== "IDLE") {
       if (selectedScenario === "battery_sorting") {
         if (ppState === "HOVER") {
@@ -849,6 +857,9 @@ export default function RoboticsManipulators() {
       } else {
         return j6Closed + 10 * Math.sin(time * 1.2);
       }
+    }
+    if (currentStep === 2 && activeDofTest === "j6") {
+      return dofSweepVal;
     }
     return j6Closed;
   };
