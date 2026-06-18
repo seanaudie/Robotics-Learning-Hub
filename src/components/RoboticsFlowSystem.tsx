@@ -1359,8 +1359,11 @@ export default function RoboticsFlowSystem() {
                   </div>
 
                   {/* MAIN SYSTEM SPECIFIC SIMULATIONS */}
-                  <div className="flex-1 w-full flex items-center justify-center my-3 relative min-h-[290px]">
-                  {activeId === "mobot" && (() => {
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-stretch my-3 relative">
+                    
+                    {/* COLUMN 1: Live Interactive Simulation Graphics (Left Column) */}
+                    <div className="lg:col-span-7 xl:col-span-7 flex flex-col justify-between h-full bg-[#01040f]/60 border border-slate-900/60 rounded-xl p-3.5 relative overflow-hidden backdrop-blur-sm">
+                      {activeId === "mobot" && (() => {
                     const obstacleCycle = simTick % 180;
                     let robX = 56;
                     let isNearObstacle = false;
@@ -2584,6 +2587,132 @@ export default function RoboticsFlowSystem() {
                     );
                   })()}
                 </div>
+
+                {/* COLUMN 2: Educational How-It-Works Breakdown (Right Column) */}
+                <div id="edu-how-it-works-feedback" className="lg:col-span-5 xl:col-span-5 flex flex-col bg-[#050B1B]/85 border border-slate-900/80 p-4 sm:p-5 rounded-xl text-left relative overflow-hidden backdrop-blur-md">
+                  {/* Grid lines inside educational panel */}
+                  <div className="absolute inset-0 bg-[linear-gradient(to_right,#0c142c_1px,transparent_1px),linear-gradient(to_bottom,#0c142c_1px,transparent_1px)] bg-[size:16px_16px] opacity-15 pointer-events-none" />
+                  
+                  <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                    {/* Header */}
+                    <div className="border-b border-slate-900 pb-2.5 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-3.5 h-3.5 text-sky-450 text-sky-400 animate-pulse" />
+                        <h4 className="font-sans font-black text-white text-[11.5px] tracking-tight uppercase leading-none">
+                          {activeId === "mobot" && "Autonomous Steering Loop"}
+                          {activeId === "monitoring" && "Greenhouse Biosphere Loop"}
+                          {activeId === "automation" && "Mechatronic Kinematics Loop"}
+                        </h4>
+                      </div>
+                      <span className="font-mono text-[7px] text-[#22d3ee] font-black tracking-widest uppercase bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/10">
+                        System Schema
+                      </span>
+                    </div>
+
+                    {/* Content Scroll Area */}
+                    <div className="flex-1 flex flex-col gap-3.5 overflow-y-auto max-h-[340px] lg:max-h-[350px] scrollbar-none pr-0.5">
+                      
+                      {/* 1. SENSORS BLOCK */}
+                      <div className="group/edu flex gap-3 p-2.5 rounded-xl bg-sky-950/15 border border-sky-500/10 hover:border-sky-500/35 transition-all">
+                        <div className="p-2 rounded-lg bg-sky-950/45 border border-sky-500/10 shrink-0 self-start group-hover/edu:scale-105 transition-transform duration-300">
+                          <Eye className="w-4 h-4 text-sky-450 text-sky-400" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-[8px] text-sky-400 font-black uppercase tracking-wider">
+                              Step 01 • Sensors (The Eyes)
+                            </span>
+                            <span className="font-mono text-[7px] text-slate-550 text-slate-500 font-semibold uppercase">
+                              {activeId === "mobot" && "INPUT: ULTRASONIC TOF"}
+                              {activeId === "monitoring" && "INPUT: HEAT R.H. % PACKETS"}
+                              {activeId === "automation" && "INPUT: INTERLOCK READS"}
+                            </span>
+                          </div>
+                          <h5 className="font-sans font-extrabold text-[11px] text-[#f1f5f9] leading-tight uppercase tracking-tight">
+                            {activeId === "mobot" && "HC-SR04 Sound Transducer"}
+                            {activeId === "monitoring" && "DHT11 Climate Micro-Sensor"}
+                            {activeId === "automation" && "Base & Joint Angle Encoders"}
+                          </h5>
+                          <p className="font-sans text-[10.5px] leading-relaxed text-slate-400 font-medium">
+                            {activeId === "mobot" && "Fires 40kHz acoustic shockwaves into forward lanes. Bouncing echoes are measured in microseconds, transforming physical path blockages into a continuous analog voltage stream."}
+                            {activeId === "monitoring" && "Detects floating heat spikes and water vapor molecules using high-precision resistive layers. Packs measured thermal data into structured 40-bit digital signals."}
+                            {activeId === "automation" && "Precision electronic rotary indicators continuously deliver joint degree orientations and check mechanical gripper contact switches."}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 2. CONTROLLERS BLOCK */}
+                      <div className="group/edu flex gap-3 p-2.5 rounded-xl bg-indigo-950/15 border border-indigo-500/10 hover:border-indigo-500/35 transition-all">
+                        <div className="p-2 rounded-lg bg-indigo-950/45 border border-indigo-500/10 shrink-0 self-start group-hover/edu:scale-105 transition-transform duration-300">
+                          <Cpu className="w-4 h-4 text-indigo-400" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-[8px] text-indigo-400 font-black uppercase tracking-wider">
+                              Step 02 • Controllers (The Brain)
+                            </span>
+                            <span className="font-mono text-[7px] text-slate-550 text-slate-500 font-semibold uppercase">
+                              {activeId === "mobot" && "MCU: ARDUINO ALGORITHM"}
+                              {activeId === "monitoring" && "MCU: BOUNDARY CHECKER"}
+                              {activeId === "automation" && "PLC: TRIGO KINEMATICS"}
+                            </span>
+                          </div>
+                          <h5 className="font-sans font-extrabold text-[11px] text-[#f1f5f9] leading-tight uppercase tracking-tight">
+                            {activeId === "mobot" && "Embedded Navigation Logic"}
+                            {activeId === "monitoring" && "Thermal & Hydration Ruleset"}
+                            {activeId === "automation" && "Inverse Trigonometric Solver"}
+                          </h5>
+                          <p className="font-sans text-[10.5px] leading-relaxed text-slate-400 font-medium">
+                            {activeId === "mobot" && "Polls distance inputs. If clearances exceed 45cm, path is declared clear. Below 45cm, it decreases thruster speed. Under 30cm, it activates emergency brakes and steers a reverse route."}
+                            {activeId === "monitoring" && "Monitors climate limits in real-time. If air humidity flags drop below threshold or thermal state climbs above 38°C, the controller automatically flags override relays."}
+                            {activeId === "automation" && "Converts 3D physical coordinates into physical motor degrees on the fly. Solves trigonometric sine/cosine angles for the Base, Shoulder, and Elbow joints."}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 3. ACTUATORS BLOCK */}
+                      <div className="group/edu flex gap-3 p-2.5 rounded-xl bg-emerald-950/15 border border-emerald-500/10 hover:border-emerald-500/35 transition-all">
+                        <div className="p-2 rounded-lg bg-emerald-950/45 border border-emerald-500/10 shrink-0 self-start group-hover/edu:scale-105 transition-transform duration-300">
+                          <Cog className="w-4 h-4 text-emerald-400 animate-spin" style={{ animationDuration: "6s" }} />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-[8px] text-emerald-400 font-black uppercase tracking-wider">
+                              Step 03 • Actuators (The Muscles)
+                            </span>
+                            <span className="font-mono text-[7px] text-slate-550 text-slate-500 font-semibold uppercase">
+                              {activeId === "mobot" && "OUTPUT: WHEELS ROTATE"}
+                              {activeId === "monitoring" && "OUTPUT: CLIMATE ENGAGED"}
+                              {activeId === "automation" && "OUTPUT: JOINT ROTORS"}
+                            </span>
+                          </div>
+                          <h5 className="font-sans font-extrabold text-[11px] text-[#f1f5f9] leading-tight uppercase tracking-tight">
+                            {activeId === "mobot" && "High-Torque Tread Wheels"}
+                            {activeId === "monitoring" && "Valves, Sprinklers & Fans"}
+                            {activeId === "automation" && "50Hz PWM Servo Angle Arms"}
+                          </h5>
+                          <p className="font-sans text-[10.5px] leading-relaxed text-slate-400 font-medium">
+                            {activeId === "mobot" && "Translates commands into direct physical momentum: runs forward at 80% thrust, decelerates to 40% when paths close, and reverses polarity (-80%) to backup safely."}
+                            {activeId === "monitoring" && "Executes environment correction: spins heavy air circulation ventilation fans and activates pressurized fluid sprinklers to return levels to safety ranges."}
+                            {activeId === "automation" && "High-precision step gears revolve. The rotary base rotates 180°, shoulder bearings lift structural loads, and parallel pneumatic claws clamp or drop items cleanly."}
+                          </p>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Interactive Footer Annotation */}
+                    <div className="border-t border-slate-900/60 pt-2 flex items-center justify-between text-[8px] font-mono select-none">
+                      <span className="text-slate-500 uppercase tracking-wider">Active State Analyzer</span>
+                      <span className="text-[#38bdf8] font-semibold animate-pulse flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-405 bg-cyan-400 animate-pulse" />
+                        CO-SYSTEM FEEDBACK: ENGAGED
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
               </div>
             </div>
             )}

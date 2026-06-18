@@ -1091,51 +1091,240 @@ export default function HomePage({
                     {/* Cute DEB-09 Bobbing Robot Frame */}
                     <motion.div
                       animate={{ 
-                        y: [0, -6, 0],
-                        scaleY: [1, 0.98, 1.01, 1],
-                        scaleX: [1, 1.02, 0.99, 1]
+                        y: [16, 6, 16],
+                        scaleY: [1, 0.97, 1.02, 1],
+                        scaleX: [1, 1.03, 0.98, 1],
+                        rotate: [-1.5, 1.5, -1.5]
                       }}
                       transition={{ 
-                        duration: 3, 
+                        duration: 3.5, 
                         repeat: Infinity, 
                         ease: "easeInOut" 
                       }}
-                      className="w-40 h-40 relative flex items-center justify-center select-none"
+                      className="w-56 h-56 relative flex items-center justify-center select-none pb-4"
                     >
                       {/* Ambient shadow glow */}
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-500/10 to-violet-500/10 blur-xl animate-pulse" />
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-500/15 to-violet-500/15 blur-2xl animate-pulse" />
                       
-                      <svg className="w-full h-full text-sky-400" viewBox="0 0 120 120" stroke="currentColor" fill="none" strokeWidth="1.5">
-                        <line x1="60" y1="35" x2="60" y2="20" strokeWidth="1" strokeDasharray="2,2" />
-                        <circle cx="60" cy="18" r="2.5" className="fill-sky-400" />
-                        <rect x="36" y="36" width="48" height="34" rx="14" fill="#030712" strokeWidth="1.7" className="stroke-sky-400" />
-                        <rect x="42" y="42" width="36" height="22" rx="8" fill="#01030a" strokeWidth="0.8" className="stroke-indigo-500/50" />
+                      <svg className="w-full h-full text-sky-400" viewBox="0 0 200 200" stroke="currentColor" fill="none" strokeWidth="1.5">
+                        <defs>
+                          <linearGradient id="finGradLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#1e1b4b" />
+                            <stop offset="100%" stopColor="#0f172a" stopOpacity="0.8" />
+                          </linearGradient>
+                          <linearGradient id="finGradRight" x1="100%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#1e1b4b" />
+                            <stop offset="100%" stopColor="#0f172a" stopOpacity="0.8" />
+                          </linearGradient>
+                          <linearGradient id="mechBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#0b0f19" stopOpacity="0.95" />
+                            <stop offset="40%" stopColor="#111827" stopOpacity="0.9" />
+                            <stop offset="100%" stopColor="#030712" stopOpacity="0.95" />
+                          </linearGradient>
+                          <linearGradient id="screenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#020617" />
+                            <stop offset="100%" stopColor="#141a3d" />
+                          </linearGradient>
+                          <radialGradient id="thrusterGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stopColor="rgba(56, 189, 248, 0.45)" />
+                            <stop offset="50%" stopColor="rgba(168, 85, 247, 0.2)" />
+                            <stop offset="100%" stopColor="rgba(56, 189, 248, 0)" />
+                          </radialGradient>
+                        </defs>
+
+                        {/* Background glowing telemetry matrices */}
+                        <motion.circle cx="100" cy="95" r="90" stroke="rgba(56, 189, 248, 0.08)" strokeWidth="0.5" strokeDasharray="2,6" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} />
+                        <motion.circle cx="100" cy="95" r="78" stroke="rgba(168, 85, 247, 0.05)" strokeWidth="0.75" strokeDasharray="30,15" animate={{ rotate: -360 }} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} />
+
+                        {/* High-Tech Antenna / Transmitter on top */}
+                        <line x1="100" y1="45" x2="100" y2="15" stroke="#c084fc" strokeWidth="2.5" />
+                        <line x1="90" y1="30" x2="110" y2="30" stroke="#38bdf8" strokeWidth="1" />
+                        <motion.circle 
+                          cx="100" cy="11" r="3.5" 
+                          fill="#38bdf8" 
+                          animate={{ opacity: [0.3, 1, 0.3], scale: [0.9, 1.2, 0.9] }} 
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }} 
+                        />
+                        {/* Glowing signal rings spreading from the antenna */}
+                        <motion.circle 
+                          cx="100" cy="11" r="14" 
+                          stroke="#38bdf8" 
+                          strokeWidth="0.75" 
+                          fill="none" 
+                          animate={{ scale: [1, 2.5], opacity: [0.8, 0] }} 
+                          transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }} 
+                        />
+
+                        {/* Floating mechanical ears/fins */}
+                        <motion.path 
+                          d="M 42,75 L 12,60 L 22,95 Z" 
+                          fill="url(#finGradLeft)" 
+                          stroke="#38bdf8" 
+                          strokeWidth="1.2"
+                          animate={{ rotate: [-3, 3, -3], y: [-1, 2, -1] }}
+                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                        <motion.path 
+                          d="M 158,75 L 188,60 L 178,95 Z" 
+                          fill="url(#finGradRight)" 
+                          stroke="#38bdf8" 
+                          strokeWidth="1.2"
+                          animate={{ rotate: [3, -3, 3], y: [-1, 2, -1] }}
+                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                        />
+
+                        {/* Floating Side Support Nodes */}
+                        <motion.g
+                          animate={{ y: [-3, 3, -3] }}
+                          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          <circle cx="18" cy="115" r="7" fill="#020617" stroke="#38bdf8" strokeWidth="1.2" />
+                          <circle cx="18" cy="115" r="2.5" fill="#a855f7" className="animate-pulse" />
+                        </motion.g>
+                        <motion.g
+                          animate={{ y: [3, -3, 3] }}
+                          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+                        >
+                          <circle cx="182" cy="115" r="7" fill="#020617" stroke="#38bdf8" strokeWidth="1.2" />
+                          <circle cx="182" cy="115" r="2.5" fill="#38bdf8" className="animate-pulse" />
+                        </motion.g>
+
+                        {/* Main Chassis Head */}
+                        <rect x="46" y="45" width="108" height="90" rx="36" fill="url(#mechBodyGrad)" stroke="#38bdf8" strokeWidth="2.2" />
                         
+                        {/* Metallic lateral plate attachments */}
+                        <rect x="40" y="68" width="6" height="44" rx="3" fill="#1e1b4b" stroke="#818cf8" strokeWidth="0.75" />
+                        <rect x="154" y="68" width="6" height="44" rx="3" fill="#1e1b4b" stroke="#818cf8" strokeWidth="0.75" />
+
+                        {/* Digital Screen Visor */}
+                        <rect x="56" y="55" width="88" height="66" rx="22" fill="url(#screenGrad)" stroke="#1e293b" strokeWidth="1.5" />
+                        
+                        {/* High-tech matrix grid lines */}
+                        <line x1="56" y1="74" x2="144" y2="74" stroke="#10b981" strokeWidth="0.3" strokeOpacity="0.12" />
+                        <line x1="56" y1="88" x2="144" y2="88" stroke="#10b981" strokeWidth="0.3" strokeOpacity="0.12" />
+                        <line x1="56" y1="102" x2="144" y2="102" stroke="#10b981" strokeWidth="0.3" strokeOpacity="0.12" />
+
+                        {/* Intelligent Dynamic Ocular Lenses */}
                         <g>
+                          {/* Left Eye HUD & Lens */}
+                          <g transform="translate(76, 85)">
+                            <circle cx="0" cy="0" r="14" fill="rgba(56, 189, 248, 0.08)" />
+                            <motion.circle 
+                              cx="0" cy="0" r="9.5" 
+                              stroke="#38bdf8" 
+                              strokeWidth="0.8" 
+                              strokeDasharray="3,3" 
+                              fill="none"
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                            />
+                            <circle cx="0" cy="0" r="6" fill="#020617" stroke="#38bdf8" strokeWidth="1" />
+                            <motion.circle 
+                              cx="0" cy="0" r="3.5" 
+                              fill="#38bdf8"
+                              animate={{ 
+                                scaleY: [1, 1, 0.1, 1, 1],
+                                fill: ["#38bdf8", "#38bdf8", "#a855f7", "#38bdf8", "#38bdf8"]
+                              }} 
+                              transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", repeatDelay: 1.4 }}
+                            />
+                            <circle cx="-1" cy="-1" r="0.75" fill="#ffffff" />
+                          </g>
+
+                          {/* Right Eye HUD & Lens */}
+                          <g transform="translate(124, 85)">
+                            <circle cx="0" cy="0" r="14" fill="rgba(56, 189, 248, 0.08)" />
+                            <motion.circle 
+                              cx="0" cy="0" r="9.5" 
+                              stroke="#38bdf8" 
+                              strokeWidth="0.8" 
+                              strokeDasharray="3,3" 
+                              fill="none"
+                              animate={{ rotate: -360 }}
+                              transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                            />
+                            <circle cx="0" cy="0" r="6" fill="#020617" stroke="#38bdf8" strokeWidth="1" />
+                            <motion.circle 
+                              cx="0" cy="0" r="3.5" 
+                              fill="#38bdf8"
+                              animate={{ 
+                                scaleY: [1, 1, 0.1, 1, 1],
+                                fill: ["#38bdf8", "#38bdf8", "#a855f7", "#38bdf8", "#38bdf8"]
+                              }} 
+                              transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", repeatDelay: 1.4 }}
+                            />
+                            <circle cx="-1" cy="-1" r="0.75" fill="#ffffff" />
+                          </g>
+                        </g>
+
+                        {/* Animated Voice/Spectrum Indicator */}
+                        <g transform="translate(86, 104)">
+                          {Array.from({ length: 6 }).map((_, idx) => (
+                            <motion.rect
+                              key={idx}
+                              x={idx * 5}
+                              y="0"
+                              width="3"
+                              height="1.5"
+                              rx="0.75"
+                              fill="#a855f7"
+                              animate={{
+                                height: [1.5, Math.floor(Math.random() * 8) + 4, 1.5],
+                                y: [0, -Math.floor(Math.random() * 3.5) - 1, 0],
+                                fill: ["#a855f7", "#38bdf8", "#a855f7"]
+                              }}
+                              transition={{
+                                duration: 0.5 + idx * 0.08,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                              }}
+                            />
+                          ))}
+                        </g>
+
+                        {/* Levitation propulsion engine rings */}
+                        <g transform="translate(100, 150)">
                           <motion.ellipse 
-                             cx="50" cy="53" rx="3.5" ry="3.5" 
-                             className="fill-sky-400" 
-                             animate={{ scaleY: [1, 1, 0.1, 1, 1] }} 
-                             transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", repeatDelay: 1.2 }}
+                            cx="0" cy="0" rx="36" ry="8" 
+                            fill="url(#thrusterGlow)" 
+                            animate={{ rx: [30, 42, 30], ry: [6, 11, 6], opacity: [0.75, 0.95, 0.75] }} 
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} 
                           />
-                          <motion.ellipse 
-                             cx="70" cy="53" rx="3.5" ry="3.5" 
-                             className="fill-sky-400" 
-                             animate={{ scaleY: [1, 1, 0.1, 1, 1] }} 
-                             transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", repeatDelay: 1.2 }}
+                          <ellipse cx="0" cy="-4" rx="24" ry="5.5" fill="#0d0e21" stroke="#38bdf8" strokeWidth="1.5" />
+                          <ellipse cx="0" cy="1" rx="15" ry="3.5" fill="#050511" stroke="#a855f7" strokeWidth="1" />
+                          
+                          {/* Animated particle streams */}
+                          <motion.line 
+                            x1="-14" y1="4" x2="-16" y2="28" 
+                            stroke="#c084fc" 
+                            strokeWidth="1" 
+                            animate={{ y1: [4, 22], y2: [16, 34], opacity: [1, 0] }} 
+                            transition={{ duration: 0.8, repeat: Infinity, ease: "easeOut" }} 
+                          />
+                          <motion.line 
+                            x1="0" y1="4" x2="0" y2="32" 
+                            stroke="#38bdf8" 
+                            strokeWidth="1.5" 
+                            animate={{ y1: [4, 25], y2: [18, 39], opacity: [1, 0] }} 
+                            transition={{ duration: 1.0, repeat: Infinity, ease: "easeOut", delay: 0.2 }} 
+                          />
+                          <motion.line 
+                            x1="14" y1="4" x2="16" y2="28" 
+                            stroke="#c084fc" 
+                            strokeWidth="1" 
+                            animate={{ y1: [4, 22], y2: [16, 34], opacity: [1, 0] }} 
+                            transition={{ duration: 0.8, repeat: Infinity, ease: "easeOut", delay: 0.15 }} 
                           />
                         </g>
-                        <path d="M 32,95 C 40,84 80,84 88,95" fill="#030712" strokeWidth="1.5" className="stroke-sky-400/80" />
-                        <circle cx="60" cy="94" r="5" fill="#050a18" className="stroke-purple-500" strokeWidth="1" />
-                        <circle cx="60" cy="94" r="2" fill="#a855f7" className="animate-pulse" />
+
                       </svg>
                     </motion.div>
 
                     {/* Holographic Projection light cone */}
-                    <div className="relative w-48 h-5 flex flex-col items-center justify-center -mt-4 mb-2 select-none pointer-events-none">
-                      <div className="absolute bottom-[6px] w-36 h-8 bg-gradient-to-t from-cyan-500/25 to-transparent blur-sm opacity-90" 
+                    <div className="relative w-64 h-6 flex flex-col items-center justify-center -mt-5 mb-2 select-none pointer-events-none">
+                      <div className="absolute bottom-[6px] w-48 h-12 bg-gradient-to-t from-cyan-500/25 to-transparent blur-sm opacity-95" 
                            style={{ clipPath: 'polygon(0% 0%, 100% 0%, 35% 100%, 65% 100%)' }} />
-                      <div className="absolute bottom-[4px] w-6 h-1 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+                      <div className="absolute bottom-[4px] w-10 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.9)]" />
                     </div>
 
                     {/* Welcome Speech Bubble */}
