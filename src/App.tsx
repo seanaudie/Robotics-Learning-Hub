@@ -18,8 +18,46 @@ import AIOutputRenderer from "./components/AIOutputRenderer";
 import HomePage from "./components/HomePage";
 import PremiumLogo from "./components/PremiumLogo";
 import { CreatorProfileModal } from "./components/CreatorProfileCard";
-import { Cpu, Zap, Eye, HelpCircle, HardDrive, Compass, BookOpen, Clock, Activity, Settings, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Terminal, Radio, Layers, Info, Sliders, Database, Code2, Network, X, Brain, Check, RefreshCw, Bot } from "lucide-react";
+import { Cpu, Zap, Eye, HelpCircle, HardDrive, Compass, BookOpen, Clock, Activity, Settings, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Terminal, Radio, Layers, Info, Sliders, Database, Code2, Network, X, Brain, Check, RefreshCw, Bot, ExternalLink } from "lucide-react";
 import { motion } from "motion/react";
+
+const TOPIC_REFERENCES = [
+  { 
+    topic: "Phase 1: Sensors, Actuators & Controllers", 
+    book: "Robotics: Modelling, Planning and Control",
+    author: "Siciliano, Sciavicco, Villani, Oriolo"
+  },
+  { 
+    topic: "Phase 2: C++ Programming", 
+    book: "A Tour of C++ (3rd Edition)",
+    author: "Bjarne Stroustrup"
+  },
+  { 
+    topic: "Phase 3: Electronics & Digital Systems", 
+    book: "The Art of Electronics (3rd Edition)",
+    author: "Paul Horowitz, Winfield Hill"
+  },
+  { 
+    topic: "Phase 4: Control Systems (PID)", 
+    book: "Modern Control Engineering (5th Edition)",
+    author: "Katsuhiko Ogata"
+  },
+  { 
+    topic: "Phase 5: Robotics Manipulators", 
+    book: "Introduction to Robotics: Mechanics & Control",
+    author: "John J. Craig"
+  },
+  { 
+    topic: "Phase 6: AI Robotics System (Machine Learning)", 
+    book: "Probabilistic Robotics",
+    author: "Sebastian Thrun, Wolfram Burgard, Dieter Fox"
+  },
+  { 
+    topic: "Phase 7: Types and Applications", 
+    book: "Springer Handbook of Robotics",
+    author: "Bruno Siciliano, Oussama Khatib"
+  }
+];
 
 interface SignalDetails {
   type: string;
@@ -175,6 +213,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<"foundations" | "diagnostics" | "advisor" | "programming" | "electronics" | "control" | "ai" | "manipulators" | "types">("foundations");
   const [explorerSection, setExplorerSection] = useState<"catalog" | "control" | "ai">("catalog");
   const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
+  const [showReferencesDropdown, setShowReferencesDropdown] = useState(false);
   const [controlLoopModalType, setControlLoopModalType] = useState<"closed" | "open" | null>(null);
 
   useEffect(() => {
@@ -1160,6 +1199,46 @@ export default function App() {
                   >
                     [ AUTHOR INDEX ]
                   </button>
+                  <span className="text-slate-800">|</span>
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowReferencesDropdown(!showReferencesDropdown)}
+                      className="hover:text-cyan-400 text-[#22d3ee] transition-colors cursor-pointer font-extrabold uppercase flex items-center gap-1 active:scale-95 transition-transform"
+                    >
+                      [ TOPIC REFERENCES ▾ ]
+                    </button>
+                    {showReferencesDropdown && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-[100]" 
+                          onClick={() => setShowReferencesDropdown(false)} 
+                        />
+                        <div className="fixed sm:absolute bottom-16 sm:bottom-6 left-4 right-4 sm:left-auto sm:right-0 z-[110] sm:w-[350px] max-w-[calc(100vw-32px)] sm:max-w-[360px] bg-[#020617]/95 border border-slate-800 rounded-lg p-3 shadow-2xl text-left space-y-1.5 animate-fadeIn backdrop-blur-md">
+                          <div className="border-b border-slate-800 pb-1.5 mb-1.5 flex items-center justify-between">
+                            <span className="font-sans font-black text-white text-[9px] tracking-tight uppercase">Topic Literature References</span>
+                            <span className="text-[6.5px] text-[#22d3ee] font-black uppercase font-mono">Academic Textbooks</span>
+                          </div>
+                          {TOPIC_REFERENCES.map((ref, idx) => (
+                            <div
+                              key={idx}
+                              className="block p-2 rounded bg-slate-950/40 border border-slate-900 text-left"
+                            >
+                              <div className="flex items-center justify-between mb-0.5">
+                                <span className="text-[8px] font-black text-[#22d3ee] font-mono uppercase tracking-wide">{ref.topic}</span>
+                              </div>
+                              <div className="text-[9px] font-sans font-bold text-slate-200 line-clamp-1 leading-snug">
+                                {ref.book}
+                              </div>
+                              <div className="text-[7.5px] font-mono text-slate-500">
+                                by {ref.author}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <span className="text-slate-800">|</span>
                   <span>STEM Build v2.0</span>
                 </div>
               </div>

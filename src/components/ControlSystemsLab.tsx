@@ -1166,6 +1166,181 @@ export const ControlSystemsLab = ({ onOpenModal }: { onOpenModal: (type: "closed
 
             {/* Scrollable Content */}
             <div className="overflow-y-auto pr-2 space-y-6 flex-1 scrollbar-thin scrollbar-thumb-slate-800">
+              
+              {/* PID Mathematical Equation Block */}
+              <div className="bg-slate-950/40 border border-slate-900 rounded-xl p-4 sm:p-5 space-y-4">
+                <span className="font-mono text-[8.5px] text-[#22d3ee] font-black uppercase tracking-widest block">
+                  Foundational Control Formulation
+                </span>
+                <div className="flex flex-col lg:flex-row items-stretch gap-5">
+                  {/* Left Column: Equation Graphic */}
+                  <div className="flex-1 bg-[#01040f]/70 border border-slate-900/80 rounded-xl p-4 flex flex-col justify-center items-center text-center relative overflow-hidden select-none">
+                    {/* Corner accents */}
+                    <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#22d3ee]/30" />
+                    <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[#22d3ee]/30" />
+                    
+                    <div className="absolute top-1.5 left-1.5 font-mono text-[7px] text-slate-500 uppercase tracking-widest">
+                      Continual time domain: u(t)
+                    </div>
+                    
+                    {/* Visual Equation with colorful term groupings */}
+                    <div className="my-5 flex flex-wrap items-center justify-center gap-1.5 font-mono text-xs sm:text-sm md:text-base leading-none">
+                      <span className="text-slate-100 font-bold">u(t)</span>
+                      <span className="text-slate-400 font-extrabold">=</span>
+                      
+                      {/* P Term */}
+                      <span className="text-rose-400 font-black bg-rose-950/25 px-2 py-1.5 rounded border border-rose-500/10 flex items-center shrink-0" title="Proportional Term: Present Offset">
+                        K<sub className="text-[8px] font-bold">p</sub>e(t)
+                      </span>
+                      
+                      <span className="text-slate-500 font-bold">+</span>
+                      
+                      {/* I Term */}
+                      <span className="text-amber-400 font-black bg-amber-950/25 px-2 py-1.5 rounded border border-amber-500/10 flex items-center shrink-0" title="Integral Term: Accumulated Past Offset">
+                        K<sub className="text-[8px] font-bold">i</sub>
+                        <span className="text-[17px] font-light leading-[0] mx-0.5" style={{ fontFamily: 'Georgia, serif' }}>∫</span>
+                        <sub className="text-[7.5px] translate-y-1 -translate-x-1 font-bold">0</sub>
+                        <sup className="text-[7.5px] -translate-y-1.5 -translate-x-1">t</sup>
+                        e(τ)dτ
+                      </span>
+                      
+                      <span className="text-slate-500 font-bold">+</span>
+                      
+                      {/* D Term */}
+                      <span className="text-cyan-400 font-black bg-cyan-950/25 px-2 py-1.5 rounded border border-[#22d3ee]/10 flex items-center shrink-0" title="Derivative Term: Predicted Future Slope">
+                        K<sub className="text-[8px] font-bold">d</sub>
+                        <span className="flex flex-col items-center justify-center mx-1.5 leading-none">
+                          <span className="border-b border-cyan-500/30 pb-0.5 text-[8px] font-black leading-none">de(t)</span>
+                          <span className="text-[8px] font-black pt-0.5 leading-none font-sans">dt</span>
+                        </span>
+                      </span>
+                    </div>
+
+                    <div className="text-[10px] leading-relaxed text-slate-400 max-w-[350px] font-sans">
+                      The PID system yields control force <strong className="text-slate-200 font-mono">u(t)</strong> continuously by tracking measured error <strong className="text-rose-455 text-rose-400 font-mono">e(t) = Setpoint (SV) - Process Value (PV)</strong>.
+                    </div>
+                  </div>
+
+                  {/* Right Column: Key Term Breakdowns */}
+                  <div className="w-full lg:w-[280px] flex flex-col gap-2 shrink-0 select-none">
+                    {/* Proportional Panel */}
+                    <div className="p-2.5 rounded-lg bg-rose-950/5 border border-rose-500/10 hover:border-rose-500/25 transition-all text-left">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                        <span className="font-mono text-[8px] font-black text-rose-400 uppercase tracking-widest">[P] Proportional Term (Present)</span>
+                      </div>
+                      <p className="text-[9.5px] text-slate-400 font-sans leading-normal">
+                        Drives the system based on <strong className="text-slate-305 text-slate-300 font-medium">current error gravity</strong>. Higher gains produce raw, rapid acceleration, but excessive values trigger extreme overshoot.
+                      </p>
+                    </div>
+
+                    {/* Integral Panel */}
+                    <div className="p-2.5 rounded-lg bg-amber-950/5 border border-amber-500/10 hover:border-amber-500/25 transition-all text-left">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        <span className="font-mono text-[8px] font-black text-amber-500 uppercase tracking-widest">[I] Integral Term (Past)</span>
+                      </div>
+                      <p className="text-[9.5px] text-slate-400 font-sans leading-normal">
+                        Accumulates persistent discrepancies over <strong className="text-slate-305 text-slate-300 font-medium">historic time</strong>. Integrates minor drift to eliminate steady-state offset, but introduces slow oscillations.
+                      </p>
+                    </div>
+
+                    {/* Derivative Panel */}
+                    <div className="p-2.5 rounded-lg bg-cyan-950/5 border border-cyan-500/10 hover:border-[#22d3ee]/25 transition-all text-left">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#22d3ee] animate-pulse" />
+                        <span className="font-mono text-[8px] font-black text-[#22d3ee] uppercase tracking-widest">[D] Derivative Term (Future)</span>
+                      </div>
+                      <p className="text-[9.5px] text-slate-400 font-sans leading-normal">
+                        Acts on the <strong className="text-slate-305 text-slate-300 font-medium font-sans">predicted error speed</strong>. Cushions overshoot by resistive mechanical dampening, but amplifies feedback sensor noises.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Block Diagram Canvas */}
+                <div className="bg-[#020510]/80 rounded-xl border border-slate-900/60 p-4 flex flex-col justify-center items-center text-center overflow-x-auto select-none backdrop-blur-sm">
+                  <span className="font-mono text-[7px] text-slate-500 uppercase tracking-widest mb-3.5 block">
+                    Telemetry Closed-Loop System Schema Diagram
+                  </span>
+                  
+                  {/* Clean scalable block schematic */}
+                  <svg viewBox="0 0 520 125" className="w-full min-w-[485px] max-w-[495px] font-mono text-[8px] text-slate-300 fill-current opacity-95 stroke-current">
+                    <defs>
+                      <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                        <path d="M 0 2 L 10 5 L 0 8 z" fill="#475569" className="stroke-none" />
+                      </marker>
+                      <marker id="arrow-sky" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                        <path d="M 0 2 L 10 5 L 0 8 z" fill="#22d3ee" className="stroke-none" />
+                      </marker>
+                      <marker id="arrow-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                        <path d="M 0 2 L 10 5 L 0 8 z" fill="#f43f5e" className="stroke-none" />
+                      </marker>
+                    </defs>
+
+                    {/* Setpoint (r) marker */}
+                    <text x="12" y="47" className="font-bold fill-slate-400 text-[8.5px]">Setpoint (SV)</text>
+                    <text x="12" y="57" className="text-[7px] fill-slate-500">Desired State r(t)</text>
+                    <line x1="82" y1="52" x2="108" y2="52" stroke="#475569" strokeWidth="1.2" markerEnd="url(#arrow)" />
+
+                    {/* Confluence circle error generation */}
+                    <circle cx="118" cy="52" r="8" className="fill-slate-950" stroke="#334155" strokeWidth="1.2" />
+                    <text x="118" y="55" textAnchor="middle" className="text-[9.5px] font-black fill-slate-400">+</text>
+                    <text x="113" y="67" textAnchor="middle" className="text-[9.5px] font-black fill-rose-550 fill-rose-500">-</text>
+
+                    {/* Error e(t) arrow */}
+                    <line x1="126" y1="52" x2="151" y2="52" stroke="#f43f5e" strokeWidth="1.5" markerEnd="url(#arrow-red)" />
+                    <text x="138" y="45" textAnchor="middle" className="text-[7.5px] font-black fill-rose-400">Error e(t)</text>
+
+                    {/* Path bifurcations into Kp, Ki, Kd */}
+                    <path d="M 151 52 L 151 22 L 171 22" fill="none" stroke="#475569" strokeWidth="1" markerEnd="url(#arrow)" />
+                    <path d="M 151 52 L 171 52" fill="none" stroke="#475569" strokeWidth="1" markerEnd="url(#arrow)" />
+                    <path d="M 151 52 L 151 82 L 171 82" fill="none" stroke="#475569" strokeWidth="1" markerEnd="url(#arrow)" />
+
+                    {/* Functional Operator Blocks */}
+                    {/* Proportional Block */}
+                    <rect x="171" y="12" width="76" height="20" rx="3" className="fill-rose-950/20" stroke="#f43f5e" strokeWidth="1" />
+                    <text x="209" y="24" textAnchor="middle" className="fill-rose-400 font-bold text-[7.5px]">PROPORTIONAL Kp</text>
+
+                    {/* Integral Block */}
+                    <rect x="171" y="42" width="76" height="20" rx="3" className="fill-amber-950/20" stroke="#d97706" strokeWidth="1" />
+                    <text x="209" y="54" textAnchor="middle" className="fill-amber-400 font-bold text-[7.5px]">INTEGRAL Ki</text>
+
+                    {/* Derivative Block */}
+                    <rect x="171" y="72" width="76" height="20" rx="3" className="fill-cyan-950/20" stroke="#0891b2" strokeWidth="1" />
+                    <text x="209" y="84" textAnchor="middle" className="fill-[#22d3ee] font-bold text-[7.5px]">DERIVATIVE Kd</text>
+
+                    {/* Merging Outputs into Command Confluence */}
+                    <path d="M 247 22 L 265 22 L 265 44" fill="none" stroke="#475569" strokeWidth="1" />
+                    <path d="M 247 52 L 257 52" fill="none" stroke="#475569" strokeWidth="1" markerEnd="url(#arrow)" />
+                    <path d="M 247 82 L 265 82 L 265 60" fill="none" stroke="#475569" strokeWidth="1" />
+
+                    {/* Command Confluence Circle */}
+                    <circle cx="265" cy="52" r="8" className="fill-slate-950" stroke="#334155" strokeWidth="1.2" />
+                    <text x="265" y="55" textAnchor="middle" className="text-[9.5px] font-bold fill-slate-300">+</text>
+
+                    {/* Control Output u(t) line */}
+                    <line x1="273" y1="52" x2="307" y2="52" stroke="#22d3ee" strokeWidth="1.5" markerEnd="url(#arrow-sky)" />
+                    <text x="290" y="45" textAnchor="middle" className="text-[7px] font-black fill-cyan-400">Control u(t)</text>
+
+                    {/* Plant Block */}
+                    <rect x="307" y="36" width="94" height="32" rx="4" className="fill-emerald-950/10" stroke="#10b981" strokeWidth="1.2" />
+                    <text x="354" y="49" textAnchor="middle" className="fill-emerald-400 text-[8.5px] font-black font-sans">PHYSICAL PLANT</text>
+                    <text x="354" y="60" textAnchor="middle" className="fill-slate-500 font-semibold text-[7px]" style={{ fontSize: "6.5px" }}>(Motors & Dynamics)</text>
+
+                    {/* Exit State Loop */}
+                    <line x1="401" y1="52" x2="475" y2="52" stroke="#10b981" strokeWidth="1.2" markerEnd="url(#arrow)" />
+                    <text x="438" y="45" textAnchor="middle" className="text-[7.5px] font-black fill-emerald-400">State Vector y(t)</text>
+                    <text x="480" y="47" className="font-bold fill-slate-400 text-[8.5px]">Output (PV)</text>
+                    <text x="480" y="57" className="text-[7px] fill-slate-500">Actual Measurement</text>
+
+                    {/* Returning Loop Path */}
+                    <path d="M 438 52 L 438 110 L 118 110 L 118 60" fill="none" stroke="#475569" strokeWidth="1.2" markerEnd="url(#arrow)" />
+                    <text x="278" y="105" textAnchor="middle" className="text-[7px] font-bold fill-slate-500 uppercase tracking-widest">Negative Feedback Path</text>
+                  </svg>
+                </div>
+              </div>
+
               {/* Introduction */}
               <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-4.5">
                 <h4 className="font-bold text-xs text-amber-400 font-mono uppercase tracking-wide mb-1 flex items-center gap-1.5">

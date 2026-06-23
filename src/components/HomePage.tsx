@@ -19,7 +19,8 @@ import {
   Cog,
   MessageSquare,
   Network,
-  Bot
+  Bot,
+  ExternalLink
 } from 'lucide-react';
 import { CreatorProfileCard } from './CreatorProfileCard';
 import RoboticArmIcon from './RoboticArmIcon';
@@ -55,6 +56,52 @@ export default function HomePage({
   // Dynamic Roadmap phase configurations representing the user's interactive journey
   const [activePhaseIndex, setActivePhaseIndex] = React.useState<number | null>(null);
   const [showCreatorModal, setShowCreatorModal] = React.useState(false);
+  const [showReferencesDropdown, setShowReferencesDropdown] = React.useState(false);
+
+  const TOPIC_REFERENCES = [
+    { 
+      topic: "Phase 1: Sensors, Actuators & Controllers", 
+      book: "Robotics: Modelling, Planning and Control",
+      author: "Siciliano, Sciavicco, Villani, Oriolo",
+      url: "https://openlibrary.org/books/OL22822453M/Robotics" 
+    },
+    { 
+      topic: "Phase 2: C++ Programming", 
+      book: "A Tour of C++ (3rd Edition)",
+      author: "Bjarne Stroustrup",
+      url: "https://openlibrary.org/books/OL25421528M/A_Tour_of_C%2B%2B" 
+    },
+    { 
+      topic: "Phase 3: Electronics & Digital Systems", 
+      book: "The Art of Electronics (3rd Edition)",
+      author: "Paul Horowitz, Winfield Hill",
+      url: "https://openlibrary.org/works/OL15183307W/The_art_of_electronics" 
+    },
+    { 
+      topic: "Phase 4: Control Systems (PID)", 
+      book: "Modern Control Engineering (5th Edition)",
+      author: "Katsuhiko Ogata",
+      url: "https://openlibrary.org/works/OL1966442W/Modern_control_engineering" 
+    },
+    { 
+      topic: "Phase 5: Robotics Manipulators", 
+      book: "Introduction to Robotics: Mechanics & Control",
+      author: "John J. Craig",
+      url: "https://openlibrary.org/works/OL3432049W/Introduction_to_robotics" 
+    },
+    { 
+      topic: "Phase 6: AI Robotics System (Machine Learning)", 
+      book: "Probabilistic Robotics",
+      author: "Sebastian Thrun, Wolfram Burgard, Dieter Fox",
+      url: "https://openlibrary.org/books/OL3419515M/Probabilistic_robotics" 
+    },
+    { 
+      topic: "Phase 7: Types and Applications", 
+      book: "Springer Handbook of Robotics",
+      author: "Bruno Siciliano, Oussama Khatib",
+      url: "https://link.springer.com/book/10.1007/978-3-319-32552-1" 
+    }
+  ];
 
   const roadmapPhases = [
     {
@@ -79,7 +126,7 @@ export default function HomePage({
         { label: "FEEDBACK BUS", value: "Proportional State Response" },
         { label: "CALIBRATION", value: "Signal Normalizer Active" }
       ],
-      icon: <Layers className="w-5 h-5 text-sky-400" />
+      icon: <Layers className="w-6 h-6 text-sky-400" />
     },
     {
       id: "ph-2",
@@ -103,7 +150,7 @@ export default function HomePage({
         { label: "VARIABLES", value: "Global / Local Registry" },
         { label: "COMPILING", value: "Zero-Latency ASM Emulation" }
       ],
-      icon: <Code2 className="w-5 h-5 text-indigo-400" />
+      icon: <Code2 className="w-6 h-6 text-indigo-400" />
     },
     {
       id: "ph-3",
@@ -127,7 +174,7 @@ export default function HomePage({
         { label: "REGULATION", value: "Short Circuit Checking Fuse" },
         { label: "SIMULATION", value: "High-Fidelity Amperage Probe" }
       ],
-      icon: <Zap className="w-5 h-5 text-emerald-400" />
+      icon: <Zap className="w-6 h-6 text-emerald-400" />
     },
     {
       id: "ph-4",
@@ -151,7 +198,7 @@ export default function HomePage({
         { label: "INTEGRAL", value: "Steady State Correction" },
         { label: "DERIVATIVE", value: "Damping Rate Limiter" }
       ],
-      icon: <Sliders className="w-5 h-5 text-amber-400" />
+      icon: <Sliders className="w-6 h-6 text-amber-400" />
     },
     {
       id: "ph-5",
@@ -175,7 +222,7 @@ export default function HomePage({
         { label: "SERVO PULSE", value: "Microsecond PWM Mapping" },
         { label: "PATH PLANNING", value: "Discrete State Machine" }
       ],
-      icon: <RoboticArmIcon className="w-5 h-5 text-sky-400" />
+      icon: <RoboticArmIcon className="w-6 h-6 text-sky-400" />
     },
     {
       id: "ph-6",
@@ -199,7 +246,7 @@ export default function HomePage({
         { label: "DECISIONS", value: "Dynamic Action Decision Nodes" },
         { label: "TUNING", value: "Real-time Weight Optimization" }
       ],
-      icon: <Sparkles className="w-5 h-5 text-purple-400" />
+      icon: <Sparkles className="w-6 h-6 text-purple-400" />
     },
     {
       id: "ph-types",
@@ -223,7 +270,7 @@ export default function HomePage({
         { label: "EXPERIMENT", value: "Interactive Live Kinematics" },
         { label: "CERTIFY", value: "Progress Alignment Quizzes" }
       ],
-      icon: <Bot className="w-5 h-5 text-cyan-400" />
+      icon: <Bot className="w-6 h-6 text-cyan-400" />
     },
     {
       id: "ph-diagnostics",
@@ -247,7 +294,7 @@ export default function HomePage({
         { label: "SCHEMATICS", value: "Interactive State Inspection" },
         { label: "VOLTAGE STATE", value: "Pin Telemetry Validation" }
       ],
-      icon: <Activity className="w-5 h-5 text-emerald-400" />
+      icon: <Activity className="w-6 h-6 text-emerald-400" />
     }
   ];
 
@@ -870,7 +917,7 @@ export default function HomePage({
 
       {/* MAIN CONSOLE SYSTEM DECK */}
       <main className="relative z-10 w-full max-w-7xl mx-auto flex-1 flex flex-col justify-center py-1">
-        <div className="w-full bg-[#050b1d]/90 border-2 border-slate-900/80 rounded-2xl p-4 relative overflow-hidden backdrop-blur-md shadow-[0_0_50px_rgba(15,23,42,0.6)] flex-1 flex flex-col justify-between max-h-[85vh] lg:max-h-[610px]">
+        <div className="w-full bg-[#050b1d]/90 border-2 border-slate-900/80 rounded-2xl p-4 relative lg:overflow-hidden backdrop-blur-md shadow-[0_0_50px_rgba(15,23,42,0.6)] flex-1 flex flex-col justify-between h-auto max-h-none lg:max-h-[610px]">
           {/* Ambient header divider glow */}
           <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent pointer-events-none" />
           
@@ -881,7 +928,7 @@ export default function HomePage({
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-indigo-500/20" />
 
           {/* Grid Layout: 12-Columns */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-stretch overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-stretch lg:overflow-hidden overflow-visible">
             
             {/* LEFT 7-COLUMNS: The Active STEM Sequence Selector */}
             <div className="col-span-12 lg:col-span-7 flex flex-col justify-between gap-3 bg-[#030612]/50 border border-slate-900 rounded-xl p-3 relative">
@@ -1015,7 +1062,7 @@ export default function HomePage({
 
                       <div className="flex items-center gap-2.5 overflow-hidden">
                         {/* Dynamic colored icon container */}
-                        <div className={`w-7 h-7 rounded-md flex items-center justify-center border shrink-0 transition-transform duration-350 ${
+                        <div className={`w-8.5 h-8.5 rounded-md flex items-center justify-center border shrink-0 transition-transform duration-350 ${
                           isActive
                             ? `${currentStyle.activeIconBorderCount} bg-slate-950 scale-[1.03]`
                             : "border-slate-900 bg-slate-950 text-slate-500 group-hover:border-slate-800"
@@ -1091,7 +1138,7 @@ export default function HomePage({
                     {/* Cute DEB-09 Bobbing Robot Frame */}
                     <motion.div
                       animate={{ 
-                        y: [16, 6, 16],
+                        y: [36, 26, 36],
                         scaleY: [1, 0.97, 1.02, 1],
                         scaleX: [1, 1.03, 0.98, 1],
                         rotate: [-1.5, 1.5, -1.5]
@@ -1106,7 +1153,7 @@ export default function HomePage({
                       {/* Ambient shadow glow */}
                       <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-500/15 to-violet-500/15 blur-2xl animate-pulse" />
                       
-                      <svg className="w-full h-full text-sky-400" viewBox="0 0 200 200" stroke="currentColor" fill="none" strokeWidth="1.5">
+                      <svg className="w-full h-full text-sky-400 overflow-visible" viewBox="0 0 200 200" stroke="currentColor" fill="none" strokeWidth="1.5" style={{ overflow: "visible" }}>
                         <defs>
                           <linearGradient id="finGradLeft" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" stopColor="#1e1b4b" />
@@ -1155,42 +1202,170 @@ export default function HomePage({
                           transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }} 
                         />
 
-                        {/* Floating mechanical ears/fins */}
-                        <motion.path 
-                          d="M 42,75 L 12,60 L 22,95 Z" 
-                          fill="url(#finGradLeft)" 
-                          stroke="#38bdf8" 
-                          strokeWidth="1.2"
-                          animate={{ rotate: [-3, 3, -3], y: [-1, 2, -1] }}
-                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                        />
-                        <motion.path 
-                          d="M 158,75 L 188,60 L 178,95 Z" 
-                          fill="url(#finGradRight)" 
-                          stroke="#38bdf8" 
-                          strokeWidth="1.2"
-                          animate={{ rotate: [3, -3, 3], y: [-1, 2, -1] }}
-                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                        />
+                        {/* Orbiting cybernetic rings/circles around the robot */}
+                        <g transform="translate(100, 92)">
+                          {/* Inner Orbit Line */}
+                          <ellipse cx="0" cy="0" rx="90" ry="24" fill="none" stroke="#22d3ee" strokeWidth="0.75" strokeDasharray="3 7" opacity="0.4" transform="rotate(-15)" />
+                          {/* Outer Orbit Line */}
+                          <ellipse cx="0" cy="0" rx="112" ry="30" fill="none" stroke="#a855f7" strokeWidth="1" strokeDasharray="2 6" opacity="0.35" transform="rotate(20)" />
 
-                        {/* Floating Side Support Nodes */}
+                          {/* Outer Orbit Sentinel Node 1 */}
+                          <motion.g
+                            animate={{
+                              x: [90 * Math.cos(0), 90 * Math.cos(Math.PI/2), 90 * Math.cos(Math.PI), 90 * Math.cos(3*Math.PI/2), 90 * Math.cos(2*Math.PI)],
+                              y: [24 * Math.sin(0), 24 * Math.sin(Math.PI/2), 24 * Math.sin(Math.PI), 24 * Math.sin(3*Math.PI/2), 24 * Math.sin(2*Math.PI)],
+                            }}
+                            transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
+                            style={{ transform: "rotate(-15deg)" }}
+                          >
+                            <circle r="3.5" fill="#22d3ee" />
+                            <circle r="7.5" fill="none" stroke="#22d3ee" strokeWidth="0.5" opacity="0.4" />
+                          </motion.g>
+
+                          {/* Outer Orbit Sentinel Node 2 */}
+                          <motion.g
+                            animate={{
+                              x: [-112 * Math.cos(0), -112 * Math.cos(Math.PI/2), -112 * Math.cos(Math.PI), -112 * Math.cos(3*Math.PI/2), -112 * Math.cos(2*Math.PI)],
+                              y: [-30 * Math.sin(0), -30 * Math.sin(Math.PI/2), -30 * Math.sin(Math.PI), -30 * Math.sin(3*Math.PI/2), -30 * Math.sin(2*Math.PI)],
+                            }}
+                            transition={{ duration: 11, repeat: Infinity, ease: "linear" }}
+                            style={{ transform: "rotate(20deg)" }}
+                          >
+                            <circle r="2.5" fill="#a855f7" />
+                            <circle r="5" fill="none" stroke="#a855f7" strokeWidth="0.5" opacity="0.3" />
+                          </motion.g>
+
+                          {/* Close-in Orbit Sentinel Node 3 */}
+                          <motion.circle
+                            r="2"
+                            fill="#10b981"
+                            animate={{
+                              cx: [0, 60, 0, -60, 0],
+                              cy: [16, 0, -16, 0, 16],
+                            }}
+                            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+                          />
+                        </g>
+
+                        {/* Floating Side Support Nodes with Dynamic Orbits and Scanning Lasers */}
                         <motion.g
-                          animate={{ y: [-3, 3, -3] }}
-                          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+                          animate={{ 
+                            y: [-8, 8, -8],
+                            x: [-5, 5, -5],
+                            scale: [0.95, 1.1, 0.95]
+                          }}
+                          transition={{ 
+                            duration: 3.5, 
+                            repeat: Infinity, 
+                            ease: "easeInOut" 
+                          }}
                         >
                           <circle cx="18" cy="115" r="7" fill="#020617" stroke="#38bdf8" strokeWidth="1.2" />
                           <circle cx="18" cy="115" r="2.5" fill="#a855f7" className="animate-pulse" />
+                          <path d="M 18,115 L 43,90" stroke="#38bdf8" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
                         </motion.g>
                         <motion.g
-                          animate={{ y: [3, -3, 3] }}
-                          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+                          animate={{ 
+                            y: [8, -8, 8],
+                            x: [5, -5, 5],
+                            scale: [1.1, 0.95, 1.1]
+                          }}
+                          transition={{ 
+                            duration: 3.5, 
+                            repeat: Infinity, 
+                            ease: "easeInOut", 
+                            delay: 0.8 
+                          }}
                         >
                           <circle cx="182" cy="115" r="7" fill="#020617" stroke="#38bdf8" strokeWidth="1.2" />
                           <circle cx="182" cy="115" r="2.5" fill="#38bdf8" className="animate-pulse" />
+                          <path d="M 182,115 L 157,90" stroke="#38bdf8" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
                         </motion.g>
 
+                        {/* Humanoid Robot Body Assembly */}
+                        <g>
+                          {/* Articulated Cyber-Neck Joint */}
+                          <rect x="88" y="125" width="24" height="15" rx="4" fill="#090d16" stroke="#38bdf8" strokeWidth="1.2" />
+                          <line x1="91" y1="130" x2="109" y2="130" stroke="#a855f7" strokeWidth="1" strokeDasharray="2 2" />
+                          <line x1="91" y1="135" x2="109" y2="135" stroke="#a855f7" strokeWidth="1" strokeDasharray="2 2" />
+
+                          {/* Torso / Chest Armor Shell */}
+                          <path 
+                            d="M 64,138 L 136,138 Q 142,138 138,146 L 122,166 Q 118,170 110,170 L 90,170 Q 82,170 78,166 L 62,146 Q 58,138 64,138 Z" 
+                            fill="url(#mechBodyGrad)" 
+                            stroke="#38bdf8" 
+                            strokeWidth="2" 
+                          />
+
+                          {/* Futuristic Glowing Chest Arc-Reactor Core */}
+                          <g transform="translate(100, 154)">
+                            <circle cx="0" cy="0" r="11" fill="#070a13" stroke="#a855f7" strokeWidth="1.2" />
+                            <circle cx="0" cy="0" r="7" fill="rgba(34, 211, 238, 0.15)" />
+                            {/* Rotating Inner Core Ring */}
+                            <motion.circle 
+                              cx="0" cy="0" r="7" 
+                              stroke="#22d3ee" 
+                              strokeWidth="0.8" 
+                              strokeDasharray="4,2" 
+                              fill="none" 
+                              animate={{ rotate: 360 }} 
+                              transition={{ duration: 4, repeat: Infinity, ease: "linear" }} 
+                            />
+                            <motion.circle 
+                              cx="0" cy="0" r="3.5" 
+                              fill="#22d3ee" 
+                              animate={{ scale: [0.8, 1.25, 0.8], opacity: [0.7, 1, 0.7] }} 
+                              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} 
+                            />
+                          </g>
+
+                          {/* Tech Collarbone Bars & Plate Detailing */}
+                          <line x1="68" y1="144" x2="84" y2="144" stroke="#818cf8" strokeWidth="1.2" opacity="0.7" />
+                          <line x1="116" y1="144" x2="132" y2="144" stroke="#818cf8" strokeWidth="1.2" opacity="0.7" />
+                          
+                           <path d="M 68,148 L 78,162" stroke="#38bdf8" strokeWidth="0.75" strokeDasharray="2 2" opacity="0.5" />
+                          <path d="M 132,148 L 122,162" stroke="#38bdf8" strokeWidth="0.75" strokeDasharray="2 2" opacity="0.5" />
+
+                          {/* Left Supporting/Resting Robotic Arm */}
+                          <g>
+                            {/* Solid stationary Shoulder Mount socket casing anchored to torso */}
+                            <path d="M 75,138 Q 66,134 57,143 L 67,150 Z" fill="#090d16" stroke="#38bdf8" strokeWidth="1" />
+                            <circle cx="64" cy="144" r="5.5" fill="#0b0f19" stroke="#1e293b" strokeWidth="1" />
+                            
+                            {/* Tech bracket line showing connected mechanics to body */}
+                            <line x1="74" y1="144" x2="64" y2="144" stroke="#818cf8" strokeWidth="1.2" strokeDasharray="1 1" opacity="0.8" />
+
+                            {/* Stationary joint cap with mounting core (visually locked inside the casing) */}
+                            <circle cx="64" cy="144" r="5" fill="#090d16" stroke="#c084fc" strokeWidth="1.2" />
+                            <circle cx="64" cy="144" r="2.2" fill="#22d3ee" />
+                            
+                            {/* Arm structure gently breathing */}
+                            <motion.g
+                              style={{ transformOrigin: "64px 144px" }}
+                              animate={{ rotate: [4, -4, 4] }}
+                              transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+                            >
+                              {/* Upper Arm Bone */}
+                              <path d="M 64,144 Q 48,142 44,152" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" fill="none" />
+                              <path d="M 64,144 Q 48,142 44,152" stroke="#818cf8" strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.6" />
+                              
+                              {/* Elbow */}
+                              <circle cx="44" cy="152" r="4" fill="#090d16" stroke="#c084fc" strokeWidth="1" />
+                              
+                              {/* Forearm */}
+                              <path d="M 44,152 L 32,168" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                              
+                              {/* Wrist & Mechanical Dual-Jaw Gripper Claw */}
+                              <circle cx="32" cy="168" r="3" fill="#0b0f19" stroke="#c084fc" strokeWidth="1.2" />
+                              <path d="M 31,168 C 22,172 23,184 30,186" stroke="#22d3ee" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                              <path d="M 33,168 C 42,174 41,184 34,186" stroke="#22d3ee" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                              <circle cx="32" cy="168" r="1.2" fill="#38bdf8" />
+                            </motion.g>
+                          </g>
+                        </g>
+
                         {/* Main Chassis Head */}
-                        <rect x="46" y="45" width="108" height="90" rx="36" fill="url(#mechBodyGrad)" stroke="#38bdf8" strokeWidth="2.2" />
+                        <rect x="46" y="45" width="108" height="85" rx="36" fill="url(#mechBodyGrad)" stroke="#38bdf8" strokeWidth="2.2" />
                         
                         {/* Metallic lateral plate attachments */}
                         <rect x="40" y="68" width="6" height="44" rx="3" fill="#1e1b4b" stroke="#818cf8" strokeWidth="0.75" />
@@ -1204,10 +1379,24 @@ export default function HomePage({
                         <line x1="56" y1="88" x2="144" y2="88" stroke="#10b981" strokeWidth="0.3" strokeOpacity="0.12" />
                         <line x1="56" y1="102" x2="144" y2="102" stroke="#10b981" strokeWidth="0.3" strokeOpacity="0.12" />
 
+                        {/* Beating Tiny Digital Heart in Center of Screen */}
+                        <motion.g
+                          transform="translate(100, 68)"
+                          animate={{ scale: [1, 1.3, 1, 1.3, 1] }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          <path 
+                            d="M 0,-1.5 C -1,-3 -2.5,-3 -2.5,-1.5 C -2.5,0.3 0,2 0,2 C 0,2 2.5,0.3 2.5,-1.5 C 2.5,-3 1,-3 0,-1.5 Z" 
+                            fill="none" 
+                            stroke="none"
+                            strokeWidth="0.4"
+                          />
+                        </motion.g>
+
                         {/* Intelligent Dynamic Ocular Lenses */}
                         <g>
                           {/* Left Eye HUD & Lens */}
-                          <g transform="translate(76, 85)">
+                          <g transform="translate(76, 83)">
                             <circle cx="0" cy="0" r="14" fill="rgba(56, 189, 248, 0.08)" />
                             <motion.circle 
                               cx="0" cy="0" r="9.5" 
@@ -1218,21 +1407,23 @@ export default function HomePage({
                               animate={{ rotate: 360 }}
                               transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                             />
-                            <circle cx="0" cy="0" r="6" fill="#020617" stroke="#38bdf8" strokeWidth="1" />
+                            {/* Shiny round anime eye iris */}
+                            <circle cx="0" cy="0" r="7.5" fill="#030712" stroke="#38bdf8" strokeWidth="1.2" />
                             <motion.circle 
-                              cx="0" cy="0" r="3.5" 
-                              fill="#38bdf8"
+                              cx="0" cy="0" r="4.5" 
+                              fill="#22d3ee"
                               animate={{ 
-                                scaleY: [1, 1, 0.1, 1, 1],
-                                fill: ["#38bdf8", "#38bdf8", "#a855f7", "#38bdf8", "#38bdf8"]
+                                scaleY: [1, 1, 0.08, 1, 1],
                               }} 
-                              transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", repeatDelay: 1.4 }}
+                              transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", repeatDelay: 1.8 }}
                             />
-                            <circle cx="-1" cy="-1" r="0.75" fill="#ffffff" />
+                            {/* Double Star Sparkle Reflection Highlights */}
+                            <circle cx="-1.8" cy="-1.8" r="1.6" fill="#ffffff" />
+                            <circle cx="1.6" cy="1.6" r="0.7" fill="#ffffff" />
                           </g>
-
+ 
                           {/* Right Eye HUD & Lens */}
-                          <g transform="translate(124, 85)">
+                          <g transform="translate(124, 83)">
                             <circle cx="0" cy="0" r="14" fill="rgba(56, 189, 248, 0.08)" />
                             <motion.circle 
                               cx="0" cy="0" r="9.5" 
@@ -1243,88 +1434,193 @@ export default function HomePage({
                               animate={{ rotate: -360 }}
                               transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                             />
-                            <circle cx="0" cy="0" r="6" fill="#020617" stroke="#38bdf8" strokeWidth="1" />
+                            {/* Shiny round anime eye iris */}
+                            <circle cx="0" cy="0" r="7.5" fill="#030712" stroke="#38bdf8" strokeWidth="1.2" />
                             <motion.circle 
-                              cx="0" cy="0" r="3.5" 
-                              fill="#38bdf8"
+                              cx="0" cy="0" r="4.5" 
+                              fill="#22d3ee"
                               animate={{ 
-                                scaleY: [1, 1, 0.1, 1, 1],
-                                fill: ["#38bdf8", "#38bdf8", "#a855f7", "#38bdf8", "#38bdf8"]
+                                scaleY: [1, 1, 0.08, 1, 1],
                               }} 
-                              transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", repeatDelay: 1.4 }}
+                              transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", repeatDelay: 1.8 }}
                             />
-                            <circle cx="-1" cy="-1" r="0.75" fill="#ffffff" />
+                            {/* Double Star Sparkle Reflection Highlights */}
+                            <circle cx="-1.8" cy="-1.8" r="1.6" fill="#ffffff" />
+                            <circle cx="1.6" cy="1.6" r="0.7" fill="#ffffff" />
                           </g>
                         </g>
 
-                        {/* Animated Voice/Spectrum Indicator */}
-                        <g transform="translate(86, 104)">
-                          {Array.from({ length: 6 }).map((_, idx) => (
-                            <motion.rect
-                              key={idx}
-                              x={idx * 5}
-                              y="0"
-                              width="3"
-                              height="1.5"
-                              rx="0.75"
-                              fill="#a855f7"
-                              animate={{
-                                height: [1.5, Math.floor(Math.random() * 8) + 4, 1.5],
-                                y: [0, -Math.floor(Math.random() * 3.5) - 1, 0],
-                                fill: ["#a855f7", "#38bdf8", "#a855f7"]
-                              }}
-                              transition={{
-                                duration: 0.5 + idx * 0.08,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                              }}
-                            />
-                          ))}
-                        </g>
+                        {/* Sleek Cyan Digital Smiling Mouth */}
+                        <motion.path 
+                          d="M 88,104 Q 100,112 112,104" 
+                          stroke="#22d3ee" 
+                          strokeWidth="2.5" 
+                          strokeLinecap="round" 
+                          fill="none"
+                          animate={{ 
+                            d: [
+                              "M 88,104 Q 100,112 112,104",
+                              "M 88,104 Q 100,116 112,104",
+                              "M 88,104 Q 100,108 112,104",
+                              "M 88,104 Q 100,112 112,104"
+                            ]
+                          }}
+                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                        />
 
-                        {/* Levitation propulsion engine rings */}
-                        <g transform="translate(100, 150)">
+                        {/* Levitation propulsion engine rings representing body-attached lower thruster */}
+                        <g transform="translate(100, 172)">
                           <motion.ellipse 
                             cx="0" cy="0" rx="36" ry="8" 
                             fill="url(#thrusterGlow)" 
                             animate={{ rx: [30, 42, 30], ry: [6, 11, 6], opacity: [0.75, 0.95, 0.75] }} 
                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} 
                           />
-                          <ellipse cx="0" cy="-4" rx="24" ry="5.5" fill="#0d0e21" stroke="#38bdf8" strokeWidth="1.5" />
-                          <ellipse cx="0" cy="1" rx="15" ry="3.5" fill="#050511" stroke="#a855f7" strokeWidth="1" />
+                          <ellipse cx="0" cy="-4" rx="20" ry="4.5" fill="#0d0e21" stroke="#38bdf8" strokeWidth="1.5" />
+                          <ellipse cx="0" cy="1" rx="12" ry="2.5" fill="#050511" stroke="#a855f7" strokeWidth="1" />
                           
                           {/* Animated particle streams */}
                           <motion.line 
-                            x1="-14" y1="4" x2="-16" y2="28" 
+                            x1="-11" y1="4" x2="-13" y2="24" 
                             stroke="#c084fc" 
                             strokeWidth="1" 
-                            animate={{ y1: [4, 22], y2: [16, 34], opacity: [1, 0] }} 
+                            animate={{ y1: [4, 18], y2: [14, 28], opacity: [1, 0] }} 
                             transition={{ duration: 0.8, repeat: Infinity, ease: "easeOut" }} 
                           />
                           <motion.line 
-                            x1="0" y1="4" x2="0" y2="32" 
+                            x1="0" y1="4" x2="0" y2="28" 
                             stroke="#38bdf8" 
                             strokeWidth="1.5" 
-                            animate={{ y1: [4, 25], y2: [18, 39], opacity: [1, 0] }} 
+                            animate={{ y1: [4, 20], y2: [15, 32], opacity: [1, 0] }} 
                             transition={{ duration: 1.0, repeat: Infinity, ease: "easeOut", delay: 0.2 }} 
                           />
                           <motion.line 
-                            x1="14" y1="4" x2="16" y2="28" 
+                            x1="11" y1="4" x2="13" y2="24" 
                             stroke="#c084fc" 
                             strokeWidth="1" 
-                            animate={{ y1: [4, 22], y2: [16, 34], opacity: [1, 0] }} 
+                            animate={{ y1: [4, 18], y2: [14, 28], opacity: [1, 0] }} 
                             transition={{ duration: 0.8, repeat: Infinity, ease: "easeOut", delay: 0.15 }} 
                           />
+                        </g>
+
+                        {/* Right Animated Resting Robotic Arm (Symmetrically anchored to the shoulder, pointing down) */}
+                        <g id="robotic-waving-arm-foreground">
+                          {/* Solid stationary Shoulder Mount socket casing anchored to torso */}
+                          <path d="M 125,138 Q 134,134 143,143 L 133,150 Z" fill="#090d16" stroke="#38bdf8" strokeWidth="1" />
+                          <circle cx="136" cy="144" r="5.5" fill="#0b0f19" stroke="#1e293b" strokeWidth="1" />
+                          
+                          {/* Tech bracket line showing connected mechanics to body */}
+                          <line x1="126" y1="144" x2="136" y2="144" stroke="#818cf8" strokeWidth="1.2" strokeDasharray="1 1" opacity="0.8" />
+
+                          {/* Stationary joint cap with mounting core (visually locked inside the casing) */}
+                          <circle cx="136" cy="144" r="5" fill="#090d16" stroke="#c084fc" strokeWidth="1.2" />
+                          <circle cx="136" cy="144" r="2.2" fill="#22d3ee" />
+
+                          {/* Arm structure gently breathing, symmetrically mirrored to left arm */}
+                          <motion.g
+                            style={{ transformOrigin: "136px 144px" }}
+                            animate={{ rotate: [-4, 4, -4] }}
+                            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+                          >
+                            {/* Upper Arm Segment (oriented downwards/outwards) */}
+                            <path d="M 136,144 Q 152,142 156,152" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" fill="none" />
+                            <path d="M 136,144 Q 152,142 156,152" stroke="#818cf8" strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.6" />
+                            
+                            {/* Elbow Joint base ring */}
+                            <circle cx="156" cy="152" r="4" fill="#090d16" stroke="#c084fc" strokeWidth="1" />
+                            
+                            {/* Forearm, Wrist, & Gripper Assembly pointing down */}
+                            <path d="M 156,152 L 168,168" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                            <path d="M 156,152 L 168,168" stroke="#818cf8" strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.5" />
+                            
+                            {/* Wrist joint */}
+                            <circle cx="168" cy="168" r="3" fill="#0b0f19" stroke="#c084fc" strokeWidth="1.2" />
+                            
+                            {/* Dual-Jaw Gripper Claw / Pincers closed/resting downwards */}
+                            <path d="M 169,168 C 178,172 177,184 170,186" stroke="#22d3ee" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                            <path d="M 167,168 C 158,174 159,184 166,186" stroke="#22d3ee" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                            
+                            {/* Connector Pin */}
+                            <circle cx="168" cy="168" r="1.2" fill="#38bdf8" />
+                          </motion.g>
                         </g>
 
                       </svg>
                     </motion.div>
 
-                    {/* Holographic Projection light cone */}
-                    <div className="relative w-64 h-6 flex flex-col items-center justify-center -mt-5 mb-2 select-none pointer-events-none">
-                      <div className="absolute bottom-[6px] w-48 h-12 bg-gradient-to-t from-cyan-500/25 to-transparent blur-sm opacity-95" 
-                           style={{ clipPath: 'polygon(0% 0%, 100% 0%, 35% 100%, 65% 100%)' }} />
-                      <div className="absolute bottom-[4px] w-10 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.9)]" />
+                    {/* Holographic Projection Platform & Light Cone */}
+                    <div className="relative w-64 h-16 flex flex-col items-center justify-center -mt-6 mb-3 select-none pointer-events-none">
+                      {/* Upward Hologram Light Cone (matching platform edge and flaring wide as it approaches the robot) */}
+                      <div 
+                        className="absolute bottom-[16px] w-[220px] h-32 bg-gradient-to-t from-cyan-500/25 via-cyan-500/8 to-transparent blur-xs opacity-85" 
+                        style={{ clipPath: 'polygon(0% 0%, 100% 0%, 88% 100%, 12% 100%)' }} 
+                      />
+                      
+                      {/* Secondary scanning active light rays */}
+                      <motion.div 
+                        className="absolute bottom-[16px] w-44 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent blur-xs"
+                        animate={{ y: [-75, 0, -75] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                      />
+
+                      {/* Holographic Oblong Platform Base (The Hologram Projector Pad) */}
+                      <svg className="w-56 h-12 absolute bottom-0 text-cyan-400 overflow-visible" viewBox="0 0 200 40">
+                        <defs>
+                          <radialGradient id="padInnerGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stopColor="rgba(34, 211, 238, 0.45)" />
+                            <stop offset="70%" stopColor="rgba(168, 85, 247, 0.08)" />
+                            <stop offset="100%" stopColor="rgba(0, 0, 0, 0)" />
+                          </radialGradient>
+                          <linearGradient id="padRimGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#c084fc" />
+                            <stop offset="50%" stopColor="#22d3ee" />
+                            <stop offset="100%" stopColor="#c084fc" />
+                          </linearGradient>
+                        </defs>
+
+                        {/* Oblong Projection Glow Area representing active pad surface */}
+                        <ellipse cx="100" cy="20" rx="72" ry="12" fill="url(#padInnerGlow)" />
+
+                        {/* Outer Rim Ring (Aesthetic Oblong Platform Deck) */}
+                        <ellipse cx="100" cy="20" rx="75" ry="14" stroke="url(#padRimGrad)" strokeWidth="1.2" opacity="0.3" fill="none" />
+                        
+                        {/* Shimmering Segmented Active Ring */}
+                        <motion.ellipse 
+                          cx="100" cy="20" rx="71" ry="11.5" 
+                          stroke="#22d3ee" 
+                          strokeWidth="1.8" 
+                          strokeDasharray="16 25 8 12" 
+                          opacity="0.8" 
+                          fill="none"
+                          animate={{ strokeDashoffset: [0, 100] }}
+                          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                        />
+
+                        {/* Deep Internal Core Emitter Base */}
+                        <ellipse cx="100" cy="20" rx="35" ry="6" stroke="#c084fc" strokeWidth="1" fill="none" opacity="0.6" />
+                        <ellipse cx="100" cy="20" rx="14" ry="2.5" fill="#030712" stroke="#22d3ee" strokeWidth="1.5" />
+                        
+                        {/* Super High-Glow Core Pulse */}
+                        <motion.ellipse 
+                          cx="100" cy="20" rx="8" ry="1.5" 
+                          fill="#22d3ee"
+                          animate={{ opacity: [0.6, 1, 0.6], scale: [0.9, 1.25, 0.9] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        />
+
+                        {/* Projector Pad Corners/Brackets (Oblong Platform Accents) */}
+                        <path d="M 18,20 C 18,24 28,30 45,32" stroke="#22d3ee" strokeWidth="0.75" fill="none" opacity="0.4" />
+                        <path d="M 182,20 C 182,24 172,30 155,32" stroke="#22d3ee" strokeWidth="0.75" fill="none" opacity="0.4" />
+
+                        <path d="M 18,20 C 18,16 28,10 45,8" stroke="#22d3ee" strokeWidth="0.75" fill="none" opacity="0.4" />
+                        <path d="M 182,20 C 182,16 172,10 155,8" stroke="#22d3ee" strokeWidth="0.75" fill="none" opacity="0.4" />
+
+                        {/* Floating holographic calibration dots */}
+                        <motion.circle cx="28" cy="18" r="1.5" fill="#c084fc" animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 2.2, repeat: Infinity, delay: 0.2 }} />
+                        <motion.circle cx="172" cy="18" r="1.5" fill="#c084fc" animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 2.2, repeat: Infinity, delay: 0.9 }} />
+                        <motion.circle cx="100" cy="31" r="1.2" fill="#22d3ee" animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.8, repeat: Infinity, delay: 0.5 }} />
+                        <motion.circle cx="100" cy="9" r="1.2" fill="#22d3ee" animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.8, repeat: Infinity, delay: 1.2 }} />
+                      </svg>
                     </div>
 
                     {/* Welcome Speech Bubble */}
@@ -1333,7 +1629,12 @@ export default function HomePage({
                         Systems Ready
                       </span>
                       <p className="font-sans text-[10px] text-cyan-200 font-medium leading-normal max-w-[260px] mx-auto">
-                        Welcome to the Robotics deck! Select a mechatronic curriculum module on the left navigation panel to align diagnostics.
+                        <span className="hidden lg:inline">
+                          Welcome to the Robotics deck! Select a mechatronic curriculum module on the left navigation panel to align diagnostics.
+                        </span>
+                        <span className="inline lg:hidden">
+                          Welcome to the Robotics deck! Select a mechatronic curriculum module above to align diagnostics.
+                        </span>
                       </p>
                     </div>
 
@@ -1357,7 +1658,7 @@ export default function HomePage({
                   {/* Phase Headline */}
                   <div className="flex items-center justify-between border-b border-slate-900 pb-2 shrink-0">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded bg-slate-950 border border-slate-800 flex items-center justify-center text-sky-400 shrink-0">
+                      <div className="w-8.5 h-8.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-center text-sky-400 shrink-0">
                         {currentPhase.icon}
                       </div>
                       <div className="text-left leading-tight">
@@ -1426,7 +1727,48 @@ export default function HomePage({
 
       {/* FOOTER AREA */}
       <footer className="relative z-10 w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between border-t border-slate-900 pt-3 mt-1.5 text-[8.5px] font-mono text-slate-500 gap-2 shrink-0">
-        <span>Robotics Learning Hub © 2026 — Dubai, UAE by Sean Buscano</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span>Robotics Learning Hub © 2026 — Dubai, UAE by Sean Buscano</span>
+          <span className="text-slate-800">|</span>
+          <div className="relative">
+            <button 
+              onClick={() => setShowReferencesDropdown(!showReferencesDropdown)}
+              className="hover:text-cyan-400 text-[#22d3ee] transition-colors cursor-pointer font-bold uppercase flex items-center gap-1 active:scale-95 transition-transform"
+            >
+              [ Topic References ▾ ]
+            </button>
+            {showReferencesDropdown && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowReferencesDropdown(false)} 
+                />
+                <div className="fixed sm:absolute bottom-16 sm:bottom-6 left-4 right-4 sm:left-0 sm:right-auto z-50 sm:w-[350px] max-w-[calc(100vw-32px)] sm:max-w-[360px] bg-[#020617]/95 border border-slate-900 rounded-lg p-3 shadow-2xl space-y-1.5 text-left animate-fadeIn backdrop-blur-md">
+                  <div className="border-b border-slate-900 pb-1.5 mb-1.5 flex items-center justify-between">
+                    <span className="font-sans font-black text-white text-[9px] tracking-tight uppercase">Topic Literature References</span>
+                    <span className="text-[6.5px] text-[#22d3ee] font-black uppercase font-mono">Academic Textbooks</span>
+                  </div>
+                  {TOPIC_REFERENCES.map((ref, idx) => (
+                    <div
+                      key={idx}
+                      className="block p-2 rounded bg-slate-950/40 border border-slate-900 text-left"
+                    >
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[8px] font-black text-[#22d3ee] font-mono uppercase tracking-wide">{ref.topic}</span>
+                      </div>
+                      <div className="text-[9px] font-sans font-bold text-slate-200 line-clamp-1 leading-snug">
+                        {ref.book}
+                      </div>
+                      <div className="text-[7.5px] font-mono text-slate-500">
+                        by {ref.author}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
         <div className="flex gap-4 select-none items-center">
           <button 
             onClick={() => setShowCreatorModal(true)} 

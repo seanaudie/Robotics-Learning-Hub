@@ -417,7 +417,29 @@ const CYBER_FLOW_SYSTEM_CSS = `
     0%, 100% { opacity: 0.15; }
     50% { opacity: 0.3; }
   }
+  @keyframes scan-wave {
+    0%, 100% { transform: scale(0.9) translateX(0px); opacity: 0.3; }
+    50% { transform: scale(1.1) translateX(3px); opacity: 0.9; }
+  }
+  @keyframes bus-signal {
+    0% { stroke-dashoffset: 12; }
+    100% { stroke-dashoffset: 0; }
+  }
+  @keyframes piston-slide {
+    0%, 100% { transform: scaleX(0.75); }
+    50% { transform: scaleX(1.2); }
+  }
+  @keyframes piston-wheel {
+    0%, 100% { transform: translateX(0px) rotate(0deg); }
+    50% { transform: translateX(7px) rotate(120deg); }
+  }
+  @keyframes motor-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 `;
+
+let sessionHasVisitedFoundations = false;
 
 export default function RoboticsFlowSystem() {
   const [activeId, setActiveId] = useState<RobotTypeId | null>(null);
@@ -527,6 +549,15 @@ export default function RoboticsFlowSystem() {
   const [isDiagnosticActive, setIsDiagnosticActive] = useState<boolean>(true);
   const [isDesktop, setIsDesktop] = useState<boolean>(false);
 
+  // Welcoming modal state for first-time visitors to the Robotics Foundations Page
+  const [showWelcomeModal, setShowWelcomeModal] = useState<boolean>(() => {
+    return !sessionHasVisitedFoundations;
+  });
+
+  // Tour mode states: once confirmed, trigger high-fidelity stage-by-stage sequential animation
+  const [isIntroTourActive, setIsIntroTourActive] = useState<boolean>(false);
+  const [tourStep, setTourStep] = useState<"sensors" | "controllers" | "actuators" | null>(null);
+
   useEffect(() => {
     const checkDesktop = () => {
       setIsDesktop(window.innerWidth >= 1024);
@@ -547,6 +578,20 @@ export default function RoboticsFlowSystem() {
 
   // Cascade initial animation timeline orchestrator
   useEffect(() => {
+    if (showWelcomeModal) {
+      // Hold initial diagnostic animation while welcome modal is showing!
+      setBootHighlightSensors(false);
+      setBootHighlightControllers(false);
+      setBootHighlightActuators(false);
+      setActiveStep(null);
+      return;
+    }
+
+    if (isIntroTourActive) {
+      // If we are in the intro tour, disable general diagnostic effects
+      return;
+    }
+
     if (isDiagnosticActive) {
       // Step 1: Highlight all three core parts together immediately
       setBootHighlightSensors(true);
@@ -577,13 +622,35 @@ export default function RoboticsFlowSystem() {
       setBootHighlightControllers(false);
       setBootHighlightActuators(false);
     }
-  }, [isDiagnosticActive]);
+  }, [isDiagnosticActive, showWelcomeModal, isIntroTourActive]);
+
+  // Guided sequential tour showing Sensors -> Controller -> Actuators step-by-step
+  useEffect(() => {
+    if (!isIntroTourActive || !tourStep) return;
+
+    const timer = setTimeout(() => {
+      if (tourStep === "sensors") {
+        setTourStep("controllers");
+        setActiveStep("controllers");
+      } else if (tourStep === "controllers") {
+        setTourStep("actuators");
+        setActiveStep("actuators");
+      } else if (tourStep === "actuators") {
+        setIsIntroTourActive(false);
+        setTourStep(null);
+        setIsDiagnosticActive(false);
+        setActiveStep("sensors");
+      }
+    }, 6000); // 6 seconds per core block to review telemetry and information
+
+    return () => clearTimeout(timer);
+  }, [isIntroTourActive, tourStep]);
 
   // Constant feedback loop moving smoothly and slowly
   // While initial boot synchronization/highlight is active, we pause the cycle.
   // In normal operation, it cycles every 9000ms to allow steady interactive exploration.
   useEffect(() => {
-    if (isDiagnosticActive || selectedExample) return;
+    if (isDiagnosticActive || selectedExample || isIntroTourActive || showWelcomeModal) return;
 
     const interval = setInterval(() => {
       setActiveStep((prev) => {
@@ -594,7 +661,7 @@ export default function RoboticsFlowSystem() {
     }, 9000);
 
     return () => clearInterval(interval);
-  }, [isDiagnosticActive, selectedExample]);
+  }, [isDiagnosticActive, selectedExample, isIntroTourActive, showWelcomeModal]);
 
   // ESC key keydown listener for seamless keyboard accessibility
   useEffect(() => {
@@ -671,6 +738,94 @@ export default function RoboticsFlowSystem() {
       <div className="relative z-10 w-full max-w-7xl mx-auto mb-8">
         <div className="w-full rounded-2xl md:rounded-3xl bg-[#01050e] border border-slate-850/80 p-5 md:p-8 flex flex-col justify-between relative overflow-hidden shadow-[inset_0_4px_50px_rgba(0,0,0,0.95)] animate-fadeIn aspect-auto md:aspect-auto min-h-auto md:min-h-0 gap-6">
           
+          {/* Intro tour guided walkthrough HUD panel */}
+          {isIntroTourActive && tourStep && (
+            <div className="relative w-full bg-slate-950/90 border border-sky-500/30 rounded-xl p-4 md:p-5 shadow-[0_0_25px_rgba(56,189,248,0.15)] overflow-hidden shrink-0 animate-fadeIn select-none text-left">
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-sky-400 via-indigo-500 to-emerald-400" />
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  {tourStep === "sensors" && (
+                    <div className="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0 select-none">
+                      <Eye className="w-5 h-5 animate-pulse" />
+                    </div>
+                  )}
+                  {tourStep === "controllers" && (
+                    <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0 select-none">
+                      <Cpu className="w-5 h-5 animate-spin [animation-duration:10s]" />
+                    </div>
+                  )}
+                  {tourStep === "actuators" && (
+                    <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 select-none">
+                      <Cog className="w-5 h-5 animate-spin" />
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className={`font-mono text-[7.5px] font-black tracking-widest px-2 py-0.5 rounded leading-none ${
+                        tourStep === "sensors" ? "bg-sky-500/10 text-sky-400 border border-sky-400/20" :
+                        tourStep === "controllers" ? "bg-indigo-500/10 text-indigo-400 border border-indigo-400/20" :
+                        "bg-emerald-500/10 text-emerald-400 border border-emerald-400/20"
+                      }`}>
+                        {tourStep === "sensors" && "01 / 03: SENSORS"}
+                        {tourStep === "controllers" && "02 / 03: CONTROLLER"}
+                        {tourStep === "actuators" && "03 / 03: ACTUATORS"}
+                      </span>
+                      <span className="font-mono text-[7px] text-[#475569] font-bold">INTRO TOUR</span>
+                    </div>
+                    <h4 className="font-sans font-extrabold text-[#f8fafc] text-sm md:text-base mt-1">
+                      {tourStep === "sensors" && "1. SENSORS (INPUT)"}
+                      {tourStep === "controllers" && "2. CONTROLLER (BRAIN)"}
+                      {tourStep === "actuators" && "3. ACTUATORS (ACTION)"}
+                    </h4>
+                    <p className="font-sans text-[10.5px] md:text-xs text-slate-400 font-semibold leading-relaxed mt-1 max-w-2xl">
+                      {tourStep === "sensors" && "Detect physical variables like distance, light, or temperature and translate them into processable data."}
+                      {tourStep === "controllers" && "Process input readings, evaluate logic parameters, and instantly compute system outputs."}
+                      {tourStep === "actuators" && "Execute physical motion, force, or operations to complete the feedback loop."}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+                  {/* Progress Dots */}
+                  <div className="flex items-center gap-1 bg-[#090f1e]/80 px-2.5 py-1.5 rounded-lg border border-slate-800 mr-2">
+                    <div className={`w-1.5 h-1.5 rounded-full ${tourStep === "sensors" ? "bg-sky-400 scale-125 shadow-[0_0_8px_#38bdf8]" : "bg-slate-705 bg-slate-700"}`} />
+                    <div className={`w-1.5 h-1.5 rounded-full ${tourStep === "controllers" ? "bg-indigo-400 scale-125 shadow-[0_0_8px_#6366f1]" : "bg-slate-705 bg-slate-700"}`} />
+                    <div className={`w-1.5 h-1.5 rounded-full ${tourStep === "actuators" ? "bg-emerald-400 scale-125 shadow-[0_0_8px_#10b981]" : "bg-slate-705 bg-slate-700"}`} />
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (tourStep === "sensors") {
+                        setTourStep("controllers");
+                        setActiveStep("controllers");
+                      } else if (tourStep === "controllers") {
+                        setTourStep("actuators");
+                        setActiveStep("actuators");
+                      } else {
+                        setIsIntroTourActive(false);
+                        setTourStep(null);
+                        setIsDiagnosticActive(false);
+                        setActiveStep("sensors");
+                      }
+                    }}
+                    className="font-mono text-[9px] font-black tracking-wider text-sky-400 uppercase py-1.5 px-3 rounded-lg border border-sky-500/30 hover:bg-sky-500/10 cursor-pointer select-none transition-colors"
+                  >
+                    {tourStep === "actuators" ? "Finish" : "Next"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsIntroTourActive(false);
+                      setTourStep(null);
+                      setIsDiagnosticActive(false);
+                      setActiveStep("sensors");
+                    }}
+                    className="font-mono text-[9px] text-slate-500 font-bold hover:text-slate-300 py-1.5 px-2.5 rounded-lg border border-transparent hover:border-slate-800 transition-colors uppercase cursor-pointer select-none"
+                  >
+                    Skip
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Top telemetry state title metrics */}
           <div className="flex items-center justify-between z-10 text-[9px] font-mono select-none">
             <div className="flex items-center gap-2">
@@ -3095,6 +3250,125 @@ export default function RoboticsFlowSystem() {
           document.body
         );
       })()}
+
+      {/* Welcome Dialog Modal for First-time Visitors */}
+      {showWelcomeModal && typeof document !== "undefined" && createPortal(
+        <div id="welcome-modal-backdrop" className="fixed inset-0 z-[100000] overflow-y-auto bg-slate-950/95 backdrop-blur-md p-4 flex justify-center items-center">
+          <div 
+            id="welcome-modal-card" 
+            className="w-full max-w-lg bg-[#030a21] border border-slate-800 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(56,189,248,0.25)] relative flex flex-col select-none text-left animate-slideUp"
+          >
+            {/* Ambient indicator bar */}
+            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-sky-400 via-indigo-500 to-emerald-400" />
+            
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-900 flex flex-col bg-[#01050e]/45">
+              <span className="font-mono text-[8px] font-black uppercase tracking-widest text-sky-400 bg-sky-950/80 px-2 py-0.5 rounded border border-sky-400/35 self-start shadow-[0_0_10px_rgba(56,189,248,0.2)]">
+                FOUNDATIONS CORE
+              </span>
+              <h3 className="font-sans font-black text-white text-lg uppercase tracking-tight mt-2">
+                The Cybernetic Loop
+              </h3>
+              <p className="font-sans text-[11px] text-slate-400 leading-normal font-semibold mt-1">
+                Robots operate on a continuous loop of continuous sensing, computation, and action.
+              </p>
+            </div>
+
+            {/* Three Blocks */}
+            <div className="p-5 space-y-2.5 bg-[#020612]/20">
+              
+              {/* Sensors Block */}
+              <div className="flex justify-between items-center gap-3 p-2.5 bg-slate-950/80 border border-slate-900 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0 select-none">
+                    <Eye className="w-4 h-4 animate-pulse" />
+                  </div>
+                  <div>
+                    <h5 className="font-sans font-black text-[11px] text-sky-400 uppercase tracking-tight">1. SENSORS (INPUT)</h5>
+                    <p className="font-sans text-[10px] text-slate-400 font-medium">
+                      Convert physical parameters (distance, light, heat) into data.
+                    </p>
+                  </div>
+                </div>
+                {/* Real Ultrasonic Range Sensor Image */}
+                <div className="w-16 h-16 border border-slate-800 rounded-lg bg-[#020713] overflow-hidden shrink-0 relative select-none shadow-[0_0_10px_rgba(56,189,248,0.15)]">
+                  <img
+                    src="/src/assets/images/hc_sr04_sensor_1782201122156.jpg"
+                    alt="HC-SR04 Ultrasonic Sensor"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              </div>
+
+              {/* Controller Block */}
+              <div className="flex justify-between items-center gap-3 p-2.5 bg-slate-950/80 border border-slate-900 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 select-none">
+                    <Cpu className="w-4 h-4 animate-spin [animation-duration:15s]" />
+                  </div>
+                  <div>
+                    <h5 className="font-sans font-black text-[11px] text-indigo-400 uppercase tracking-tight">2. CONTROLLER (BRAIN)</h5>
+                    <p className="font-sans text-[10px] text-slate-400 font-medium">
+                      Processes incoming data, matches setpoints, and issues commands.
+                    </p>
+                  </div>
+                </div>
+                {/* Real Arduino Uno Microcontroller Image */}
+                <div className="w-16 h-16 border border-slate-800 rounded-lg bg-[#020713] overflow-hidden shrink-0 relative select-none shadow-[0_0_10px_rgba(99,102,241,0.15)]">
+                  <img
+                    src="/src/assets/images/arduino_uno_mcu_1782201140144.jpg"
+                    alt="Arduino Uno R3"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              </div>
+
+              {/* Actuators Block */}
+              <div className="flex justify-between items-center gap-3 p-2.5 bg-slate-950/80 border border-slate-900 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 select-none">
+                    <Cog className="w-4 h-4 animate-spin" />
+                  </div>
+                  <div>
+                    <h5 className="font-sans font-black text-[11px] text-emerald-400 uppercase tracking-tight">3. ACTUATORS (ACTION)</h5>
+                    <p className="font-sans text-[10px] text-slate-400 font-medium">
+                      Translates digital signals back into physical force, movement, and output.
+                    </p>
+                  </div>
+                </div>
+                {/* Real DC Drive Motor Image */}
+                <div className="w-16 h-16 border border-slate-800 rounded-lg bg-[#020713] overflow-hidden shrink-0 relative select-none shadow-[0_0_10px_rgba(16,185,129,0.15)]">
+                  <img
+                    src="/src/assets/images/hobby_dc_motor_1782201157067.jpg"
+                    alt="DC Hobby Gear Motor"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="p-4 bg-[#01050e] border-t border-slate-900 flex items-center justify-center shrink-0">
+              <button 
+                onClick={() => {
+                  setShowWelcomeModal(false);
+                  sessionHasVisitedFoundations = true;
+                  setIsDiagnosticActive(true);
+                  setActiveStep(null);
+                }}
+                className="w-full font-mono text-[10px] tracking-wider font-extrabold text-[#030712] bg-sky-450 bg-sky-400 hover:bg-sky-350 hover:shadow-[0_0_15px_rgba(56,189,248,0.4)] py-2.5 rounded-lg cursor-pointer text-center transition-all uppercase"
+              >
+                Enter Foundations Core
+              </button>
+            </div>
+
+          </div>
+        </div>,
+        document.body
+      )}
 
     </div>
   );
