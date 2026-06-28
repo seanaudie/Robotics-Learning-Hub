@@ -420,6 +420,9 @@ export default function RoboticsManipulators() {
   const [rotPitch, setRotPitch] = useState<number>(20);
   const [zoom, setZoom] = useState<number>(1.25);
   const [showWireframe, setShowWireframe] = useState<boolean>(false);
+  const [showMatlabPlanes, setShowMatlabPlanes] = useState<boolean>(true);
+  const [showMatlabOuterBox, setShowMatlabOuterBox] = useState<boolean>(true);
+  const [showOriginAxes, setShowOriginAxes] = useState<boolean>(true);
   
   // Drag rotation tracking State
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -1141,6 +1144,189 @@ export default function RoboticsManipulators() {
         strokeDasharray="1,4"
         className="opacity-35"
       />
+    );
+  }
+
+  // MATLAB / Octave style 3D Grids & Coordinate Planes
+  const matlabPlanes: React.ReactNode[] = [];
+  const matlabOuterBoxLines: React.ReactNode[] = [];
+  const matlabOriginAxes: React.ReactNode[] = [];
+  const matlabAxisTicks: React.ReactNode[] = [];
+
+  const b0 = project3D({ x: -120, y: -120, z: 0 });
+  const b1 = project3D({ x: 120, y: -120, z: 0 });
+  const b2 = project3D({ x: 120, y: 120, z: 0 });
+  const b3 = project3D({ x: -120, y: 120, z: 0 });
+  const t0 = project3D({ x: -120, y: -120, z: 160 });
+  const t1 = project3D({ x: 120, y: -120, z: 160 });
+  const t2 = project3D({ x: 120, y: 120, z: 160 });
+  const t3 = project3D({ x: -120, y: 120, z: 160 });
+
+  if (showMatlabPlanes) {
+    // 1. Bottom X-Y plane grid mesh at Z = 0
+    matlabPlanes.push(
+      <polygon
+        key="plane-xy-fill"
+        points={`${b0.x},${b0.y} ${b1.x},${b1.y} ${b2.x},${b2.y} ${b3.x},${b3.y}`}
+        fill="#1e293b"
+        fillOpacity="0.1"
+        stroke="#334155"
+        strokeWidth="0.6"
+      />
+    );
+    for (let val = -120; val <= 120; val += 40) {
+      const px1 = project3D({ x: val, y: -120, z: 0 });
+      const px2 = project3D({ x: val, y: 120, z: 0 });
+      const py1 = project3D({ x: -120, y: val, z: 0 });
+      const py2 = project3D({ x: 120, y: val, z: 0 });
+
+      matlabPlanes.push(
+        <line key={`matlab-xy-x-${val}`} x1={px1.x} y1={px1.y} x2={px2.x} y2={px2.y} stroke="#475569" strokeWidth="0.4" strokeOpacity="0.5" strokeDasharray="2,2" />,
+        <line key={`matlab-xy-y-${val}`} x1={py1.x} y1={py1.y} x2={py2.x} y2={py2.y} stroke="#475569" strokeWidth="0.4" strokeOpacity="0.5" strokeDasharray="2,2" />
+      );
+    }
+
+    // 2. Back X-Z plane grid mesh at Y = 120
+    matlabPlanes.push(
+      <polygon
+        key="plane-xz-fill"
+        points={`${b3.x},${b3.y} ${b2.x},${b2.y} ${t2.x},${t2.y} ${t3.x},${t3.y}`}
+        fill="#0f172a"
+        fillOpacity="0.25"
+        stroke="#334155"
+        strokeWidth="0.6"
+      />
+    );
+    for (let x = -120; x <= 120; x += 40) {
+      const pStart = project3D({ x, y: 120, z: 0 });
+      const pEnd = project3D({ x, y: 120, z: 160 });
+      matlabPlanes.push(
+        <line key={`matlab-xz-x-${x}`} x1={pStart.x} y1={pStart.y} x2={pEnd.x} y2={pEnd.y} stroke="#475569" strokeWidth="0.4" strokeOpacity="0.5" strokeDasharray="2,2" />
+      );
+    }
+    for (let z = 0; z <= 160; z += 40) {
+      const pStart = project3D({ x: -120, y: 120, z });
+      const pEnd = project3D({ x: 120, y: 120, z });
+      matlabPlanes.push(
+        <line key={`matlab-xz-z-${z}`} x1={pStart.x} y1={pStart.y} x2={pEnd.x} y2={pEnd.y} stroke="#475569" strokeWidth="0.4" strokeOpacity="0.5" strokeDasharray="2,2" />
+      );
+    }
+
+    // 3. Left Y-Z plane grid mesh at X = -120
+    matlabPlanes.push(
+      <polygon
+        key="plane-yz-fill"
+        points={`${b0.x},${b0.y} ${b3.x},${b3.y} ${t3.x},${t3.y} ${t0.x},${t0.y}`}
+        fill="#0f172a"
+        fillOpacity="0.25"
+        stroke="#334155"
+        strokeWidth="0.6"
+      />
+    );
+    for (let y = -120; y <= 120; y += 40) {
+      const pStart = project3D({ x: -120, y, z: 0 });
+      const pEnd = project3D({ x: -120, y, z: 160 });
+      matlabPlanes.push(
+        <line key={`matlab-yz-y-${y}`} x1={pStart.x} y1={pStart.y} x2={pEnd.x} y2={pEnd.y} stroke="#475569" strokeWidth="0.4" strokeOpacity="0.5" strokeDasharray="2,2" />
+      );
+    }
+    for (let z = 0; z <= 160; z += 40) {
+      const pStart = project3D({ x: -120, y: -120, z });
+      const pEnd = project3D({ x: -120, y: 120, z });
+      matlabPlanes.push(
+        <line key={`matlab-yz-z-${z}`} x1={pStart.x} y1={pStart.y} x2={pEnd.x} y2={pEnd.y} stroke="#475569" strokeWidth="0.4" strokeOpacity="0.5" strokeDasharray="2,2" />
+      );
+    }
+
+    // 4. Coordinates Ticks & Values (Standard Matlab Ticks)
+    // X axis ticks
+    [-120, -80, -40, 0, 40, 80, 120].forEach((x) => {
+      const pos = project3D({ x, y: 120, z: 0 });
+      matlabAxisTicks.push(
+        <g key={`matlab-tick-x-${x}`}>
+          <line x1={pos.x} y1={pos.y} x2={pos.x} y2={pos.y + 4} stroke="#64748b" strokeWidth="0.8" />
+          <text x={pos.x} y={pos.y + 11} textAnchor="middle" className="font-mono text-[6px] fill-slate-400 select-none pointer-events-none font-bold">
+            {x}
+          </text>
+        </g>
+      );
+    });
+
+    // Y axis ticks
+    [-120, -80, -40, 0, 40, 80, 120].forEach((y) => {
+      const pos = project3D({ x: -120, y, z: 0 });
+      matlabAxisTicks.push(
+        <g key={`matlab-tick-y-${y}`}>
+          <line x1={pos.x} y1={pos.y} x2={pos.x - 4} y2={pos.y} stroke="#64748b" strokeWidth="0.8" />
+          <text x={pos.x - 8} y={pos.y + 2} textAnchor="end" className="font-mono text-[6px] fill-slate-400 select-none pointer-events-none font-bold">
+            {y}
+          </text>
+        </g>
+      );
+    });
+
+    // Z axis ticks
+    [0, 40, 80, 120, 160].forEach((z) => {
+      const pos = project3D({ x: -120, y: 120, z });
+      matlabAxisTicks.push(
+        <g key={`matlab-tick-z-${z}`}>
+          <line x1={pos.x} y1={pos.y} x2={pos.x - 4} y2={pos.y} stroke="#64748b" strokeWidth="0.8" />
+          <text x={pos.x - 8} y={pos.y + 2} textAnchor="end" className="font-mono text-[6px] fill-indigo-300/90 select-none pointer-events-none font-bold">
+            z={z}
+          </text>
+        </g>
+      );
+    });
+  }
+
+  if (showMatlabOuterBox) {
+    const boxLines = [
+      [b0, b1], [b1, b2], [b2, b3], [b3, b0], // Bottom square
+      [t0, t1], [t1, t2], [t2, t3], [t3, t0], // Top square
+      [b0, t0], [b1, t1], [b2, t2], [b3, t3]  // Pillar heights
+    ];
+    boxLines.forEach((line, idx) => {
+      matlabOuterBoxLines.push(
+        <line
+          key={`matlab-box-line-${idx}`}
+          x1={line[0].x}
+          y1={line[0].y}
+          x2={line[1].x}
+          y2={line[1].y}
+          stroke="#475569"
+          strokeWidth="0.8"
+          strokeOpacity="0.85"
+        />
+      );
+    });
+  }
+
+  if (showOriginAxes) {
+    const origin = project3D({ x: 0, y: 0, z: 0 });
+    const xEnd = project3D({ x: 100, y: 0, z: 0 });
+    const yEnd = project3D({ x: 0, y: 100, z: 0 });
+    const zEnd = project3D({ x: 0, y: 0, z: 100 });
+
+    matlabOriginAxes.push(
+      <g key="matlab-origin-axes" className="pointer-events-none">
+        {/* X Axis - Red */}
+        <line x1={origin.x} y1={origin.y} x2={xEnd.x} y2={xEnd.y} stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
+        <circle cx={xEnd.x} cy={xEnd.y} r="3" fill="#ef4444" />
+        <text x={xEnd.x + 6} y={xEnd.y + 2} className="font-mono text-[8px] font-black fill-red-400">X</text>
+
+        {/* Y Axis - Green */}
+        <line x1={origin.x} y1={origin.y} x2={yEnd.x} y2={yEnd.y} stroke="#22c55e" strokeWidth="2" strokeLinecap="round" />
+        <circle cx={yEnd.x} cy={yEnd.y} r="3" fill="#22c55e" />
+        <text x={yEnd.x + 6} y={yEnd.y + 2} className="font-mono text-[8px] font-black fill-green-400">Y</text>
+
+        {/* Z Axis - Blue */}
+        <line x1={origin.x} y1={origin.y} x2={zEnd.x} y2={zEnd.y} stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+        <circle cx={zEnd.x} cy={zEnd.y} r="3" fill="#3b82f6" />
+        <text x={zEnd.x + 6} y={zEnd.y + 2} className="font-mono text-[8px] font-black fill-blue-400">Z</text>
+
+        {/* Origin bead */}
+        <circle cx={origin.x} cy={origin.y} r="2" fill="#ffffff" stroke="#1e293b" strokeWidth="0.5" />
+      </g>
     );
   }
 
@@ -2261,7 +2447,74 @@ export default function RoboticsManipulators() {
               </div>
 
               {/* Viewport Settings */}
-              <div className="flex flex-wrap gap-2 items-center font-mono text-[9px]">
+              <div className="flex flex-wrap gap-2.5 items-center font-mono text-[9px] w-full lg:w-auto">
+                {/* MATLAB/Octave Camera Angle Presets */}
+                <div className="flex items-center gap-1 bg-slate-900/90 p-1 border border-slate-800 rounded-lg">
+                  <span className="text-slate-400 font-bold px-1 uppercase text-[7.5px] border-r border-slate-800 mr-1">MATLAB View:</span>
+                  <button
+                    onClick={() => { setRotYaw(-35); setRotPitch(20); }}
+                    className={`px-1.5 py-0.5 rounded transition-all font-bold ${Math.round(rotYaw) === -35 && Math.round(rotPitch) === 20 ? "bg-cyan-500 text-slate-950 font-black" : "text-slate-300 hover:bg-slate-800"}`}
+                    title="Default 3D Perspective"
+                  >
+                    3D
+                  </button>
+                  <button
+                    onClick={() => { setRotYaw(-45); setRotPitch(35); }}
+                    className={`px-1.5 py-0.5 rounded transition-all font-bold ${Math.round(rotYaw) === -45 && Math.round(rotPitch) === 35 ? "bg-cyan-500 text-slate-950 font-black" : "text-slate-300 hover:bg-slate-800"}`}
+                    title="Isometric Projection [view(3)]"
+                  >
+                    Iso
+                  </button>
+                  <button
+                    onClick={() => { setRotYaw(0); setRotPitch(90); }}
+                    className={`px-1.5 py-0.5 rounded transition-all font-bold ${Math.round(rotYaw) === 0 && Math.round(rotPitch) === 90 ? "bg-cyan-500 text-slate-950 font-black" : "text-slate-300 hover:bg-slate-800"}`}
+                    title="Top View [X-Y Plane, view(0,90)]"
+                  >
+                    XY
+                  </button>
+                  <button
+                    onClick={() => { setRotYaw(0); setRotPitch(0); }}
+                    className={`px-1.5 py-0.5 rounded transition-all font-bold ${Math.round(rotYaw) === 0 && Math.round(rotPitch) === 0 ? "bg-cyan-500 text-slate-950 font-black" : "text-slate-300 hover:bg-slate-800"}`}
+                    title="Front View [X-Z Plane, view(0,0)]"
+                  >
+                    XZ
+                  </button>
+                  <button
+                    onClick={() => { setRotYaw(-90); setRotPitch(0); }}
+                    className={`px-1.5 py-0.5 rounded transition-all font-bold ${Math.round(rotYaw) === -90 && Math.round(rotPitch) === 0 ? "bg-cyan-500 text-slate-950 font-black" : "text-slate-300 hover:bg-slate-800"}`}
+                    title="Side View [Y-Z Plane, view(90,0)]"
+                  >
+                    YZ
+                  </button>
+                </div>
+
+                {/* MATLAB/Octave Grid Style Toggles */}
+                <div className="flex items-center gap-1 bg-slate-900/90 p-1 border border-slate-800 rounded-lg">
+                  <span className="text-slate-400 font-bold px-1 uppercase text-[7.5px] border-r border-slate-800 mr-1">Plots:</span>
+                  <button
+                    onClick={() => setShowMatlabPlanes(!showMatlabPlanes)}
+                    className={`px-1.5 py-0.5 rounded transition-all font-bold ${showMatlabPlanes ? "bg-indigo-500 text-slate-950 font-black" : "text-slate-400 line-through hover:bg-slate-800"}`}
+                    title="Toggle XY/XZ/YZ planes with grid lines"
+                  >
+                    Planes
+                  </button>
+                  <button
+                    onClick={() => setShowMatlabOuterBox(!showMatlabOuterBox)}
+                    className={`px-1.5 py-0.5 rounded transition-all font-bold ${showMatlabOuterBox ? "bg-indigo-500 text-slate-950 font-black" : "text-slate-400 line-through hover:bg-slate-800"}`}
+                    title="Toggle 3D coordinate bounding box wireframe"
+                  >
+                    Box
+                  </button>
+                  <button
+                    onClick={() => setShowOriginAxes(!showOriginAxes)}
+                    className={`px-1.5 py-0.5 rounded transition-all font-bold ${showOriginAxes ? "bg-indigo-500 text-slate-950 font-black" : "text-slate-400 line-through hover:bg-slate-800"}`}
+                    title="Toggle RGB (XYZ) coordinate axes from origin"
+                  >
+                    XYZ Axes
+                  </button>
+                </div>
+
+                {/* Zoom Control */}
                 <div className="flex items-center gap-1 bg-slate-900 p-1 border border-slate-800 rounded-lg">
                   <span className="text-slate-400 ml-1">Zoom:</span>
                   <input
@@ -2324,17 +2577,27 @@ export default function RoboticsManipulators() {
                 </defs>
 
                 {/* Dynamic 3D Horizontal Grid and Coordinate Systems Plane */}
-                {radialGridLines}
-                {gridLines}
+                {!showMatlabPlanes && radialGridLines}
+                {!showMatlabPlanes && gridLines}
 
                 {/* Concentric 3D Range Sweep Circles */}
-                <path d={getProjectedCirclePath(45)} fill="none" stroke="#22d3ee" strokeWidth="0.6" strokeDasharray="2,4" className="opacity-20" />
-                <path d={getProjectedCirclePath(90)} fill="none" stroke="#22d3ee" strokeWidth="0.75" strokeDasharray="3,5" className="opacity-30" />
-                <path d={getProjectedCirclePath(135)} fill="none" stroke="#22d3ee" strokeWidth="0.95" strokeDasharray="4,6" className="opacity-35" />
-                <path d={getProjectedCirclePath(150)} fill="none" stroke="#22d3ee" strokeWidth="1.2" className="opacity-15" />
+                {!showMatlabPlanes && (
+                  <>
+                    <path d={getProjectedCirclePath(45)} fill="none" stroke="#22d3ee" strokeWidth="0.6" strokeDasharray="2,4" className="opacity-20" />
+                    <path d={getProjectedCirclePath(90)} fill="none" stroke="#22d3ee" strokeWidth="0.75" strokeDasharray="3,5" className="opacity-30" />
+                    <path d={getProjectedCirclePath(135)} fill="none" stroke="#22d3ee" strokeWidth="0.95" strokeDasharray="4,6" className="opacity-35" />
+                    <path d={getProjectedCirclePath(150)} fill="none" stroke="#22d3ee" strokeWidth="1.2" className="opacity-15" />
+                  </>
+                )}
 
                 {/* Dynamic Cardinal Degree Marks in 3D projection */}
-                {axisTicks}
+                {!showMatlabPlanes && axisTicks}
+
+                {/* MATLAB / Octave 3D Grid Planes & Coordinate Systems */}
+                {matlabPlanes}
+                {matlabOuterBoxLines}
+                {matlabAxisTicks}
+                {matlabOriginAxes}
 
                 {/* Horizontal projection path outlines of arm segments on plane */}
                 <path
